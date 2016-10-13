@@ -1,0 +1,29 @@
+przed zaniesieniem tego komuś TRZEBA:
+
+1. w parametersSex ustawić sex na M jeśli osoba jest mężczyzną, na D jeśli kobietą
+2. w parameters ustawić timeGap w zależności od tego jak szybko ma skanować
+3. do multimedia/pictures wrzucić zdjęcia z poprawnymi słowami w nazwach, pisane małymi literami, z rozszerzeniem .jpg albo .jpeg
+4. do multimedia/voices wrzucić DOBRE nagrania, nazwa taka jak odpowiedniego zdjęcia z rozszerzeniem .ogg
+5. do multimedia/rewards wrzucić piosenki, które dana osoba lubi albo jakieś audio z rozszerzeniem .ogg
+6. w parametersCW ustawić maxPoints na co najmniej 20
+7. w parametersCW ustawić wartość ileLuk na tyle ile potrzeba (nie więcej niż jedna)
+
+
+
+PS!!
+
+zostawiłem kilka rzeczy:
+
+-zwiększyłem odstępy pomiędzy polami ale dałem ciemno szary, wydaje mi się, że jest bardzo wyraźnie, a wygląda bardziej zachęcająco niż na czarno
+
+-zostawiłem pisane litery bo dużo by trzeba zmieniać, a chyba się nie zdecydowaliśmy jeszcze do końca, a pozatym raczej wszędzie (internet np) się pisze głównie pisanymi, a to ma chyba oswajać z takimi rzeczami
+
+-w znajdź błąd zostawiłem te szare pola bo też dużo by trzeba zmieniać, a chyba jak na teraz wygląda dość znośnie i czytelnie, zostawiłem też cyfry ale dodałem ułatwienie i chyba z pomocą kogoś obok to jest dużo ciekawsze (może nie najlepsze ćwiczenie na początek)
+
+
+Jeśli naprawdę lepiej żebym to zmienił, to mogę na początku tygodnia zmienić
+
+
+PS 2
+
+można wstawić e-platform.py jako przycisk do AP zakładając, że zadziała self.parent.stoper.Start(self.parent.timeGap) z AP jako parentem i nie będą się mieszać pliki

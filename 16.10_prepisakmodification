@@ -1,0 +1,11 @@
+sudo apt-get install python-wxgtk3.0
+
+find . -type f -print0 | xargs -0 sed -i 's/wxversion.select( '2.8' )/# wxversion.select( '2.8' )/g'
+
+find . -type f -print0 | xargs -0 sed -i 's/get_pid_list( )/pids( )/g'
+find . -type f -print0 | xargs -0 sed -i 's/get_pid_list()/pids( )/g'
+
+find . -type f -print0 | xargs -0 sed -i 's/wx.PySimpleApp( )/wx.App(False)/g'
+find . -type f -print0 | xargs -0 sed -i 's/wx.PySimpleApp()/wx.App(False)/g'
+
+find . -type f -print0 | xargs -0 sed -i 's/wx.FONTWEIGHT_LIGHT/wx_FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL/g'

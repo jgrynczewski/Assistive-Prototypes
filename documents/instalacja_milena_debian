@@ -1,0 +1,64 @@
+1. Przygotowanie środowiska:
+
+a) Włączenie repozytoria contrib i non-free
+b) Pobranie klucz repo Ethanak'a:
+
+Kod:
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 970AAB7E
+
+c) Dopisanie do /etc/apt/sources.list linijkę:
+
+Kod:
+deb-src http://ppa.launchpad.net/ethanak/milena/ubuntu/ precise main
+
+(tak, dokładnie taką, nie może być wyżej niż precise bo trzeba byłoby cofać patche, a różnica jest wyłącznie w innym miejscu trzymania bibliotek)
+
+d) Wydanie polecenia:
+
+Kod:
+sudo apt-get update
+sudo apt-get build-dep libivolektor milena
+
+2) Kompilacja pierwszych komponentów. Przykładowo wszystko umieszczone w katalogu ~src/milena:
+
+Kod:
+mkdir -p ~/src/milena
+cd ~/src/milena
+apt-get source libivolektor milena milena-data milena-basewords
+cd milena-data-0.*/
+dpkg-buildpackage -rfakeroot -us -uc
+cd ../milena-basewords-0.*
+dpkg-buildpackage -rfakeroot -us -uc
+cd ../milena-0.*
+dpkg-buildpackage -rfakeroot -us -uc
+cd ../libivolektor-0.*
+dpkg-buildpackage -rfakeroot -us -uc
+
+3) Instalacja (dokładnie w kolejności):
+
+Kod:
+cd ~/src/milena
+sudo gdebi libivolektor1*.deb
+sudo gdebi libivolektor-dev*.deb
+sudo dpkg -i milena-data*.deb milena-libs_0*.deb milena-basewords*.deb
+sudo gdebi milena_0*.deb
+sudo dpkg -i milena-libs-dev*.deb
+
+Przy okazji zassie się mbrola z przyległościami, sox, enca i inne przynależności...
+
+4) Konfiguracja i kompilacja milena-abc:
+
+Kod:
+sudo apt-get build-dep milena-abc
+cd ~/src/milena
+apt-get source milena-abc
+cd ~/src/milena/milena-abc-0.*
+dpkg-buildpackage -rfakeroot -us -uc
+
+5) Instalacja milena-abc
+
+Kod:
+cd ~/src/milena
+sudo gdebi milena-abc*.deb
+
+Po tych czynnościach powinna działać Milena na Debianie 7 Wheezy w wersji 64 bitowej.

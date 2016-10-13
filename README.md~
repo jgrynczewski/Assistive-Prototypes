@@ -46,4 +46,5 @@ The installation process is now completed. To run AP, type the following in the 
 
 `./ap.py`
 
+Click the left mouse button to navigate.
 Calibre and Smplayer should have been configurated before running AP. Proposed configuration can be found in the *Configuration.pdf*.

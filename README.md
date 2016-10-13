@@ -13,7 +13,7 @@
 	You should have received a copy of the GNU General Public License
 	along with AP.  If not, see <http://www.gnu.org/licenses/>.
 
-#AP -Assistive Prototypes
+#AP - Assistive Prototypes
 
 We have build a set of prototypes for people with severe expressive,
 communication disorders (i.e. with severe impairements in speech, language
@@ -39,12 +39,12 @@ Jerzy Grynczewski, Andrzej Jeziorski, Bartosz Jura, Sasza Kijek, Tomasz Spustek
 Enter the following commands at the command line of a terminal window:
 
 * Install git: `sudo apt-get install git`
-* Clone the repo: `git clone git://github.com/jgrynczewski/AP.git`
-* Enter the AP directory and install all dependencies: `cd pre-pisak && bash install.sh`
+* Clone the repo: `git clone git://github.com/jgrynczewski/Assistive-Prototypes.git`
+* Enter the Assistive-Prototypes directory and install all dependencies: `cd Asistive-Prototypes && bash install.sh`
 
 The installation process is now completed. To run AP, type the following in the AP directory:
 
-`./PrePisak.py`
+`./ap.py`
 
 Click the left mouse button to navigate.
 Calibre and Smplayer should have been configurated before running AP. Proposed configuration can be found in the *Configuration.pdf*.

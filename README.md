@@ -1,6 +1,6 @@
 ![alt text](/icons/gpl.png)
 
-	AP- Assistive Prototypes is free software: you can redistribute it
+	AP - Assistive Prototypes is free software: you can redistribute it
 	and/or modify it under the terms of the GNU General Public License
 	as published by the Free Software Foundation, either version 3 of
 	the License, or (at your option) any later version.
@@ -40,7 +40,7 @@ Enter the following commands at the command line of a terminal window:
 
 * Install git: `sudo apt-get install git`
 * Clone the repo: `git clone git://github.com/jgrynczewski/Assistive-Prototypes.git`
-* Enter the Assistive-Prototypes directory and install all dependencies: `cd Asistive-Prototypes && bash install.sh`
+* Enter the Assistive-Prototypes directory and install all dependencies: `cd Assistive-Prototypes && bash install.sh`
 
 The installation process is now completed. To run AP, type the following in the AP directory:
 

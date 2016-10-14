@@ -30,6 +30,8 @@ from pygame import mixer
 from modules import radio, music, audiobook
 from modules import exercise
 
+if (psutil.__version__ < 2):
+    print("\nFor properly close PISAK you need newer version of psutil. \nType: sudo pip2 install 'psutil==2.2.1' --upgrade\n")
 #=============================================================================
 class main_menu( wx.Frame ):
         def __init__(self, parent, id):
@@ -123,7 +125,11 @@ class main_menu( wx.Frame ):
 
                 self.SetBackgroundColour( 'black' )
 
+<<<<<<< HEAD
                 #alsaaudio.Mixer( control = 'Master' ).setvolume( self.musicVolumeLevel, 0 )
+=======
+		#alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( self.musicVolumeLevel, 0 )
+>>>>>>> fixes
 
         #-------------------------------------------------------------------------        
         def initializeBitmaps(self):
@@ -161,6 +167,7 @@ class main_menu( wx.Frame ):
                         b.Bind( event, self.onPress )
                         b.Bind(wx.EVT_KEY_DOWN, self.onKeyPress)
                         
+<<<<<<< HEAD
                         self.sizer.Add( b, 0, wx.EXPAND )
                 self.vbox.Add( self.sizer, proportion=1, flag=wx.EXPAND | wx.TOP | wx.BOTTOM | wx.LEFT | wx.RIGHT, border=self.xBorder )
                 self.SetSizer( self.vbox )
@@ -191,6 +198,38 @@ class main_menu( wx.Frame ):
                         else:
                                 self.mousePosition = self.winWidth/1.9, self.winHeight/1.68
                         
+=======
+			self.sizer.Add( b, 0, wx.EXPAND )
+		self.vbox.Add( self.sizer, proportion=2, flag=wx.EXPAND | wx.TOP | wx.BOTTOM | wx.LEFT | wx.RIGHT, border=self.xBorder )
+		self.SetSizer( self.vbox )
+
+	        #-------------------------------------------------------------------------
+	def initializeTimer(self):
+		self.stoper = wx.Timer( self )
+		self.Bind( wx.EVT_TIMER , self.timerUpdate , self.stoper )
+
+		if self.control != 'tracker':
+			self.stoper.Start( self.timeGap )
+
+	#-------------------------------------------------------------------------
+	def createBindings(self):
+		self.Bind( wx.EVT_CLOSE , self.OnCloseWindow )
+		
+	#-------------------------------------------------------------------------
+	def OnCloseWindow(self , event):
+		
+		if self.control != 'tracker':
+			if True in [ 'debian' in item for item in os.uname( ) ]: #POSITION OF THE DIALOG WINDOW DEPENDS ON WINDOWS MANAGER NOT ON DESKTOP ENVIROMENT. THERE IS NO REASONABLE WAY TO CHECK IN PYTHON WHICH WINDOWS MANAGER IS CURRENTLY RUNNING, BESIDE IT IS POSSIBLE TO FEW WINDOWS MANAGER RUNNING AT THE SAME TIME. I DON'T SEE SOLUTION OF THIS ISSUE, EXCEPT OF CREATING OWN SIGNAL (AVR MICROCONTROLLERS).
+				if os.environ.get('KDE_FULL_SESSION'):
+					self.mousePosition = self.winWidth/1.7, self.winHeight/1.7
+				# elif ___: #for gnome-debian
+				# 	self.mousePosition = self.winWidth/6.5, self.winHeight/6.
+				else:
+					self.mousePosition = self.winWidth/1.8, self.winHeight/1.7
+			else:
+				self.mousePosition = self.winWidth/1.9, self.winHeight/1.68
+			
+>>>>>>> fixes
                         self.mouseCursor.move( *self.mousePosition )
 
                 dial = wx.MessageDialog(self, 'Czy napewno chcesz wyjść z programu?', 'Wyjście',

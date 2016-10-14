@@ -71,8 +71,15 @@ class radio( wx.Frame ):
 			except ValueError:
 				setattr(self, item[:item.find('=')], item[item.find('=')+1:])					    
 	
-		alsaaudio.Mixer( control = 'Master' ).setvolume( self.musicVolumeLevel, 0 )
+                self.card_index = 0
+                try:
+                        alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
+                except alsaaudio.ALSAAudioError:
+                        self.card_index = 1
 
+                alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
+                        
+                        
 		self.flag = 'row'
 		self.pressFlag = False
 
@@ -328,8 +335,8 @@ class radio( wx.Frame ):
 
 			if self.label == 'volume_down':
 				try:
-					recentVolume = alsaaudio.Mixer( control = 'Master' ).getvolume( )[ 0 ] 
-					alsaaudio.Mixer( control = 'Master' ).setvolume( recentVolume - 15, 0 )
+					recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ] 
+					alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( recentVolume - 15, 0 )
 							
 				except alsaaudio.ALSAAudioError:
 					self.button.SetBackgroundColour( 'red' )
@@ -339,8 +346,8 @@ class radio( wx.Frame ):
 
 			elif self.label == 'volume_up':
 				try:
-					recentVolume = alsaaudio.Mixer( control = 'Master' ).getvolume( )[ 0 ] 
-					alsaaudio.Mixer( control = 'Master' ).setvolume( recentVolume + 15, 0 )
+					recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ] 
+					alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( recentVolume + 15, 0 )
 							
 				except alsaaudio.ALSAAudioError:
 					self.button.SetBackgroundColour( 'red' )
@@ -442,8 +449,8 @@ class radio( wx.Frame ):
                                                         self.stoper.Start( self.timeGap )
 
 							try:
-								recentVolume = alsaaudio.Mixer( control = 'Master' ).getvolume( )[ 0 ] 
-								alsaaudio.Mixer( control = 'Master' ).setvolume( recentVolume - 15, 0 )
+								recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ] 
+								alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( recentVolume - 15, 0 )
 								time.sleep( 1.5 )
 
 							except alsaaudio.ALSAAudioError:
@@ -460,8 +467,8 @@ class radio( wx.Frame ):
                                                         self.stoper.Start( self.timeGap )
 
 							try:
-								recentVolume = alsaaudio.Mixer( control = 'Master' ).getvolume( )[ 0 ] 
-								alsaaudio.Mixer( control = 'Master' ).setvolume( recentVolume + 15, 0 )
+								recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ] 
+								alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( recentVolume + 15, 0 )
 								time.sleep( 1.5 )
 
 							except alsaaudio.ALSAAudioError:

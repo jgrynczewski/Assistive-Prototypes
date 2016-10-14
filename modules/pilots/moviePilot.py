@@ -276,8 +276,8 @@ class pilot( wx.Frame ):
 
 				if self.label == 'volume down':
 					try:
-						recentVolume = alsaaudio.Mixer( control = 'Master' ).getvolume( )[ 0 ] 
-						alsaaudio.Mixer( control = 'Master' ).setvolume( recentVolume - 15, 0 )
+						recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
+						alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume - 15, 0 )
 						time.sleep( 1.5 )
 
 					except alsaaudio.ALSAAudioError:
@@ -289,8 +289,8 @@ class pilot( wx.Frame ):
 					
 				elif self.label == 'volume up':
 					try:
-						recentVolume = alsaaudio.Mixer( control = 'Master' ).getvolume( )[ 0 ] 
-						alsaaudio.Mixer( control = 'Master' ).setvolume( recentVolume + 15, 0 )
+						recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
+						alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume + 15, 0 )
 						time.sleep( 1.5 )
 					
 					except alsaaudio.ALSAAudioError:
@@ -410,8 +410,8 @@ class pilot( wx.Frame ):
 
 					if self.buttons[ self.position ][ 0 ] == 'volume down':
 						try:
-							recentVolume = alsaaudio.Mixer( control = 'Master' ).getvolume( )[ 0 ] 
-							alsaaudio.Mixer( control = 'Master' ).setvolume( recentVolume - 15, 0 )
+							recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
+							alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume - 15, 0 )
 							time.sleep( 1.5 )
 
 						except alsaaudio.ALSAAudioError:
@@ -423,8 +423,8 @@ class pilot( wx.Frame ):
 
 					elif self.buttons[ self.position ][ 0 ] == 'volume up':
 						try:
-							recentVolume = alsaaudio.Mixer( control = 'Master' ).getvolume( )[ 0 ] 
-							alsaaudio.Mixer( control = 'Master' ).setvolume( recentVolume + 15, 0 )
+							recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
+							alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume + 15, 0 )
 							time.sleep( 1.5 )
 
 						except alsaaudio.ALSAAudioError:

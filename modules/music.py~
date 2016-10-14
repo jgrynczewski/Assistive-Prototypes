@@ -16,27 +16,27 @@
 # You should have received a copy of the GNU General Public License
 # along with AP. If not, see <http://www.gnu.org/licenses/>.
 
-import wxversion
+# import wxversion
 # wxversion.select( '2.8' )
 
-import sys, glob, os, time #modules of the Python standard library 
+import glob, os, sys, time #modules of the Python standard library 
 import wx, alsaaudio, psutil
 import wx.lib.buttons as bt
-import glib
 
+import glib
 from pymouse import PyMouse
 from pygame import mixer
 
-from pilots import audiobookPilot
+from pilots import musicPilot
 
 
 #=============================================================================
-class audiobook( wx.Frame ):
+class music( wx.Frame ):
 	def __init__(self, parent, id):
 	
 	    self.winWidth, self.winHeight = wx.DisplaySize( )
 
-            wx.Frame.__init__( self , parent , id, 'ATaudiobook' )
+            wx.Frame.__init__( self , parent , id, 'music' )
 	    style = self.GetWindowStyle( )
             self.SetWindowStyle( style | wx.STAY_ON_TOP )
             self.parent = parent
@@ -60,7 +60,7 @@ class audiobook( wx.Frame ):
 
 		sys.path.append( self.pathToAP )
 		from reader import reader
-		
+
 		reader = reader()
 		reader.readParameters()
 		parameters = reader.getParameters()
@@ -69,9 +69,8 @@ class audiobook( wx.Frame ):
 			try:
 				setattr(self, item[:item.find('=')], int(item[item.find('=')+1:]))
 			except ValueError:
-				setattr(self, item[:item.find('=')], item[item.find('=')+1:])
-
-
+				setattr(self, item[:item.find('=')], item[item.find('=')+1:])			
+		
                 self.card_index = 0
                 try:
                         alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
@@ -81,7 +80,7 @@ class audiobook( wx.Frame ):
                 alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
 
 		self.pressFlag = False
-		
+
 		self.numberOfRows = 3,
 		self.numberOfColumns = 5,
 		
@@ -90,16 +89,16 @@ class audiobook( wx.Frame ):
 		self.panelIteration = 0
 		self.emptyColumnIteration = 0
 		self.emptyRowIteration = 0
-		self.emptyPanelIteration = 0
+		self.emptyPanelIteration = 0		
 		self.maxEmptyColumnIteration = 2									
 		self.maxEmptyRowIteration = 2									
 		self.maxEmptyPanelIteration = 2
 
-		self.numberOfPresses = 1
-
                 self.volumeDownFactor = .9
                 self.volumeUpFactor = 1.1
 
+		self.numberOfPresses = 1
+		
 		if self.control != 'tracker':
 			self.mouseCursor = PyMouse( )
 			self.mousePosition = self.winWidth - 8 - self.xBorder, self.winHeight - 8 - self.yBorder
@@ -120,21 +119,34 @@ class audiobook( wx.Frame ):
         def initializeBitmaps(self):
 		
 		try:
-                        self.path = glib.get_user_special_dir(glib.USER_DIRECTORY_MUSIC)+"/audiobooks/"
+			self.path = glib.get_user_special_dir(glib.USER_DIRECTORY_MUSIC)+"/"
 
-			files = os.listdir( self.path )
-			files.sort( key=lambda f: os.path.getmtime( os.path.join(self.path, f) ) )
+			directories = [ directory for directory in os.listdir( self.path ) if os.path.isdir( os.path.join( self.path, directory )) ]
+
+                        if 'audiobooks' in directories:
+                                directories.remove('audiobooks')
+
+			#directories.sort( key=lambda directory: os.path.getmtime( os.path.join(self.path, directory) ) )
+                        try:
+			        directories = sorted( directories, key = lambda x: int( x.split( "_" )[ 0 ] ) )
 
 			self.existingLogos, self.existingMedia = [ ], [ ]
-			for item in files:
-				fileExtension = item[ item.rfind('.')+1: ]
-				if fileExtension == 'png' or fileExtension == 'jpg' or fileExtension == 'jpeg':
-					self.existingLogos.append( item )
-				elif fileExtension == 'mp3':
-					self.existingMedia.append( item )
 
-			self.existingLogos = sorted( self.existingLogos, key=lambda name: int(name.split( '_', 2 )[ 0 ]) )
-			self.existingMedia = sorted( self.existingMedia, key=lambda name: int(name.split( '_', 2 )[ 0 ]) )
+			for item in directories:
+
+                                itemPath = self.path + item + "/"
+
+				if 'playlist.m3u' in os.listdir( itemPath ):
+
+					self.existingMedia.append( itemPath + 'playlist.m3u' )
+                                        self.existingLogos.append( [itemPath+f for f in os.listdir(itemPath) if f.startswith("cover")][0] )
+                                                
+				else:
+					ositem = item.replace( ' ', '\ ' ).replace( '(', '\(').replace( ')', '\)' ).replace( '&', '\&')
+					os.system( 'ls -d -1 %s/*.mp* > %s/playlist.m3u' % ( self.path.replace( ' ', '\ ' ) + ositem , self.path.replace( ' ', '\ ' ) + ositem ) )
+
+					self.existingMedia.append( itemPath + 'playlist.m3u' )
+                                        self.existingLogos.append( [itemPath+f for f in os.listdir(itemPath) if f.startswith("cover")][0] )
 
                         if len( self.existingMedia ) > 0:
                                 self.numberOfPanels = 1 + ( len( self.existingMedia )-1) / ( ( self.numberOfRows[ 0 ]-1 ) * self.numberOfColumns[ 0 ] )
@@ -147,28 +159,30 @@ class audiobook( wx.Frame ):
 
 			for number in range( self.numberOfPanels ):
 				logoNames = self.existingLogos[ number * ( self.numberOfRows[ 0 ] - 1 ) * self.numberOfColumns[ 0 ] : ( number + 1 ) * ( self.numberOfRows[ 0 ] - 1 ) * self.numberOfColumns[ 0 ] ]
-				logoPaths = [ self.path + name for name in logoNames ]
 
-				logos = [ wx.ImageFromStream( open( logo, "rb" ) ) for logo in logoPaths ]
+				logos = [ wx.ImageFromStream( open( logo, "rb" ) ) for logo in logoNames ]
 				logos = [ logo.Rescale( logo.GetSize( )[ 0 ] * ( self.newHeight / float( logo.GetSize( )[ 1 ] ) ), self.newHeight, wx.IMAGE_QUALITY_HIGH ) for logo in logos ]
 				logoBitmaps = [ wx.BitmapFromImage( logo ) for logo in logos ]
 
 				self.panels[ number+1 ] = [ logoNames,  logoBitmaps ]
-
+				
 		except OSError:
 			self.panels = { 1 : [ [], [] ] }
 			self.numberOfPanels = 1
 			print "Błąd w strukturze plików."
 
 		self.functionButtonPath = [ wx.BitmapFromImage( wx.ImageFromStream( open( self.pathToAP + 'icons/volume down.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream( open( self.pathToAP + 'icons/volume up.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream( open( self.pathToAP + 'icons/show.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream( open( self.pathToAP + 'icons/delete.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream( open( self.pathToAP + 'icons/back.png', 'rb' ) ) ) ]
-		
+
 		self.functionButtonName = [ 'volume_down', 'volume_up', 'show', 'delete', 'back' ]
 
 		if self.numberOfPanels == 1:
 			self.flag = 'row'
 		else:
 			self.flag = 'panel'
-            
+
+		# print self.existingMedia
+		# print self.existingLogos
+		
 	#-------------------------------------------------------------------------
 	def createGui(self):
 
@@ -182,17 +196,17 @@ class audiobook( wx.Frame ):
 		else:
 			event = eval('wx.EVT_BUTTON')
 
-                for page in self.panels.keys( ):
+                for panel in self.panels.keys( ):
 			
 			subSizer = wx.GridBagSizer( self.xBorder, self.yBorder )
                    
 			self.subSizers.append( subSizer )
 
 			if self.panels != { 1 : [ [], [] ] }:
-				
+			
 				index = 0
-				for index, logo in enumerate( self.panels[ page ][ 1 ] ):
-					b = bt.GenBitmapButton( self, -1, name = self.panels[ page ][ 0 ][ index ], bitmap = logo )
+				for index, logo in enumerate( self.panels[ panel ][ 1 ] ):
+					b = bt.GenBitmapButton( self, -1, name = self.panels[ panel ][ 0 ][ index ], bitmap = logo )
 					b.SetBackgroundColour( self.backgroundColour )
 					b.SetBezelWidth( 3 )
 					b.Bind( event, self.onPress )
@@ -201,7 +215,7 @@ class audiobook( wx.Frame ):
 				index = -1
 
 			index_2 = 0
-			while index + index_2 < self.numberOfCells - (self.numberOfColumns[0] + 1):
+			while index + index_2 < self.numberOfCells - (self.numberOfColumns[0]+1):
 				index_2 += 1
 				b = bt.GenButton( self, -1, name = 'empty' )
 				b.Bind( event, self.onPress )
@@ -242,17 +256,17 @@ class audiobook( wx.Frame ):
 				subSizer.AddGrowableRow( number )
 			for number in range( self.numberOfColumns[ 0 ] ):
 				subSizer.AddGrowableCol( number )
-		
+
 			self.Layout( )
 
-			self. mainSizer.Add( subSizer, proportion = 1, flag = wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP | wx.BOTTOM, border = self.xBorder )
+			self. mainSizer.Add( subSizer, proportion = 1, flag = wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP | wx.BOTTOM, border = self.xBorder)
 			
 			self.SetSizer( self. mainSizer )
 			self.Center( True )
                         
-			if page != 1:
-				self.mainSizer.Show( item = self.subSizers[ page - 1 ], show = False, recursive = True )
-				
+			if panel != 1:
+				self.mainSizer.Show( item = self.subSizers[ panel - 1 ], show = False, recursive = True )
+                    
 			self.SetSizer( self.mainSizer )
                 
 	#-------------------------------------------------------------------------
@@ -303,7 +317,7 @@ class audiobook( wx.Frame ):
 				self.Destroy( )
 		else:
 			event.Veto()
-			
+
 			if self.control != 'tracker':
 				self.mousePosition = self.winWidth - 8 - self.xBorder, self.winHeight - 8 - self.yBorder
 				self.mouseCursor.move( *self.mousePosition )	
@@ -316,14 +330,14 @@ class audiobook( wx.Frame ):
 		else:
 			self.stoper.Stop( )
 			self.MakeModal( False )
-			self.parent.Show( True )	
-			if self.control != 'tracker':
+			self.parent.Show( True )
+			if self.control != 'tracker':			
 				self.parent.stoper.Start( self.parent.timeGap )
 
 			self.Destroy( )
 		
 	#-------------------------------------------------------------------------
-        def onPress(self, event):
+	def onPress(self, event):
 
 		if self.pressSound.lower( ) == 'on':
 			self.pressingSound.play( )
@@ -333,63 +347,75 @@ class audiobook( wx.Frame ):
 				self.button = event.GetEventObject()
 				self.button.SetBackgroundColour( self.selectionColour )
 				self.pressFlag = True
-				self.label = event.GetEventObject().GetName().encode( 'utf-8' )
-				self.name = self.label[:self.label.rfind('.')] + '.mp3'			
+				self.label = event.GetEventObject().GetName().encode( 'utf-8' )			
 				self.stoper.Start( 0.15 * self.timeGap )
-
-			if self.label == 'volume_down':
-				try:
-					recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
-					alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume - 15, 0 )
-							
-				except alsaaudio.ALSAAudioError:
-					self.button.SetBackgroundColour( 'red' )
-					self.button.SetFocus( )
-					
-					self.Update( )
-
-			elif self.label == 'volume_up':
-				try:
-					recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
-					alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume + 15, 0 )
-							
-				except alsaaudio.ALSAAudioError:
-					self.button.SetBackgroundColour( 'red' )
-					self.button.SetFocus( )
-					
-					self.Update( )
-						
-			elif self.label == 'show':
-				self.stoper.Stop( )
-				audiobookPilot.pilot( self, id = 2 ).Show( True )
-				self.Hide( )
 				
-			elif self.label == 'delete':
-				if "smplayer" in [psutil.Process(i).name() for i in psutil.pids( )]:
-					os.system( 'smplayer -send-action quit &')
-				
-			elif self.label == 'back':
+				if self.label == 'volume_down':
+					try:
+						recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ]
+                                                if recentVolume == 10:
+                                                        raise alsaaudio.ASLAAudioError
 
-				self.onExit( )
+                                                furtherVolume = int(volumedownFactor*recentVolume)
+                                                if furtherVolume < 20:
+                                                        furtherVolume = 10
+                                                
+						alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( furtherVolume, 0 )
 
-			elif self.label == 'empty':
-				self.button.SetBackgroundColour( 'red' )
-				self.button.SetFocus( )
-					
-				self.Update( )
-				# time.sleep( 1.5 )
+					except alsaaudio.ALSAAudioError:
+						self.button.SetBackgroundColour( 'red' )
+						self.button.SetFocus( )
 
-			else:
-				try:
-					choicePath = self.path + self.name 
-					os.system( 'smplayer -pos 0 0 %s &' % choicePath.replace( ' ', '\ ' ) )
-						
-				except IndexError:
+						self.Update( )
+
+				elif self.label == 'volume_up':
+					try:
+						recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
+						alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume + 15, 0 )
+
+					except alsaaudio.ALSAAudioError:
+						self.button.SetBackgroundColour( 'red' )
+						self.button.SetFocus( )
+
+						self.Update( )
+
+				elif self.label == 'show':
+					self.stoper.Stop( )
+					musicPilot.pilot( self, id = 2 ).Show( True )
+					self.Hide( )
+
+				elif self.label == 'delete':
+					if "smplayer" in [psutil.Process(i).name() for i in psutil.pids( )]:
+						os.system( 'smplayer -send-action quit &' )
+
+				elif self.label == 'back':
+                                        # self.stoper.Stop( )
+                                        # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                        # self.powrotSound.play( )
+                                        # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                        # self.stoper.Start( self.timeGap )
+
+					self.onExit( )
+
+				elif self.label == 'empty':
 					self.button.SetBackgroundColour( 'red' )
 					self.button.SetFocus( )
-					
+
 					self.Update( )
 					# time.sleep( 1.5 )
+
+				else:
+					try:
+						choicePath = self.label[:self.label.rfind('/')] + '/playlist.m3u'
+						# print choicePath
+						os.system( 'smplayer -pos 0 0 %s &' % choicePath.replace( ' ', '\ ' ) )
+
+					except IndexError:
+						self.button.SetBackgroundColour( 'red' )
+						self.button.SetFocus( )
+
+						self.Update( )
+						time.sleep( 1.5 )
 
 		else:
 			self.numberOfPresses += 1
@@ -412,7 +438,6 @@ class audiobook( wx.Frame ):
 						b.SetFocus( )
 
 					self.flag = 'row'
-					self.rowIteration = 0
 
 				elif self.flag == 'row':
 
@@ -423,15 +448,12 @@ class audiobook( wx.Frame ):
 						b = item.GetWindow( )
 						b.SetBackgroundColour( self.selectionColour )
 						b.SetFocus( )
-                                                
-                                        self.Update( )
 
                                         self.stoper.Stop( )
                                         time.sleep( self.selectionTime/1000. )
                                         self.stoper.Start( self.timeGap )
 
 					self.flag = 'columns'
-					self.columnIteration = 0                                
 
 				elif self.flag == 'columns':
 
@@ -447,10 +469,10 @@ class audiobook( wx.Frame ):
 					if self.rowIteration == self.numberOfRows[ 0 ]:
 
 						if self.columnIteration == 1:
+
                                                         self.stoper.Stop( )
                                                         time.sleep( ( self.selectionTime + self.timeGap )/1000. )
                                                         self.stoper.Start( self.timeGap )
-
 
 					                try:
 						                recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ]
@@ -474,6 +496,7 @@ class audiobook( wx.Frame ):
                                                                 time.sleep( 1.5 )
 
 						elif self.columnIteration == 2:
+                                                        
                                                         self.stoper.Stop( )
                                                         time.sleep( ( self.selectionTime + self.timeGap )/1000. )
                                                         self.stoper.Start( self.timeGap )
@@ -501,15 +524,17 @@ class audiobook( wx.Frame ):
 								time.sleep( 1.5 )
 
 						elif self.columnIteration == 3:
+                                                        
                                                         self.stoper.Stop( )
                                                         time.sleep( ( self.selectionTime + self.timeGap )/1000. )
                                                         self.stoper.Start( self.timeGap )
 
 							self.stoper.Stop( )
-							audiobookPilot.pilot( self, id = 2 ).Show( True )
+							musicPilot.pilot( self, id = 2 ).Show( True )
 							self.Hide( )
 
 						elif self.columnIteration == 4:
+
                                                         self.stoper.Stop( )
                                                         time.sleep( ( self.selectionTime + self.timeGap )/1000. )
                                                         self.stoper.Start( self.timeGap )
@@ -526,21 +551,19 @@ class audiobook( wx.Frame ):
 
 							self.onExit( )
 					else:
-                                                self.stoper.Stop( )
-                                                time.sleep( ( self.selectionTime + self.timeGap )/1000. )
-                                                self.stoper.Start( self.timeGap )
-
 						try:
+
+                                                        self.stoper.Stop( )
+                                                        time.sleep( ( self.selectionTime + self.timeGap )/1000. )
+                                                        self.stoper.Start( self.timeGap )
 
 							logo = self.panels[ self.panelIteration + 1 ][ 0 ][ self.position ]
 
-							mediaIndex = self.existingLogos.index( logo )
-							choice = self.existingMedia[ mediaIndex ]
-							print type(choice)
-							choicePath = self.path + choice
-							os.system( 'smplayer -pos 0 0 %s &' % choicePath.replace( ' ', '\ ' ) )
+							videoIndex = self.existingLogos.index( logo )
+							choice = self.existingMedia[ videoIndex ]
+							os.system( 'smplayer -pos 0 0 %s &' % choice.replace( ' ', r'\ ' ).replace( '&', r'\&' ).replace( '#', r'\#' ).replace( '(', r'\(' ).replace( ')', r'\)' ) )
 
-						except IndexError:
+						except IndexError:                                
 							selectedButton.SetBackgroundColour( 'red' )
 							selectedButton.SetFocus( )
 
@@ -548,11 +571,11 @@ class audiobook( wx.Frame ):
 							time.sleep( 1.5 )
 
 					if self.numberOfPanels == 1:
-					    self.flag = 'row'
-					    self.panelIteration = 0
+						self.flag = 'row'
+						self.panelIteration = 0
 					else:
-					    self.flag = 'panel'
-					    self.panelIteration = -1
+						self.flag = 'panel'
+						self.panelIteration = -1
 
 					self.rowIteration = 0
 					self.columnIteration = 0
@@ -580,11 +603,11 @@ class audiobook( wx.Frame ):
 				
 			else:
 				self.button.SetBackgroundColour( self.backgroundColour )	
-		
+
 			self.stoper.Stop( )
 			self.pressFlag = False
 
-		else:		
+		else:
 			if self.control != 'tracker':
 				self.mouseCursor.move( *self.mousePosition )	
 
@@ -629,7 +652,6 @@ class audiobook( wx.Frame ):
 #####################################################################################################################################
 
 					# if self.numberOfPanels > 1:
-                                                
 					# 	if self.panelIteration == self.numberOfPanels:
 					# 		self.panelIteration = self.numberOfPanels - 1
 					# 	else:
@@ -647,7 +669,7 @@ class audiobook( wx.Frame ):
 				
 					if self.rowIteration == self.numberOfRows[ 0 ] - 1:
 						self.emptyRowIteration += 1
-
+						
 					scope = range( self.rowIteration * self.numberOfColumns[ 0 ], self.rowIteration * self.numberOfColumns[ 0 ] + self.numberOfColumns[ 0 ] )
 
 					for i in scope:
@@ -656,14 +678,13 @@ class audiobook( wx.Frame ):
 						b.SetBackgroundColour( self.scanningColour )
 						b.SetFocus( )
 					self.rowIteration += 1
-                        
+
 			elif self.flag == 'columns': #flag = columns ie. switching between cells in the particular row
 
 				if self.emptyColumnIteration == self.maxEmptyColumnIteration:
 					self.flag = 'row'
 					self.rowIteration = 0
 					self.columnIteration = 0
-					
 					self.emptyColumnIteration = 0
 					self.emptyRowIteration = 0
                                 
@@ -676,20 +697,20 @@ class audiobook( wx.Frame ):
 				else:
 					self.columnIteration = self.columnIteration % self.numberOfColumns[ 0 ]
 					
-					if self.columnIteration == self.numberOfColumns[ 0 ] - 1:
+					if self.columnIteration == self.numberOfColumns[ 0 ]-1:
 						self.emptyColumnIteration += 1
-
+            
 					items = self.subSizers[ self.panelIteration ].GetChildren( )
 					for item in items:
 						b = item.GetWindow( )
 						b.SetBackgroundColour( self.backgroundColour )
 						b.SetFocus( )
-
+			
 					item = self.subSizers[ self.panelIteration ].GetItem( ( self.rowIteration - 1 ) * self.numberOfColumns[ 0 ] + self.columnIteration )
 					b = item.GetWindow( )
 					b.SetBackgroundColour( self.scanningColour )
 					b.SetFocus( )
-
+				
 					self.columnIteration += 1
 
 			if self.flag != 'rest':
@@ -698,13 +719,14 @@ class audiobook( wx.Frame ):
 
 			else:
 				pass
-					
-			# print self.panelIteration, self.rowIteration, self.columnIteration
+
+		# print self.panelIteration, self.rowIteration, self.columnIteration
+
 
 #=============================================================================
 if __name__ == '__main__':
 
 	app = wx.App(False)
-	frame = audiobook( parent = None, id = -1 )
+	frame = music( parent = None, id = -1 )
         frame.Show( True )
 	app.MainLoop( )

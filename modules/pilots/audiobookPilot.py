@@ -103,6 +103,14 @@ class pilot(wx.Frame):
 	    self.width = self.numberOfColumns[0] * 120
 	    self.height = self.numberOfRows[0] * 100
 
+            self.card_index = 0
+            try:
+                    alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
+            except alsaaudio.ALSAAudioError:
+                    self.card_index = 1
+                    
+            alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
+
 	#-------------------------------------------------------------------------	
         def initializeBitmaps(self):
 
@@ -253,8 +261,8 @@ class pilot(wx.Frame):
 
 				if self.label == 'volume down':
 					try:
-						recentVolume = alsaaudio.Mixer( control = 'Master' ).getvolume( )[ 0 ] 
-						alsaaudio.Mixer( control = 'Master' ).setvolume( recentVolume - 15, 0 )
+						recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
+						alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume - 15, 0 )
 						time.sleep(1.5)
 
 					except alsaaudio.ALSAAudioError:
@@ -266,8 +274,8 @@ class pilot(wx.Frame):
 
 				elif self.label == 'volume up':
 					try:
-						recentVolume = alsaaudio.Mixer( control = 'Master' ).getvolume( )[ 0 ] 
-						alsaaudio.Mixer( control = 'Master' ).setvolume( recentVolume + 15, 0 )
+						recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
+						alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume + 15, 0 )
 						time.sleep( 1.5 )
 
 					except alsaaudio.ALSAAudioError:
@@ -347,8 +355,8 @@ class pilot(wx.Frame):
 
 					if self.buttons[ self.position ][ 0 ] == 'volume down':
 						try:
-							recentVolume = alsaaudio.Mixer( control = 'Master' ).getvolume( )[ 0 ] 
-							alsaaudio.Mixer( control = 'Master' ).setvolume( recentVolume - 15, 0 )
+							recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
+							alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume - 15, 0 )
 							time.sleep(1.5)
 
 						except alsaaudio.ALSAAudioError:
@@ -360,8 +368,8 @@ class pilot(wx.Frame):
 
 					elif self.buttons[ self.position ][ 0 ] == 'volume up':
 						try:
-							recentVolume = alsaaudio.Mixer( control = 'Master' ).getvolume( )[ 0 ] 
-							alsaaudio.Mixer( control = 'Master' ).setvolume( recentVolume + 15, 0 )
+							recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
+							alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume + 15, 0 )
 							time.sleep( 1.5 )
 
 						except alsaaudio.ALSAAudioError:

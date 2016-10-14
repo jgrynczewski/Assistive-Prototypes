@@ -71,7 +71,13 @@ class music( wx.Frame ):
 			except ValueError:
 				setattr(self, item[:item.find('=')], item[item.find('=')+1:])			
 		
-		alsaaudio.Mixer( control = 'Master' ).setvolume( self.musicVolumeLevel, 0 )
+                self.card_index = 0
+                try:
+                        alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
+                except alsaaudio.ALSAAudioError:
+                        self.card_index = 1
+
+                alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
 
 		self.pressFlag = False
 
@@ -121,7 +127,10 @@ class music( wx.Frame ):
                                 directories.remove('audiobooks')
 
 			#directories.sort( key=lambda directory: os.path.getmtime( os.path.join(self.path, directory) ) )
-			directories = sorted( directories, key = lambda x: int( x.split( "_" )[ 0 ] ) )
+                        try:
+			        directories = sorted( directories, key = lambda x: int( x.split( "_" )[ 0 ] ) )
+                        except ValueError:
+                                pass
 
 			self.existingLogos, self.existingMedia = [ ], [ ]
 
@@ -345,7 +354,7 @@ class music( wx.Frame ):
 				
 				if self.label == 'volume_down':
 					try:
-						recentVolume = alsaaudio.Mixer( control = 'Master' ).getvolume( )[ 0 ]
+						recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ]
                                                 if recentVolume == 10:
                                                         raise alsaaudio.ASLAAudioError
 
@@ -353,7 +362,7 @@ class music( wx.Frame ):
                                                 if furtherVolume < 20:
                                                         furtherVolume = 10
                                                 
-						alsaaudio.Mixer( control = 'Master' ).setvolume( furtherVolume, 0 )
+						alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( furtherVolume, 0 )
 
 					except alsaaudio.ALSAAudioError:
 						self.button.SetBackgroundColour( 'red' )
@@ -363,8 +372,8 @@ class music( wx.Frame ):
 
 				elif self.label == 'volume_up':
 					try:
-						recentVolume = alsaaudio.Mixer( control = 'Master' ).getvolume( )[ 0 ] 
-						alsaaudio.Mixer( control = 'Master' ).setvolume( recentVolume + 15, 0 )
+						recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
+						alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume + 15, 0 )
 
 					except alsaaudio.ALSAAudioError:
 						self.button.SetBackgroundColour( 'red' )
@@ -468,7 +477,7 @@ class music( wx.Frame ):
                                                         self.stoper.Start( self.timeGap )
 
 					                try:
-						                recentVolume = alsaaudio.Mixer( control = 'Master' ).getvolume( )[ 0 ]
+						                recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ]
                                                                 if recentVolume == 0: 
                                                                         raise alsaaudio.ALSAAudioError
 
@@ -478,7 +487,7 @@ class music( wx.Frame ):
                                                                 else:
                                                                         furtherVolume = int( self.volumeDownFactor*recentVolume ) 
 
-						                alsaaudio.Mixer( control = 'Master' ).setvolume( furtherVolume, 0 )
+						                alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( furtherVolume, 0 )
                                                                 time.sleep( 1.5 )
 
 					                except alsaaudio.ALSAAudioError:
@@ -496,7 +505,7 @@ class music( wx.Frame ):
 
 
 					                try:
-						                recentVolume = alsaaudio.Mixer( control = 'Master' ).getvolume( )[ 0 ]
+						                recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ]
                                                                 if recentVolume == 100: 
                                                                         raise alsaaudio.ALSAAudioError
 
@@ -506,7 +515,7 @@ class music( wx.Frame ):
                                                                 else:
                                                                         furtherVolume = int( self.volumeUpFactor*recentVolume ) 
 
-						                alsaaudio.Mixer( control = 'Master' ).setvolume( furtherVolume, 0 )
+						                alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( furtherVolume, 0 )
                                                                 time.sleep( 1.5 )
 
 							except alsaaudio.ALSAAudioError:

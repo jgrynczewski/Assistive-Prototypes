@@ -125,7 +125,7 @@ class main_menu( wx.Frame ):
 
 		self.SetBackgroundColour( 'black' )
 
-		#alsaaudio.Mixer( control = 'Master' ).setvolume( self.musicVolumeLevel, 0 )
+		#alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( self.musicVolumeLevel, 0 )
 
 	#-------------------------------------------------------------------------	
         def initializeBitmaps(self):

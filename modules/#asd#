@@ -1,0 +1,1 @@
+find asd -type f -print0 | xargs -0 sed -i 's/alsaaudio.Mixer(\ control\ =\ \'Master\'\ )/alsaaudio.Mixer( control = \'Master\', cardindex = card_index )/g'

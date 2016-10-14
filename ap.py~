@@ -30,8 +30,8 @@ from pygame import mixer
 from modules import radio, music, audiobook
 from modules import exercise
 
-if (psutil.__version__ < 2):
-    print("\nFor properly close PISAK you need newer version of psutil. \nType: sudo pip2 install 'psutil==2.2.1' --upgrade\n")
+if (psutil.__version__ > 2):
+    print("\nFor properly close PISAK you need newer version of psutil \nType: sudo pip2 install 'psutil==2.2.1' --upgrade\n")
 #=============================================================================
 class main_menu( wx.Frame ):
 	def __init__(self, parent, id):

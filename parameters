@@ -14,13 +14,13 @@ musicVolumeLevel = 100
 
 control = switch
 
-xBorder = 12
-yBorder = 12
+xBorder = 6
+yBorder = 6
 
 spellerNumber = 6
 voice = False
 vowelColour = red
-polishLettersColour = black
+polishLettersColour = blue
 tableFont = wx.SWISS
 textFont = wx.SWISS
 tableFontSize = 50

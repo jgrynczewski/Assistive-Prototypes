@@ -27,14 +27,10 @@ from subprocess import Popen, PIPE, STDOUT
 from pymouse import PyMouse
 from pygame import mixer
 
-from modules import radio, music, audiobook, nowe
-from modules import exercise
-
-if (psutil.__version__ < 2):
-    print("\nFor properly close PISAK you need newer version of psutil. \nType: sudo pip2 install 'psutil==2.2.1' --upgrade\n")
+import youtube1, youtube2
 
 #=============================================================================
-class main_menu( wx.Frame ):
+class nowe( wx.Frame ):
         def __init__(self, parent, id):
 
                 # context = zmq.Context()
@@ -43,7 +39,7 @@ class main_menu( wx.Frame ):
                 
                 self.winWidth, self.winHeight = wx.DisplaySize( )
 
-                wx.Frame.__init__( self , parent , id, 'AP MainMenu' )
+                wx.Frame.__init__( self , parent , id, 'AP News' )
                 style = self.GetWindowStyle( )
                 self.SetWindowStyle( style | wx.STAY_ON_TOP )
 
@@ -61,38 +57,36 @@ class main_menu( wx.Frame ):
         #-------------------------------------------------------------------------        
         def initializeParameters(self):
 
-                cmd = 'pwd'
-                p = sp.Popen( cmd, shell = True, stdin = sp.PIPE, stdout = sp.PIPE, stderr = sp.STDOUT, close_fds = True )
-                self.path = p.stdout.read( )[ :-1 ] + '/'
-                self.home = self.path[:self.path[:-1].rfind("/")] + '/' 
-                self.configurationPath = self.home+".pisak/"
-                
-                files = [ '.pathToAP', './modules/.pathToAP', './modules/pilots/.pathToAP', './modules/others/.pathToAP', 'modules/ewriting/.pathToAP', 'modules/games/atmemory/.pathToAP', 'modules/games/atsweeper/.pathToAP' ]
+		with open( './.pathToAP' ,'r' ) as textFile:
+			self.pathToAP = textFile.readline( )
 
-                for item in files:
-                        with open(item, 'w') as textFile:
-                                textFile.write( self.path ) 
+		sys.path.append( self.pathToAP )
+		from reader import reader
 
-                                sys.path.append( self.path )
+		reader = reader()
+		reader.readParameters()
+		parameters = reader.getParameters()
 
-                from reader import reader
-                
-                reader = reader()
-                reader.readParameters()
-                parameters = reader.getParameters()
+		for item in parameters:
+			try:
+				setattr(self, item[:item.find('=')], int(item[item.find('=')+1:]))
+			except ValueError:
+				setattr(self, item[:item.find('=')], item[item.find('=')+1:])			
+		
+                self.card_index = 0
+                try:
+                        alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
+                except alsaaudio.ALSAAudioError:
+                        self.card_index = 1
 
-                for item in parameters:
-                        try:
-                                setattr(self, item[:item.find('=')], int(item[item.find('=')+1:]))
-                        except ValueError:
-                                setattr(self, item[:item.find('=')], item[item.find('=')+1:])
+                alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
 
-                self.labels = 'PISAK EXERCISES RADIO MUSIC AUDIOBOOK NOWE AKTUALIZACJE EMPTY1 EMPTY2'.split( )
+                self.labels = 'YOUTUBE1 YOUTUBE2 EMPTY1 EMPTY2 EMPTY3 EXIT'.split( )
 
                 self.flag = 'row'
                 self.pressFlag = False
 
-                self.numberOfRows = [ 3 ]
+                self.numberOfRows = [ 2 ]
                 self.numberOfColumns = [ 3 ]
                 self.maxRows = [ 3 * item for item in self.numberOfRows ]
                 self.maxColumns = [ 2 * item for item in self.numberOfColumns ]
@@ -113,16 +107,16 @@ class main_menu( wx.Frame ):
                 if self.switchSound.lower( ) == 'on' or self.pressSound.lower( ) == 'on':
                         mixer.init( )
                         if self.switchSound.lower( ) == 'on':
-                                self.switchingSound = mixer.Sound( self.path + '/sounds/switchSound.ogg' )
+                                self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
                         if self.pressSound.lower( ) == 'on':
-                                self.pressingSound = mixer.Sound( self.path + '/sounds/pressSound.ogg' )
+                                self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
 
-                self.zadanieSound = mixer.Sound( self.path + '/sounds/zadanie.ogg' )
-                self.blogSound = mixer.Sound( self.path + '/sounds/blog.ogg' )
-                self.muzykaSound = mixer.Sound( self.path + '/sounds/muzyka.ogg' )
-                self.filmSound = mixer.Sound( self.path + '/sounds/film.ogg' )
-                self.radioSound = mixer.Sound( self.path + '/sounds/radio.ogg' )
-                self.pisakSound = mixer.Sound( self.path + '/sounds/pisak.ogg' )
+                self.zadanieSound = mixer.Sound( self.pathToAP + '/sounds/zadanie.ogg' )
+                self.blogSound = mixer.Sound( self.pathToAP + '/sounds/blog.ogg' )
+                self.muzykaSound = mixer.Sound( self.pathToAP + '/sounds/muzyka.ogg' )
+                self.filmSound = mixer.Sound( self.pathToAP + '/sounds/film.ogg' )
+                self.radioSound = mixer.Sound( self.pathToAP + '/sounds/radio.ogg' )
+                self.pisakSound = mixer.Sound( self.pathToAP + '/sounds/pisak.ogg' )
 
                 self.SetBackgroundColour( 'black' )
 
@@ -131,7 +125,7 @@ class main_menu( wx.Frame ):
         #-------------------------------------------------------------------------        
         def initializeBitmaps(self):
             
-            labelFiles = [ self.path + item for item in [ 'icons/modules/pisak.png', 'icons/modules/exercises.png', 'icons/modules/radio.png', 'icons/modules/music.png', 'icons/modules/audiobook.png', 'icons/modules/nowe.png', 'icons/modules/aktualizacja.png', 'icons/modules/empty.png', 'icons/modules/empty.png'] ]
+            labelFiles = [ self.pathToAP + item for item in [ 'icons/modules/youtube1.png', 'icons/modules/youtube2.png', 'icons/modules/empty.png', 'icons/modules/empty.png', 'icons/modules/empty.png', 'icons/back.png'] ]
 
             self.labelbitmaps = { }
             for index in xrange( len(self.labels) ):
@@ -139,15 +133,6 @@ class main_menu( wx.Frame ):
 
         #-------------------------------------------------------------------------
         def createGui(self):
-
-                cmd = "cd " + self.home + ".pisak && git pull --dry-run | grep -q -v 'Already up-to-date.' && changed=1"
-                p = Popen( cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True )
-                self.output = p.stdout.read( )
-
-                if self.output[:5]!="fatal" and len(self.output)!=0:
-                        self.color = "green"
-                else:
-                        self.color = self.backgroundColour
                         
                 self.vbox = wx.BoxSizer( wx.VERTICAL )
                 self.sizer = wx.GridSizer( self.numberOfRows[ 0 ], self.numberOfColumns[ 0 ], self.xBorder, self.yBorder )
@@ -159,8 +144,6 @@ class main_menu( wx.Frame ):
                         
                 for i in self.labels:
                         b = bt.GenBitmapButton( self , -1, bitmap = self.labelbitmaps[ i ], name = i )
-                        if i=="AKTUALIZACJE":
-                                b.SetBackgroundColour( self.color )
                         b.Bind( event, self.onPress )
                         b.Bind(wx.EVT_KEY_DOWN, self.onKeyPress)
                         
@@ -217,6 +200,20 @@ class main_menu( wx.Frame ):
                                         self.mousePosition = self.winWidth - 4 - self.xBorder, self.winHeight - 4 - self.yBorder
                                         self.mouseCursor.move( *self.mousePosition )        
 
+	#-------------------------------------------------------------------------
+	def onExit(self):
+		if __name__ == '__main__':
+			self.stoper.Stop( )
+			self.Destroy( )
+		else:
+			self.stoper.Stop( )
+			self.MakeModal( False )
+			self.parent.Show( True )
+			if self.control != 'tracker':			
+				self.parent.stoper.Start( self.parent.timeGap )
+
+			self.Destroy( )
+		
         #-------------------------------------------------------------------------
         def onKeyPress( self, event ):
                 keycode = event.GetKeyCode()
@@ -244,7 +241,7 @@ class main_menu( wx.Frame ):
                             self.Update()
                             self.label = event.GetEventObject( ).GetName( ).encode( 'utf-8' )
                             self.stoper.Start( 0.15 * self.timeGap )
-
+                            
                     if self.label == 'PISAK':
                             self.stoper.Stop( )
                             time.sleep( 1 )
@@ -313,8 +310,8 @@ class main_menu( wx.Frame ):
                                     os.system("milena_say Brak połączenia z internetem. Proszę podłączyć komputer do sieci.")
                             
 
-                    elif (self.label == 'NOWE'):
-                        nowe.nowe( self, id = -1).Show( True )
+                    elif (self.label == 'NEW'):
+                        youtube.youtube( self, id = -1).Show( True )
                         self.Hide( )
 
                     elif (self.label == 'EMPTY1' | self.label == 'EMPTY2'):
@@ -361,155 +358,39 @@ class main_menu( wx.Frame ):
                                     
                                     label = self.labels[ self.position ]                            
                                     
-                                    if label == 'PISAK':
+                                    if label == 'YOUTUBE1':
+                                        if self.internet_on():
                                             self.stoper.Stop( )
                                             time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            self.pisakSound.play( )
+                                            # self.muzykaSound.play( )
+                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            self.stoper.Start( self.timeGap )
+                                        
+                                            self.stoper.Stop( )
+                                            youtube1.youtube1( self, id = -1 ).Show( True )
+                                            self.Hide( )
+                                        else:
+                                            os.system("milena_say Brak połączenia z internetem. Proszę podłączyć komputer do sieci.")
+
+                                    elif label == 'YOUTUBE2':
+                                        if self.internet_on():
+                                            self.stoper.Stop( )
+                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # self.muzykaSound.play( )
                                             time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
                                             self.stoper.Start( self.timeGap )
                                             
-                                            self.stoper.Stop()
-                                            self.Hide()
-                                            self.Update()
-
-                                            self.mousePosition = self.winWidth - self.xBorder/2., self.winHeight - self.yBorder/2.
-                                            self.mouseCursor.move( *self.mousePosition )        
-
-                                            os.system("pisak")
-                        
-                                            self.mousePosition = self.winWidth - 4 - self.xBorder, self.winHeight - 30 - self.yBorder
-                                            self.mouseCursor.move( *self.mousePosition )        
-
-                                            self.Show()
-                                            self.SetFocus()
-                                            self.stoper.Start( self.timeGap )
-                                            
-                                    elif label == 'EXERCISES':
                                             self.stoper.Stop( )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            self.zadanieSound.play( )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            self.stoper.Start( self.timeGap )
-
-                                            self.stoper.Stop( )
-                                            exercise.exercise( self, id = -1 ).Show( True )
+                                            youtube2.youtube2( self, id = -1 ).Show( True )
                                             self.Hide( )
+                                        else:
+                                            os.system("milena_say Brak połączenia z internetem. Proszę podłączyć komputer do sieci.")
 
-                                    elif label == 'AKTUALIZACJE':
+                                    elif label == 'EXIT':
+                                        self.onExit()
 
-                                            if self.output[:5] == "fatal":
-                                                    os.system("milena_say Brak połączenia z repozytorium zewnętrznym. Prawdopodbnie nie jesteś połączony z internetem.")
-                                            elif len(self.output) == 0:
-                                                    os.system("milena_say Brak aktualizacji")
-                                            else:
-                                                    os.system("cd " + self.home + ".pisak && git pull")
-                                                    os.system("milena_say Zaktualizowano pisaka")
-                                                    
-                                                    with open(self.path + "read", 'a+') as f:
-                                                            readMessages = f.read()
-                                                            readMessages = readMessages.replace("\n", " ")
-
-                                                    messages = []
-                                                    for item in os.listdir( self.configurationPath+"messages/"):
-                                                        if ("message" in item) and (item not in readMessages):
-                                                                with open(self.configurationPath+"messages/"+item, 'r') as f:
-                                                                        messages.append( f.read().replace("\n", " ") )
-                                                                with open(self.path + "read", 'a+') as f:
-                                                                        f.write(item+'\n')
-
-                                                    lenght = len(messages)
-                                                    
-                                                    if lenght == 1:
-                                                            os.system("milena_say Masz jedną aktualizację.")
-                                                            os. system("milena_say %s" % messages[0])
-                                                    else:
-                                                            if lenght == 2:
-                                                                    os.system("milena_say Masz dwie aktualizację")
-                                                            elif (lenght%10 in [2,3,4]):
-                                                                    os.system("milena_say Masz %i aktualizację" % lenght)
-                                                            else:
-                                                                    os.system("milena_say Masz %i aktualizacji" % lenght)
-                                                                    
-                                                            for (i, j) in enumerate(messages, start=1):
-                                                                    os.system("milena_say Aktualizacja numer %i." % i)
-                                                                    os.system("milena_say %s" % j)
-                                                                    
-                                                    cmd = "cd " + self.home + ".pisak && git pull --dry-run | grep -q -v 'Already up-to-date.' && changed=1"
-                                                    p = Popen( cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True )
-                                                    self.output = p.stdout.read( )
-
-                                                    self.color = self.backgroundColour
-                                                    self.Update( )
-                                                    
-                                            # self.stoper.Stop( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # self.blogSound.play( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000*2) )
-                                            # self.stoper.Start( self.timeGap )
-                                            
-                                            # self.stoper.Stop( )
-                                            # blog.blog( parent = self, id = -1 ).Show( True )
-                                            # self.Hide( )
-
-                                    elif label == 'MUSIC':
-                                            self.stoper.Stop( )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            self.muzykaSound.play( )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            self.stoper.Start( self.timeGap )
-
-                                            self.stoper.Stop( )
-                                            music.music( self, id = -1 ).Show( True )
-                                            self.Hide( )
-
-                                    elif label == 'AUDIOBOOK':
-                                            self.stoper.Stop( )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            self.stoper.Start( self.timeGap )
-
-                                            self.stoper.Stop( )
-                                            audiobook.audiobook( self, id = -1 ).Show( True )
-                                            self.Hide( )
-
-                                    elif label == 'MOVIES':
-                                            self.stoper.Stop( )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            self.filmSound.play( )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            self.stoper.Start( self.timeGap )
-
-                                            self.stoper.Stop( )
-                                            movie.movie( self, id = -1 ).Show( True )
-                                            self.Hide( )
-
-                                    elif label == 'RADIO':
-                                            self.stoper.Stop( )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            self.radioSound.play( )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            self.stoper.Start( self.timeGap )
-
-                                            if self.internet_on():
-                                                    self.stoper.Stop( )
-                                                    radio.radio( parent = self, id = -1 ).Show( True )
-                                                    self.Hide( )
-                                            else:
-                                                    os.system("milena_say Brak połączenia z internetem. Proszę podłączyć komputer do sieci.")
-
-                                    elif label == 'NOWE':
-                                            self.stoper.Stop( )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # self.filmSound.play( )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            self.stoper.Start( self.timeGap )
-
-                                            self.stoper.Stop( )
-                                            nowe.nowe( self, id = -1 ).Show( True )
-                                            self.Hide( )
-
-                                    elif (label == 'EMPTY1' | label == 'EMPTY2'):
-                                            pass
+                                    elif label == 'EMPTY':
+                                        pass
 
                                     self.flag = 'row'
                                     self.rowIteration = 0
@@ -634,6 +515,6 @@ class main_menu( wx.Frame ):
 if __name__ == '__main__':
 
         app = wx.App(False)
-        frame = main_menu( parent = None, id = -1 )
+        frame = nowe( parent = None, id = -1 )
         frame.Show( True )
         app.MainLoop( )

@@ -27,7 +27,6 @@ import wx.lib.buttons as bt
 from pymouse import PyMouse
 from pygame import mixer
 
-
 #=============================================================================
 class GenSymbolTextButton( bt.GenBitmapTextButton ): #Derive a class from GenBitmapTextButton and override _GetLabelSize and DrawLabel
     """Bitmapped button with text label displayed in accepted for AAC symbols position"""
@@ -176,7 +175,7 @@ class bliss_symbols( wx.Frame ):
 	#-------------------------------------------------------------------------	
         def initializeBitmaps(self):
 
-            dict = self.pathToAP + 'symbols/*' 
+            dict = self.pathToAP + 'multimedia/symbols/*' 
             pages = sorted( [ item for item in glob.glob( dict ) if item[ item.rfind( '/' )+1: ].isdigit( ) ] )
             self.numberOfpages = len( pages )
 

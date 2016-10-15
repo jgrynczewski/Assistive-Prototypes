@@ -17,7 +17,7 @@
 # along with AP. If not, see <http://www.gnu.org/licenses/>.
 
 import wxversion
-wxversion.select( '2.8' )
+# wxversion.select( '2.8' )
 
 import glob, os, time
 
@@ -27,6 +27,7 @@ import wx.lib.buttons as bt
 from pymouse import PyMouse
 from pygame import mixer
 
+from pilots import minitubePilot
 
 #=============================================================================
 class GenSymbolTextButton( bt.GenBitmapTextButton ): #Derive a class from GenBitmapTextButton and override _GetLabelSize and DrawLabel
@@ -87,7 +88,7 @@ class GenSymbolTextButton( bt.GenBitmapTextButton ): #Derive a class from GenBit
 
 
 #=============================================================================
-class bliss_symbols( wx.Frame ):
+class youtube1( wx.Frame ):
 	def __init__(self, parent, id):
 
 	    self.winWidth, self.winHeight = wx.DisplaySize( )
@@ -176,7 +177,7 @@ class bliss_symbols( wx.Frame ):
 	#-------------------------------------------------------------------------	
         def initializeBitmaps(self):
 
-            dict = self.pathToAP + 'symbols/*' 
+            dict = self.pathToAP + 'multimedia/youtube/*' 
             pages = sorted( [ item for item in glob.glob( dict ) if item[ item.rfind( '/' )+1: ].isdigit( ) ] )
             self.numberOfpages = len( pages )
 
@@ -414,6 +415,14 @@ class bliss_symbols( wx.Frame ):
                                         time.sleep( 0.5 )
                                         os.system( 'milena_say %s' % item[ 2 ] )
                                         self.numberOfSymbol += 1
+					time.sleep( 1 )
+
+					self.stoper.Stop()
+					self.Hide()
+					self.menu = minitubePilot.pilot( self, id =1 )
+					
+					self.menu.Show()
+					os.system('minitube %s &' %unicodeLabel)
 
                                 selectedButton.SetBackgroundColour( self.backgroundColour )
 
@@ -530,6 +539,6 @@ class bliss_symbols( wx.Frame ):
 if __name__ == '__main__':
 
 	app = wx.App(False)
-	frame = bliss_symbols( parent = None, id = -1 )
-        frame.Show( )
+	frame = youtube1( parent = None, id = -1 )
+        frame.Show( True )
 	app.MainLoop( )

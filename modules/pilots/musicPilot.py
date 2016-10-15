@@ -17,7 +17,6 @@
 # along with AP. If not, see <http://www.gnu.org/licenses/>.
 
 import wxversion
-# wxversion.select( '2.8' )
 
 import wx, glob, os, alsaaudio, psutil, time, sys
 import wx.lib.buttons as bt

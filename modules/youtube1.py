@@ -19,7 +19,7 @@
 import wxversion
 # wxversion.select( '2.8' )
 
-import glob, os, time
+import glob, os, time, sys, alsaaudio
 
 import wx
 import wx.lib.buttons as bt
@@ -94,7 +94,7 @@ class youtube1( wx.Frame ):
 	    self.winWidth, self.winHeight = wx.DisplaySize( )
             self.winHeight -= 20
 
-            wx.Frame.__init__( self , parent , id, 'ATSymbols' )            
+            wx.Frame.__init__( self , parent , id, 'APYoutube1' )            
             style = self.GetWindowStyle( )
             self.SetWindowStyle( style | wx.STAY_ON_TOP )
             self.parent = parent
@@ -114,36 +114,27 @@ class youtube1( wx.Frame ):
 
             with open( './.pathToAP' ,'r' ) as textFile:
                 self.pathToAP = textFile.readline( )
-		    
-            with open( self.pathToAP + 'parameters', 'r' ) as parametersFile:
-                for line in parametersFile:
+            
+            sys.path.append( self.pathToAP )
+            from reader import reader
+            
+            reader = reader()
+            reader.readParameters()
+            parameters = reader.getParameters()
 
-                    if line[ :line.find('=')-1 ] == 'timeGap':
-                        self.timeGap = int( line[ line.rfind('=')+2:-1 ] )
-                    elif line[ :line.find('=')-1 ] == 'backgroundColour':
-                        self.backgroundColour = line[ line.rfind('=')+2:-1 ]
-                    elif line[ :line.find('=')-1 ] == 'textColour':
-                        self.textColour = line[ line.rfind('=')+2:-1 ]
-                    elif line[ :line.find('=')-1 ] == 'scanningColour':
-                        self.scanningColour = line[ line.rfind('=')+2:-1 ]
-                    elif line[ :line.find('=')-1 ] == 'selectionColour':
-                        self.selectionColour = line[ line.rfind('=')+2:-1 ]
-                    elif line[ :line.find('=')-1 ] == 'filmVolume':
-                        self.filmVolumeLevel = int( line[ line.rfind('=')+2:-1 ] )
-                    elif line[ :line.find('=')-1 ] == 'musicVolume':
-                        self.musicVolumeLevel = int( line[ line.rfind('=')+2:-1 ] )
-                        
-                    elif not line.isspace( ):
-                        print 'Niewłaściwie opisane parametry'
-                        print 'Błąd w linii', line
-                        
-                        self.timeGap = 1500
-                        self.backgroundColour = 'white'
-                        self.textColour = 'black'
-                        self.scanningColour =  '#E7FAFD'
-                        self.selectionColour = '#9EE4EF'
-                        self.filmVolumeLevel = 100
-                        self.musicVolumeLevel = 40
+            for item in parameters:
+                try:
+                    setattr(self, item[:item.find('=')], int(item[item.find('=')+1:]))
+                except ValueError:
+                    setattr(self, item[:item.find('=')], item[item.find('=')+1:])			
+		
+            self.card_index = 0
+            try:
+                alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
+            except alsaaudio.ALSAAudioError:
+                self.card_index = 1
+
+            alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
                                     
             self.panelIteration = 0
             self.rowIteration = 0						
@@ -161,13 +152,23 @@ class youtube1( wx.Frame ):
 
             self.numberOfSymbol = 0
             self.flag = 'panel'
-            self.mouseCursor = PyMouse( )
-            self.mousePosition = self.winWidth - 8, self.winHeight + 20 - 8 #+20 becouse of self.winHeight -= 20 in initializator
-            self.mouseCursor.move( *self.mousePosition )			
+
+            if self.control != 'tracker':
+                self.mouseCursor = PyMouse( )
+                self.mousePosition = self.winWidth - 8 - self.xBorder, self.winHeight - 8 - self.yBorder
+                self.mouseCursor.move( *self.mousePosition )			
+
+            if self.switchSound.lower( ) == 'on' or self.pressSound.lower( ) == 'on':
+                mixer.init( )
+                if self.switchSound.lower( ) == 'on':
+                    self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
+                if self.pressSound.lower( ) == 'on':
+                    self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
+
+            self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
 
             self.pageFlipSounds = glob.glob( self.pathToAP + 'sounds/page_flip/*' )
             
-            mixer.init( ) #sound load too long
             self.pageFlipSound = mixer.Sound( self.pageFlipSounds[ 1 ] )
             self.lastPageFlipSound = mixer.Sound( self.pathToAP + 'sounds/page-flip-13.ogg' )
             self.pageFlipSounds = [ mixer.Sound( self.pageFlipSound ) for self.pageFlipSound in self.pageFlipSounds ]

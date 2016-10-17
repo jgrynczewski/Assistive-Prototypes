@@ -131,8 +131,9 @@ class audiobook( wx.Frame ):
                         self.path = glib.get_user_special_dir(glib.USER_DIRECTORY_MUSIC)+"/audiobooks/"
 
 			files = os.listdir( self.path )
+                        files.remove('fake_cover.png')
 			files.sort( key=lambda f: os.path.getmtime( os.path.join(self.path, f) ) )
-
+                        
 			self.existingLogos, self.existingMedia = [ ], [ ]
 			for item in files:
 				fileExtension = item[ item.rfind('.')+1: ]

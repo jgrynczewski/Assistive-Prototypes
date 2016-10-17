@@ -77,19 +77,19 @@ class youtube2( wx.Frame ):
 			except ValueError:
 				setattr(self, item[:item.find('=')], item[item.find('=')+1:])					    
 
-		self.labels1 = [ 'A B C D E F G H I J K L M N O P R S T U W Y Z SPECIAL_CHARACTERS UNDO SPEAK SAVE SPACJA OPEN EXIT'.split( ), '1 2 3 4 5 6 7 8 9 0 + - * / = % $ & . , ; : " ? ! @ # ( ) [ ] { } < > ~ UNDO SPEAK SAVE SPACJA OPEN EXIT'.split( ) ]
+		self.labels1 = [ 'A B C D E F G H I J K L M N O P R S T U W Y Z SPECIAL_CHARACTERS UNDO YOUTUBE SAVE SPACJA SPEAK EXIT'.split( ), '1 2 3 4 5 6 7 8 9 0 + - * / = % $ & . , ; : " ? ! @ # ( ) [ ] { } < > ~ UNDO YOUTUBE SAVE SPACJA SPEAK EXIT'.split( ) ]
 		    
-		self.labels2 = [ 'A O N S Y P J G I Z W C D U B F E R T K M L H SPECIAL_CHARACTERS UNDO SPEAK SAVE SPACJA OPEN EXIT'.split( ), '1 2 3 4 5 6 7 8 9 0 + - * / = % $ & . , ; : " ? ! @ # ( ) [ ] { } < > ~ UNDO SPEAK SAVE SPACJA OPEN EXIT'.split( ) ]
+		self.labels2 = [ 'A O N S Y P J G I Z W C D U B F E R T K M L H SPECIAL_CHARACTERS UNDO YOUTUBE SAVE SPACJA SPEAK EXIT'.split( ), '1 2 3 4 5 6 7 8 9 0 + - * / = % $ & . , ; : " ? ! @ # ( ) [ ] { } < > ~ UNDO YOUTUBE SAVE SPACJA SPEAK EXIT'.split( ) ]
 
-		self.labels3 = [ 'A O Z R T D J G I U N S K M B F E Y W C P L H SPECIAL_CHARACTERS UNDO SPEAK SAVE SPACJA OPEN EXIT'.split( ), '1 2 3 4 5 6 7 8 9 0 + - * / = % $ & . , ; : " ? ! @ # ( ) [ ] { } < > ~ UNDO SPEAK SAVE SPACJA OPEN EXIT'.split( ) ]
+		self.labels3 = [ 'A O Z R T D J G I U N S K M B F E Y W C P L H SPECIAL_CHARACTERS UNDO YOUTUBE SAVE SPACJA SPEAK EXIT'.split( ), '1 2 3 4 5 6 7 8 9 0 + - * / = % $ & . , ; : " ? ! @ # ( ) [ ] { } < > ~ UNDO YOUTUBE SAVE SPACJA SPEAK EXIT'.split( ) ]
 
-		self.labels4 = [ 'A E B C D F G H I O J K L M N P U Y R S T W Z SPECIAL_CHARACTERS UNDO SPEAK SAVE SPACJA OPEN EXIT'.split( ), '1 2 3 4 5 6 7 8 9 0 + - * / = % $ & . , ; : " ? ! @ # ( ) [ ] { } < > ~ UNDO SPEAK SAVE SPACJA OPEN EXIT'.split( ) ]
+		self.labels4 = [ 'A E B C D F G H I O J K L M N P U Y R S T W Z SPECIAL_CHARACTERS UNDO YOUTUBE SAVE SPACJA SPEAK EXIT'.split( ), '1 2 3 4 5 6 7 8 9 0 + - * / = % $ & . , ; : " ? ! @ # ( ) [ ] { } < > ~ UNDO YOUTUBE SAVE SPACJA SPEAK EXIT'.split( ) ]
 		    
-		self.labels5 = ['A O N T D J G Ó I Z S K U B Ą Ć E W Y M Ł H Ś Ń R C P L Ę Ż F Ź UNDO SPEAK SAVE SPACJA SPECIAL_CHARACTERS OPEN EXIT'.split( ), '1 2 3 4 5 6 7 8 9 0 + - * / = % $ & . , ; : " ? ! @ # ( ) [ ] { } < > ~ UNDO SPEAK SAVE SPACJA OPEN EXIT'.split( )]
+		self.labels5 = ['A O N T D J G Ó I Z S K U B Ą Ć E W Y M Ł H Ś Ń R C P L Ę Ż F Ź UNDO YOUTUBE SAVE SPACJA SPECIAL_CHARACTERS SPEAK EXIT'.split( ), '1 2 3 4 5 6 7 8 9 0 + - * / = % $ & . , ; : " ? ! @ # ( ) [ ] { } < > ~ UNDO YOUTUBE SAVE SPACJA SPEAK EXIT'.split( )]
 
-		self.labels6 = [ 'A O U W K J H Ą I Y R C M G Ę Ś E N T P B Ł Ż Ń Z S D L F Ó Ć Ź UNDO SPEAK SAVE SPACJA SPECIAL_CHARACTERS OPEN EXIT'.split( ), '1 2 3 4 5 6 7 8 9 0 + - * / = % $ & . , ; : " ? ! @ # ( ) [ ] { } < > ~ UNDO SPEAK SAVE SPACJA OPEN EXIT'.split( )]
+		self.labels6 = [ 'A O U W K J H Ą I Y R C M G Ę Ś E N T P B Ł Ż Ń Z S D L F Ó Ć Ź UNDO YOUTUBE SAVE SPACJA SPECIAL_CHARACTERS SPEAK EXIT'.split( ), '1 2 3 4 5 6 7 8 9 0 + - * / = % $ & . , ; : " ? ! @ # ( ) [ ] { } < > ~ UNDO YOUTUBE SAVE SPACJA SPEAK EXIT'.split( )]
 		
-		self.labels7 = [ 'A O Z W K J Ę Ó I Y R C M G Ą Ś E N T P B F Ż Ń U S D L H Ł Ć Ź UNDO SPEAK SAVE SPACJA SPECIAL_CHARACTERS OPEN EXIT'.split( ), '1 2 3 4 5 6 7 8 9 0 + - * / = % $ & . , ; : " ? ! @ # ( ) [ ] { } < > ~ UNDO SPEAK SAVE SPACJA OPEN EXIT'.split( )]
+		self.labels7 = [ 'A O Z W K J Ę Ó I Y R C M G Ą Ś E N T P B F Ż Ń U S D L H Ł Ć Ź UNDO YOUTUBE SAVE SPACJA SPECIAL_CHARACTERS SPEAK EXIT'.split( ), '1 2 3 4 5 6 7 8 9 0 + - * / = % $ & . , ; : " ? ! @ # ( ) [ ] { } < > ~ UNDO YOUTUBE SAVE SPACJA SPEAK EXIT'.split( )]
 
 		self.labels = eval( 'self.labels'+str(self.spellerNumber) )
 
@@ -130,14 +130,43 @@ class youtube2( wx.Frame ):
 				self.mousePosition = self.winWidth - 8 - self.xBorder, self.winHeight - 8 - self.yBorder
 				self.mouseCursor.move( *self.mousePosition )			
 
+                        self.replacements = { '-' : ' minus ', 
+                                              '+' : ' plus ', 
+                                              '*' : ' razy ', 
+                                              '/' : ' podzielić na ', 
+                                              '=' : ' równa się ', 
+                                              '%' : ' procent ', 
+                                              '$' : ' dolar', 
+                                              '@' : 'małpa', 
+                                              '~' : 'tylda', 
+                                              '!' : 'wykrzyknik', 
+                                              '?' : 'znak zapytania',
+                                              '#' : 'kratka', 
+                                              '&' : 'handlowe i', 
+                                              '(' : 'nawias okrągły otwarcie', 
+                                              ')' : 'nawias okrągły zamknięcie', 
+                                              '[' : 'nawias kwadratowy otwarcie', 
+                                              ']' : 'nawias kwadratowy zamknięcie', 
+                                              '{' : 'nawias klamrowy otwarcie', 
+                                              '}' : 'nawias klamrowy zamknięcie', 
+                                              '<' : 'nawias ostrokątny otwarcie', 
+                                              '>' : 'nawias ostrokątny zamknięcie', 
+                                              '^' : 'daszek',
+                                              ';' : 'średnik', 
+                                              ':' : 'dwukropek', 
+                                              '\\': 'ukośnik', 
+                                              '|' : 'kreska pionowa ', 
+                                              '"' : 'cudzysłów', 
+                                              '\'': 'apostrof', 
+                                              ',' : 'przecinek',
+                                              '.' : 'kropka'
+                                      }
+
 			mixer.init( )	
-			if self.switchSound.lower( ) == 'on' or self.pressSound.lower( ) == 'on':
-				if self.switchSound.lower( ) == 'on':
-					self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
-				if self.pressSound.lower( ) == 'on':
-					self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
+			if self.switchSound.lower( ) != 'off' or self.pressSound.lower( ) == 'off':
+                                self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
+                                self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
 		
-			if self.voice == 'True':
 				self.phones = glob.glob( self.pathToAP + 'sounds/phone/*' )
 				self.phoneLabels = [ item[ item.rfind( '/' )+1 : item.rfind( '.' ) ] for item in self.phones ]
 				self.sounds = [ mixer.Sound( self.sound ) for self.sound in self.phones ]
@@ -145,10 +174,19 @@ class youtube2( wx.Frame ):
 				self.rows = glob.glob( self.pathToAP + 'sounds/rows/*' )
 				self.rowLabels = [ item[ item.rfind( '/' )+1 : item.rfind( '.' ) ] for item in self.rows ]
 				self.rowSounds = [ mixer.Sound( self.sound ) for self.sound in self.rows ]
+                                                                
+                                self.cofnijSound = mixer.Sound( self.pathToAP + 'sounds/cofnij.ogg' )
+                                self.youtubeSound = mixer.Sound( self.pathToAP + 'sounds/youtube.ogg' )
+                                self.zapisacSound = mixer.Sound( self.pathToAP + 'sounds/zapisać.ogg' )
+                                self.spacjaSound = mixer.Sound( self.pathToAP + 'sounds/spacja.ogg' )
+                                self.znakiSound = mixer.Sound( self.pathToAP + 'sounds/znaki specjalne.ogg' )
+                                self.czytacSound = mixer.Sound( self.pathToAP + 'sounds/czytać.ogg' )
+                                self.wyjscieSound = mixer.Sound( self.pathToAP + 'sounds/wyjście.ogg' )
+                                self.usypiamSound = mixer.Sound( self.pathToAP + 'sounds/usypiam.ogg' )
 
-			self.typewriterKeySound = mixer.Sound( self.pathToAP + 'sounds/typewriter_key.ogg' )
-			self.typewriterForwardSound = mixer.Sound( self.pathToAP + 'sounds/typewriter_forward.ogg' )
-			self.typewriterSpaceSound = mixer.Sound( self.pathToAP + 'sounds/typewriter_space.ogg' )
+                                self.typewriterKeySound = mixer.Sound( self.pathToAP + 'sounds/typewriter_key.ogg' )
+                                self.typewriterForwardSound = mixer.Sound( self.pathToAP + 'sounds/typewriter_forward.ogg' )
+                                self.typewriterSpaceSound = mixer.Sound( self.pathToAP + 'sounds/typewriter_space.ogg' )
 
 			self.SetBackgroundColour( 'black' )
 		    
@@ -157,19 +195,19 @@ class youtube2( wx.Frame ):
             
 		if self.specialButtonsMarker == -3:
 
-			labelFiles = [ self.pathToAP + file for file in [ 'icons/speller/special_characters.png', 'icons/speller/undo.png', 'icons/speller/speak.png', 'icons/speller/save.png', 'icons/speller/open.png', 'icons/speller/exit.png', ] ]
+			labelFiles = [ self.pathToAP + file for file in [ 'icons/speller/special_characters.png', 'icons/speller/undo.png', 'icons/speller/youtube.png', 'icons/speller/save.png', 'icons/speller/speak.png', 'icons/speller/exit.png', ] ]
 			labelBitmapIndex = [ self.labels[ 0 ].index( self.labels[ 0 ][ -7 ] ), self.labels[ 0 ].index( self.labels[ 0 ][ -6 ] ), self.labels[ 0 ].index( self.labels[ 0 ][ -5 ] ), self.labels[ 0 ].index( self.labels[ 0 ][ -4 ] ), self.labels[ 0 ].index( self.labels[ 0 ][ -2 ] ), self.labels[ 0 ].index( self.labels[ 0 ][ -1 ] ) ]
 		
 		if self.specialButtonsMarker == -4:
 
-			labelFiles = [ self.pathToAP + 'icons/speller/' + item for item in [ 'undo.png', 'speak.png', 'save.png', 'special_characters.png', 'open.png', 'exit.png', ] ]
+			labelFiles = [ self.pathToAP + 'icons/speller/' + item for item in [ 'undo.png', 'youtube.png', 'save.png', 'special_characters.png', 'speak.png', 'exit.png', ] ]
 			labelBitmapIndex = [ self.labels[ 0 ].index( self.labels[ 0 ][ -7 ] ), self.labels[ 0 ].index( self.labels[ 0 ][ -6 ] ), self.labels[ 0 ].index( self.labels[ 0 ][ -5 ] ), self.labels[ 0 ].index( self.labels[ 0 ][ -3 ] ), self.labels[ 0 ].index( self.labels[ 0 ][ -2 ] ), self.labels[ 0 ].index( self.labels[ 0 ][ -1 ] ) ]
 
 		self.labelBitmaps = { }	    
 
 		for labelFilesIndex, labelIndex in enumerate( labelBitmapIndex ):
 			self.labelBitmaps[ self.labels[ 0 ][ labelIndex ] ] = wx.BitmapFromImage( wx.ImageFromStream( open( labelFiles[ labelFilesIndex ], 'rb' )) )      
-		labelFiles2 = [ self.pathToAP + 'icons/speller/' + item for item in [ 'special_characters.png', 'undo.png', 'speak.png', 'save.png', 'open.png', 'exit.png', ] ]
+		labelFiles2 = [ self.pathToAP + 'icons/speller/' + item for item in [ 'special_characters.png', 'undo.png', 'youtube.png', 'save.png', 'speak.png', 'exit.png', ] ]
             
 		self.labelBitmaps2 = { }
 	    
@@ -384,7 +422,7 @@ class youtube2( wx.Frame ):
 	#-------------------------------------------------------------------------
 	def onPress(self, event):
 		
-		if self.pressSound.lower( ) == 'on':
+		if self.pressSound.lower( ) != 'off':
 			self.pressingSound.play( )
 
 		if self.control == 'tracker':
@@ -396,6 +434,8 @@ class youtube2( wx.Frame ):
 				self.stoper.Start( 0.15 * self.timeGap )
 
 				if self.label == 'SPECIAL_CHARACTERS':								
+                                        if self.pressSound.lower() == 'voice':
+                                                self.znakiSound.play()
 
 					self.subSizerNumber = 1
 
@@ -406,10 +446,15 @@ class youtube2( wx.Frame ):
 					self.Layout( )
 
 				elif self.label == 'UNDO':
+                                        if self.pressSound.lower() == 'voice':
+                                                self.cofnijSound.play()
+
 					self.typewriterForwardSound.play( )
 					self.textField.Remove( self.textField.GetLastPosition( ) - 1, self.textField.GetLastPosition( ) )
 
-				elif self.label == 'SPEAK':								
+				elif self.label == 'YOUTUBE':								
+                                        if self.pressSound.lower() == 'voice':
+                                                self.youtubeSound.play()
 					text = self.textField.GetValue().encode('UTF-8')
 					
 					self.stoper.Stop()
@@ -420,6 +465,9 @@ class youtube2( wx.Frame ):
 					os.system('minitube %s &' %text)
 
 				elif self.label == 'SAVE':
+                                        if self.pressSound.lower() == 'voice':
+                                                self.zapisacSound.play()
+
 					text = str( self.textField.GetValue( ) )
 
 					if text == '':
@@ -430,19 +478,37 @@ class youtube2( wx.Frame ):
 						f.close( )
 
 				elif self.label == 'SPACJA':
+                                        if self.pressSound.lower() == 'voice':
+                                                self.spacjaSound.play()
+
 					self.typewriterSpaceSound.play( )
 					self.textField.AppendText( ' ' )
 
-				elif self.label == 'OPEN':
-					try:
-						textToLoad = open( 'myTextFile.txt' ).read( )
-						self.textField.Clear( )
-						self.textField.AppendText( textToLoad )
+				elif self.label == 'SPEAK':
+                                        if self.pressSound.lower() == 'voice':
+                                                self.czytacSound.play()
 
-					except IOError:
+					text = str( self.textField.GetValue( ) )
+
+					if text == '' or text.isspace( ):
 						pass
 
+					else:
+						textToSpeech = reduce( lambda text, replacer: text.replace( *replacer ), self.replacements.iteritems( ), text )
+						time.sleep( 1 )
+						os.system( 'milena_say %s' %textToSpeech )
+					# try:
+					# 	textToLoad = open( 'myTextFile.txt' ).read( )
+					# 	self.textField.Clear( )
+					# 	self.textField.AppendText( textToLoad )
+
+					# except IOError:
+					# 	pass
+
 				elif self.label == 'EXIT':
+                                        if self.pressSound.lower() == 'voice':
+                                                self.wyjscieSound.play()
+
 					if self.subSizerNumber == 0:
 						self.onExit( )
 
@@ -456,9 +522,13 @@ class youtube2( wx.Frame ):
 					    self.Layout( )
 
 				else:
-					self.typewriterKeySound.play( )
-
-					self.textField.AppendText( self.label )
+                                        textToSpeech = reduce( lambda text, replacer: text.replace( *replacer ), self.replacements.iteritems( ), self.label )
+                                        time.sleep( 1 )
+                                        self.typewriterKeySound.play( )
+                                        os.system( 'milena_say %s' %textToSpeech )
+                                        
+                                        
+                                        self.textField.AppendText( self.label )
 			else:
 				pass
 		else:
@@ -473,7 +543,14 @@ class youtube2( wx.Frame ):
 
 				elif self.flag == 'row':
 
+					if self.switchSound.lower() == 'voice':
+						for idx, item in enumerate( self.rowLabels ):
+							if int(item) == self.rowIteration:
+								self.rowSounds[ idx ].play( )
+								break
+
 					if self.rowIteration != self.numberOfRows[ self.subSizerNumber ]:
+
 						buttonsToHighlight = range( ( self.rowIteration - 1 ) * self.numberOfColumns[ self.subSizerNumber ], ( self.rowIteration - 1 ) * self.numberOfColumns[ self.subSizerNumber ] + self.numberOfColumns[ self.subSizerNumber ] )
 					else:
 						if self.specialButtonsMarker == -3 or self.subSizerNumber == 1:
@@ -516,13 +593,19 @@ class youtube2( wx.Frame ):
 							self.Layout( )
 
 						else:
+                                                        textToSpeech = reduce( lambda text, replacer: text.replace( *replacer ), self.replacements.iteritems( ), label )
+                                                        time.sleep( 1 )
 							self.typewriterKeySound.play( )
+                                                        os.system( 'milena_say %s' %textToSpeech )
 
 							self.textField.AppendText( label )
 
 					else:
+                                                textToSpeech = reduce( lambda text, replacer: text.replace( *replacer ), self.replacements.iteritems( ), label )
+                                                time.sleep( 1 )
 						self.typewriterKeySound.play( )
-						
+                                                os.system( 'milena_say %s' %textToSpeech )
+
 						self.textField.AppendText( label )
 
 					self.flag = 'row'
@@ -540,10 +623,14 @@ class youtube2( wx.Frame ):
 					label = self.labels[ self.subSizerNumber ][ self.rowIteration * self.numberOfColumns[ self.subSizerNumber ] + self.columnIteration-1 ]
 
 					if label == 'UNDO':
+                                                if self.pressSound.lower() == 'voice':
+                                                        self.cofnijSound.play()
 						self.typewriterForwardSound.play( )
 						self.textField.Remove( self.textField.GetLastPosition( ) - 1, self.textField.GetLastPosition( ) )
 
-					elif label == 'SPEAK':
+					elif label == 'YOUTUBE':
+                                                if self.pressSound.lower() == 'voice':
+                                                        self.youtubeSound.play()
                                                 text = self.textField.GetValue().encode('UTF-8')
                                                 
                                                 self.stoper.Stop()
@@ -554,6 +641,9 @@ class youtube2( wx.Frame ):
                                                 os.system('minitube %s &' %text)
 
 					elif label == 'SAVE':
+                                                if self.pressSound.lower() == 'voice':
+                                                        self.zapisacSound.play()
+
 						text = str( self.textField.GetValue( ) )
 						if text == '':
 							pass
@@ -563,20 +653,37 @@ class youtube2( wx.Frame ):
 							f.close( )
 
 					elif label == 'SPACJA':
+                                                if self.pressSound.lower() == 'voice':
+                                                        self.spacjaSound.play()
+
 						self.typewriterSpaceSound.play( )
 						self.textField.AppendText( ' ' )
 
-					elif label == 'OPEN':
-						try:
-							textToLoad = open( 'myTextFile.txt' ).read( )
-							self.textField.Clear( )
-							self.textField.AppendText( textToLoad )
+					elif label == 'SPEAK':
+                                                if self.pressSound.lower() == 'voice':
+                                                        self.czytacSound.play()
+                                                text = str( self.textField.GetValue( ) )
 
-						except IOError:
-							print "Can't find the file"
-							pass
+                                                if text == '' or text.isspace( ):
+                                                        pass
+
+                                                else:
+                                                        textToSpeech = reduce( lambda text, replacer: text.replace( *replacer ), replacements.iteritems( ), text )
+                                                        
+                                                        time.sleep( 1 )
+                                                        os.system( 'milena_say %s' %textToSpeech )
+                                                        # try:
+                                                        # 	textToLoad = open( 'myTextFile.txt' ).read( )
+                                                        # 	self.textField.Clear( )
+                                                        # 	self.textField.AppendText( textToLoad )
+
+                                                        # except IOError:
+                                                        # 	print "Can't find the file"
+                                                        # 	pass
 
 					elif label == 'EXIT':
+                                                if self.pressSound.lower() == 'voice':
+                                                        self.wyjscieSound.play()
 						if self.subSizerNumber == 0:
 							self.onExit( )
 
@@ -591,6 +698,8 @@ class youtube2( wx.Frame ):
 
 					elif self.specialButtonsMarker == -4:
 						if label == 'SPECIAL_CHARACTERS':								
+                                                        if self.pressSound.lower() == 'voice':
+                                                                self.znakiSound.play()
 
 							self.subSizerNumber = 1
 
@@ -632,6 +741,9 @@ class youtube2( wx.Frame ):
 			if self.flag == 'row':
 
 				if self.countRows == self.maxNumberOfRows:
+                                        if self.switchSound.lower() == 'voice':
+                                                self.usypiamSound.play()
+
 					self.flag = 'rest'
 					self.countRows = 0
 
@@ -669,10 +781,10 @@ class youtube2( wx.Frame ):
 
 					self.rowIteration += 1
 
-					if self.switchSound.lower( ) == 'on' and self.voice == 'False':
+					if self.switchSound.lower( ) == 'on':
 						self.switchingSound.play( )
 
-					if self.voice == 'True':
+					elif self.switchSound.lower() == 'voice':
 						for idx, item in enumerate( self.rowLabels ):
 							if int(item) == self.rowIteration:
 								self.rowSounds[ idx ].play( )
@@ -709,30 +821,51 @@ class youtube2( wx.Frame ):
 					b = item.GetWindow( )
 					b.SetBackgroundColour( self.scanningColour )
 					b.SetFocus( )
-
-					if self.switchSound.lower( ) == 'on' and self.voice == 'False':
+                                        label = b.Name
+                                        
+					if self.switchSound.lower( ) == 'on':
 						self.switchingSound.play( )
 
-					elif self.voice == 'True':
-						label = self.labels[ self.subSizerNumber ][ self.rowIteration * self.numberOfColumns[ self.subSizerNumber ] + self.columnIteration ]
+					elif self.switchSound.lower( ) == 'voice':
+                                                if label == 'UNDO':
+                                                        self.cofnijSound.play()
+                                                        
+                                                elif label == 'YOUTUBE':
+                                                        self.youtubeSound.play()
 
-						try:
-							soundIndex = self.phoneLabels.index( [ item for item in self.phoneLabels if item == label ][ 0 ] )
-							sound = self.sounds[ soundIndex ]
-							sound.play( )
+                                                elif label == 'SAVE':
+                                                        self.zapisacSound.play()
 
-						except IndexError:
-							pass
+                                                elif label == 'SPACJA':
+                                                        self.spacjaSound.play()
 
-					# if self.switchSound.lower() == 'on' and (self.rowIteration == self.numberOfRows[0]-1 or self.subSizerNumber == 1):
-					# 	self.switchingSound.play( )
+                                                elif label == 'SPEAK':
+                                                        self.czytacSound.play()
+
+                                                elif label == 'EXIT':
+                                                        self.wyjscieSound.play()
+                                        
+                                                elif label == 'SPECIAL_CHARACTERS':								
+                                                        self.znakiSound.play()
+
+                                                else:
+                                                        
+                                                        label = self.labels[ self.subSizerNumber ][ self.rowIteration * self.numberOfColumns[ self.subSizerNumber ] + self.columnIteration ]
+
+                                                        try:
+                                                                soundIndex = self.phoneLabels.index( [ item for item in self.phoneLabels if item == label ][ 0 ] )
+                                                                sound = self.sounds[ soundIndex ]
+                                                                sound.play( )
+
+                                                        except IndexError:
+                                                                text = label
+                                                                textToSpeech = reduce( lambda text, replacer: text.replace( *replacer ), self.replacements.iteritems( ), text )
+                                                                os.system('milena_say %s' %textToSpeech)
 
 					self.columnIteration += 1
 					
 			else:
 				pass
-
-
 
 # #=============================================================================
 

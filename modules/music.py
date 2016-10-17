@@ -29,7 +29,6 @@ from pygame import mixer
 
 from pilots import musicPilot
 
-
 #=============================================================================
 class music( wx.Frame ):
 	def __init__(self, parent, id):

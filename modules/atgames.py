@@ -91,17 +91,16 @@ class games( wx.Frame ):
 			self.mousePosition = self.winWidth - 8 - self.xBorder, self.winHeight - 8 - self.yBorder
 			self.mouseCursor.move( *self.mousePosition )			
 
-		if self.switchSound.lower( ) == 'on' or self.pressSound.lower( ) == 'on':
+		if self.switchSound.lower( ) != 'off' or self.pressSound.lower( ) != 'off':
 			mixer.init( )
-			if self.switchSound.lower( ) == 'on':
-				self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
-			if self.pressSound.lower( ) == 'on':
-				self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
+                        self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
+                        self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
 
-                self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
-                self.pamiecSound = mixer.Sound( self.pathToAP + '/sounds/pamiec.ogg' )
-                self.minaSound = mixer.Sound( self.pathToAP + '/sounds/mina.ogg' )
-		
+                        self.oneSound = mixer.Sound( self.pathToAP + '/sounds/rows/1.ogg' )
+                        self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
+                        self.pamiecSound = mixer.Sound( self.pathToAP + '/sounds/pamiec.ogg' )
+                        self.minaSound = mixer.Sound( self.pathToAP + '/sounds/mina.ogg' )
+                        
 		self.SetBackgroundColour( 'black' )
 
 	#-------------------------------------------------------------------------	
@@ -260,7 +259,7 @@ class games( wx.Frame ):
 	#-------------------------------------------------------------------------
         def onPress(self, event):
 
-		if self.pressSound.lower( ) == 'on':
+		if self.pressSound.lower( ) != 'off':
 			self.pressingSound.play( )
 
 		if self.control == 'tracker':
@@ -343,7 +342,8 @@ class games( wx.Frame ):
 					if self.rowIteration == self.numberOfRows[ 0 ]:
                                                 self.stoper.Stop( )
                                                 time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                                self.powrotSound.play( )
+                                                if self.pressSound.lower() == 'voice':
+                                                        self.powrotSound.play()
                                                 time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
                                                 self.stoper.Start( self.timeGap )
 
@@ -351,6 +351,8 @@ class games( wx.Frame ):
 
                                         else:
                                                 self.stoper.Stop( )
+                                                if self.pressSound.lower() == 'voice':
+                                                        self.oneSound.play()
                                                 time.sleep( self.selectionTime/1000. )
                                                 self.stoper.Start( self.timeGap )
 
@@ -370,7 +372,8 @@ class games( wx.Frame ):
 					if self.position == 0:
                                                 self.stoper.Stop( )
                                                 time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                                self.pamiecSound.play( )
+                                                if self.pressSound.lower() != 'off':
+                                                        self.pamiecSound.play()
                                                 time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
                                                 self.stoper.Start( self.timeGap )
 
@@ -381,6 +384,8 @@ class games( wx.Frame ):
 					elif self.position == 1:
                                                 self.stoper.Stop( )
                                                 time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                                if self.pressSound.lower() != 'off':
+                                                        self.minaSound.play()
                                                 self.minaSound.play( )
                                                 time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
                                                 self.stoper.Start( self.timeGap )
@@ -433,6 +438,9 @@ class games( wx.Frame ):
 			if self.flag == 'panel': ## flag == panel ie. switching between panels
 				
 				if self.emptyPanelIteration == self.maxEmptyPanelIteration:
+                                        if self.pressSound.lower() == 'voice':
+                                                self.usypiamSound.play()
+
 					self.flag = 'rest'
 					self.emptyPanelIteration = 0
 				else:
@@ -458,6 +466,8 @@ class games( wx.Frame ):
 					self.emptyPanelIteration = 0
 					
 					if self.numberOfPanels == 1:
+                                                if self.pressSound.lower() == 'voice':
+                                                        self.usypiamSound.play()
 						self.flag = 'rest'
 					else:
 						self.flag = 'panel'
@@ -481,6 +491,12 @@ class games( wx.Frame ):
 				else:
 					self.rowIteration = self.rowIteration % self.numberOfRows[ 0 ]
                                 
+                                        if self.switchSound == "voice":
+                                            if (self.rowIteration == 0):
+                                                self.oneSound.play()
+                                            if (self.rowIteration == 1):
+                                                self.powrotSound.play()
+
 					items = self.subSizers[ self.panelIteration ].GetChildren( )
 					for item in items:
 						b = item.GetWindow( )
@@ -518,6 +534,12 @@ class games( wx.Frame ):
 				else:
 					self.columnIteration = self.columnIteration % self.numberOfColumns[ 0 ]
 					
+                                        if self.switchSound == "voice":
+                                            if (self.columnIteration == 0):
+                                                self.pamiecSound.play()
+                                            if (self.columnIteration == 1):
+                                                self.minaSound.play()
+
 					if self.columnIteration == self.numberOfColumns[ 0 ] - 1:
 						self.emptyColumnIteration += 1
 
@@ -540,7 +562,6 @@ class games( wx.Frame ):
 
 			else:
 				pass
-
 
 #=============================================================================
 if __name__ == '__main__':

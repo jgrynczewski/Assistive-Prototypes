@@ -158,20 +158,21 @@ class youtube1( wx.Frame ):
                 self.mousePosition = self.winWidth - 8 - self.xBorder, self.winHeight - 8 - self.yBorder
                 self.mouseCursor.move( *self.mousePosition )			
 
-            if self.switchSound.lower( ) == 'on' or self.pressSound.lower( ) == 'on':
+            if self.switchSound.lower( ) != 'off' or self.pressSound.lower( ) != 'off':
                 mixer.init( )
-                if self.switchSound.lower( ) == 'on':
-                    self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
-                if self.pressSound.lower( ) == 'on':
-                    self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
+                self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
+                self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
 
-            self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
+                self.oneSound = mixer.Sound( self.pathToAP + '/sounds/rows/1.ogg' )
+                self.twoSound = mixer.Sound( self.pathToAP + '/sounds/rows/2.ogg' )
+                self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
+                self.pusteSound = mixer.Sound( self.pathToAP + '/sounds/puste.ogg' )
 
-            self.pageFlipSounds = glob.glob( self.pathToAP + 'sounds/page_flip/*' )
+                self.pageFlipSounds = glob.glob( self.pathToAP + 'sounds/page_flip/*' )
             
-            self.pageFlipSound = mixer.Sound( self.pageFlipSounds[ 1 ] )
-            self.lastPageFlipSound = mixer.Sound( self.pathToAP + 'sounds/page-flip-13.ogg' )
-            self.pageFlipSounds = [ mixer.Sound( self.pageFlipSound ) for self.pageFlipSound in self.pageFlipSounds ]
+                self.pageFlipSound = mixer.Sound( self.pageFlipSounds[ 1 ] )
+                self.lastPageFlipSound = mixer.Sound( self.pathToAP + 'sounds/page-flip-13.ogg' )
+                self.pageFlipSounds = [ mixer.Sound( self.pageFlipSound ) for self.pageFlipSound in self.pageFlipSounds ]
 
             self.SetBackgroundColour( 'black' )
 
@@ -264,13 +265,13 @@ class youtube1( wx.Frame ):
                         try:
                             if i < len( self.blissBook[ item ] ):
                                 while j != self.blissBook[ item ][ i ][ 1 ]:
-                                    b = bt.GenButton( self, -1 )
+                                    b = bt.GenButton( self, -1, name = 'puste' )
                                     b.Bind( wx.EVT_LEFT_DOWN, self.onPress )
                                     b.SetBackgroundColour( self.backgroundColour )
                                     self.subSizers[ item ].Add( b, 0, wx.EXPAND | wx.ALIGN_CENTER )
                                     j += 1
 
-                                b = bt.GenBitmapButton( self , -1 , bitmap = self.blissBook[ item ][ i ][ 0 ] )
+                                b = bt.GenBitmapButton( self , -1 , bitmap = self.blissBook[ item ][ i ][ 0 ], name = self.blissBook[item][i][2] )
                                 b.Bind( wx.EVT_LEFT_DOWN, self.onPress )
                                 b.SetBackgroundColour( self.backgroundColour )
                                 self.subSizers[item].Add( b, 0, wx.EXPAND | wx.ALIGN_CENTER )
@@ -278,7 +279,7 @@ class youtube1( wx.Frame ):
                                 j += 1
 
                             else:
-                                b = bt.GenButton( self, -1 )
+                                b = bt.GenButton( self, -1, name = 'puste' )
                                 b.Bind( wx.EVT_LEFT_DOWN, self.onPress )
                                 b.SetBackgroundColour( self.backgroundColour )
                                 self.subSizers[item].Add( b, 0, wx.EXPAND | wx.ALIGN_CENTER )
@@ -344,29 +345,43 @@ class youtube1( wx.Frame ):
 	
 	#-------------------------------------------------------------------------
         def onPress(self, event):
+
+                if self.pressSound.lower( ) != 'off':
+                        self.pressingSound.play( )
             
                 if self.numberOfPresses == 0:
  
 			if self.flag == 'panel':
-                            
-                                if self.blissBook[ self.panelIteration ][ 0 ][ 2 ] == 'EXIT' and self.panelIteration == len( self.subSizers ) - 1:
-                                    self.onExit( )
+                            items = self.subSizers[ self.panelIteration ].GetChildren( )			
 
-                                else:
-                                    items = self.subSizers[ self.panelIteration ].GetChildren( )			
+                            for item in items:
+                                b = item.GetWindow( )
+                                b.SetBackgroundColour( self.scanningColour )
+                                b.SetFocus( )                            
+                            if self.blissBook[ self.panelIteration ][ 0 ][ 2 ] == 'EXIT' and self.panelIteration == len( self.subSizers ) - 1:
+                                if self.pressSound.lower( ) == "voice":
+                                    self.stoper.Stop( )
+                                    time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                    self.powrotSound.play()
+                                    time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                    self.stoper.Start( self.timeGap )
+                                self.onExit( )
 
-                                    for item in items:
-                                        b = item.GetWindow( )
-                                        b.SetBackgroundColour( self.scanningColour )
-                                        b.SetFocus( )
+                            else:
 
-                                    self.flag = 'row'
-                                    self.rowIteration = 0
+                                self.flag = 'row'
+                                self.rowIteration = 0
 			
 			elif self.flag == 'row':
 
                                 self.rowIteration -= 1
-                                
+                                print self.rowIteration
+                                if self.pressSound == "voice":
+                                    if (self.rowIteration == 0):
+                                        self.oneSound.play()
+                                    if (self.rowIteration == 1):
+                                        self.twoSound.play()
+
                                 buttonsToHighlight = range( ( self.rowIteration ) * self.numberOfColumns[ self.panelIteration ], ( self.rowIteration ) * self.numberOfColumns[ self.panelIteration ] + self.numberOfColumns[ self.panelIteration ] )
 			
 				for button in buttonsToHighlight:
@@ -384,10 +399,19 @@ class youtube1( wx.Frame ):
 
                                 item = self.subSizers[ self.panelIteration ].GetItem( ( self.rowIteration ) * self.numberOfColumns[ self.panelIteration ] + self.columnIteration )
 				selectedButton = item.GetWindow( )
-				selectedButton.SetBackgroundColour( self.selectionColour )
-				selectedButton.SetFocus( )
                                 
                                 self.Update( )
+
+                                if self.pressSound == 'voice':
+                                    if selectedButton.GetName() == 'puste':
+                                        selectedButton.SetBackgroundColour( "red" )
+                                        selectedButton.SetFocus( )
+                                        self.Update( )
+                                        self.pusteSound.play()
+                                    else:
+                                        selectedButton.SetBackgroundColour( self.selectionColour )
+                                        selectedButton.SetFocus( )
+                                        os.system( 'milena_say %s' % selectedButton.GetName() )
                                 
                                 for item in self.blissBook[ self.panelIteration ]:
                                     
@@ -414,7 +438,7 @@ class youtube1( wx.Frame ):
                                         unicodeLabel = item[ 2 ].decode( 'utf-8' )
                                         self.lastTextLenght = len( unicodeLabel ) + 1
                                         time.sleep( 0.5 )
-                                        os.system( 'milena_say %s' % item[ 2 ] )
+
                                         self.numberOfSymbol += 1
 					time.sleep( 1 )
 
@@ -423,15 +447,16 @@ class youtube1( wx.Frame ):
 					self.menu = minitubePilot.pilot( self, id =1 )
 					
 					self.menu.Show()
-					os.system('minitube %s &' %unicodeLabel)
+					os.system('minitube "%s" &' %unicodeLabel)
 
-                                selectedButton.SetBackgroundColour( self.backgroundColour )
+                                # selectedButton.SetBackgroundColour( self.backgroundColour )
 
-				self.flag = 'panel'
+                                self.flag = 'row'
                                 self.panelIteration = 0
-				self.rowIteration = 0
-				self.columnIteration = 0
-				self.count = 0
+                                self.rowIteration = 0
+                                self.columnIteration = 0
+                                self.count = 0
+                                self.countRows = 0
                         
                         self.numberOfPresses += 1
 
@@ -448,11 +473,15 @@ class youtube1( wx.Frame ):
                         if self.panelIteration == len( self.blissBook ):
                             self.panelIteration = 0
 
-                        if self.panelIteration == len( self.blissBook ) - 1:
-                            self.lastPageFlipSound.play( )
+                        if self.switchSound == "voice":
+                            if self.panelIteration == len( self.blissBook ) - 1:
+                                self.powrotSound.play( )
 
-                        else:
-                            self.pageFlipSounds[ self.panelIteration % len( self.pageFlipSounds ) ].play( )
+                            elif self.panelIteration == len( self.blissBook ) - 2:
+                                self.lastPageFlipSound.play( )
+
+                            else:
+                                self.pageFlipSounds[ self.panelIteration % len( self.pageFlipSounds ) ].play( )
 
                         for item in range( len( self.blissBook ) ):
                             if item != self.panelIteration:
@@ -497,7 +526,15 @@ class youtube1( wx.Frame ):
 					b.SetBackgroundColour( self.scanningColour )
 					b.SetFocus( )
 				self.rowIteration += 1
-                                os.system( 'milena_say %i' % ( self.rowIteration ) )
+
+                                if self.switchSound == "voice":
+                                    if (self.rowIteration == 1):
+                                        self.oneSound.play()
+                                    if (self.rowIteration == 2):
+                                        self.twoSound.play()
+                                    # if (self.rowIteration == 2):
+                                    #     self.threeSound.play()
+                                # os.system( 'milena_say %i' % ( self.rowIteration ) )
 			
 		elif self.flag == 'columns': #flag = columns ie. switching between cells in the particular row
 
@@ -533,8 +570,15 @@ class youtube1( wx.Frame ):
 				b.SetFocus( )
 
 				self.columnIteration += 1
-                                os.system( 'milena_say %i' % ( self.columnIteration ) )
-
+                                
+                                
+                                if self.switchSound.lower() == 'voice':
+                                    if b.Name == 'puste':
+                                        self.pusteSound.play()
+                                    else:
+                                        os.system( 'milena_say %s' % ( b.Name ) )
+                                elif self.switchSound.lower() != 'off':
+                                    self.switchingSound.play()
 
 #=============================================================================
 if __name__ == '__main__':

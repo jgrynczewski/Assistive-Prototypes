@@ -83,16 +83,14 @@ class cwiczenia(wx.Frame):
 			self.mousePosition = self.winWidth - 8 - self.xBorder, self.winHeight - 8 - self.yBorder
 			self.mouseCursor.move( *self.mousePosition )			
 							
-		if self.switchSound.lower( ) == 'on' or self.pressSound.lower( ) == 'on':
+		if self.switchSound.lower( ) != 'off' or self.pressSound.lower( ) != 'off':
 			mixer.init( )
-			if self.switchSound.lower( ) == 'on':
-				self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
-			if self.pressSound.lower( ) == 'on':
-				self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
-
-                self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
-                self.slowoSound = mixer.Sound( self.pathToAP + '/sounds/slowo.ogg' )
-                self.dziuraSound = mixer.Sound( self.pathToAP + '/sounds/dziura.ogg' )
+                        self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
+                        self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
+                        
+                        self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
+                        self.slowoSound = mixer.Sound( self.pathToAP + '/sounds/slowo.ogg' )
+                        self.dziuraSound = mixer.Sound( self.pathToAP + '/sounds/dziura.ogg' )
 
                 self.poczatek = True
 		self.numberOfPresses = 1
@@ -120,7 +118,7 @@ class cwiczenia(wx.Frame):
 
 		self.mainSizer = wx.GridBagSizer( self.xBorder, self.yBorder )
 
-                nazwy = [ u'UZUPEŁNIJ LUKĘ',u'NAZWIJ OBRAZEK' ]
+                nazwy = [ u'DZIURA',u'SŁOWO' ]
                 kolory = [ 'indian red', 'yellow' ]
 
 		b = bt.GenButton( self, -1, nazwy[ 0 ], name = nazwy[ 0 ])
@@ -237,7 +235,7 @@ class cwiczenia(wx.Frame):
 	#-------------------------------------------------------------------------	
 	def onPress(self, event):
 		
-		if self.pressSound.lower( ) == 'on':
+		if self.pressSound.lower( ) != 'off':
 			self.pressingSound.play( )
 
 		if self.control == 'tracker':
@@ -248,14 +246,18 @@ class cwiczenia(wx.Frame):
 				self.label = event.GetEventObject().GetName().encode( 'utf-8' )
 				self.stoper.Start( 0.15 * self.timeGap )
 
-				if self.label == 'UZUPEŁNIJ LUKĘ':
+				if self.label == 'DZIURA':
+                                        if self.pressSound.lower( ) == 'voice':
+                                                self.dziuraSound.play()
 					self.stoper.Stop( )
 					EGaps.cwiczenia( self, id = -1 ).Show( True )
 					self.MakeModal( False )
 					self.Hide( )
 
-				elif self.label == 'NAZWIJ OBRAZEK':
+				elif self.label == u'SŁOWO':
 					self.stoper.Stop( )
+                                        if self.pressSound.lower( ) == 'voice':
+                                                self.slowoSound.play()
 					EMatch.cwiczenia( self, id = -1 ).Show( True )
 					self.MakeModal( False )
 					self.Hide( )
@@ -263,7 +265,8 @@ class cwiczenia(wx.Frame):
 				if self.label == 'back':
                                         self.stoper.Stop( )
                                         time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                        self.powrotSound.play( )
+                                        if self.pressSound.lower( ) == 'voice':
+                                                self.powrotSound.play()
                                         time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
                                         self.stoper.Start( self.timeGap )
 
@@ -297,7 +300,8 @@ class cwiczenia(wx.Frame):
 					if self.flaga == 0 :
                                                 self.stoper.Stop( )
                                                 time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                                self.powrotSound.play( )
+                                                if self.pressSound.lower( ) == 'voice':
+                                                        self.powrotSound.play()
                                                 time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
                                                 self.stoper.Start( self.timeGap )
 
@@ -306,7 +310,8 @@ class cwiczenia(wx.Frame):
 					if self.flaga == 1 :
                                                 self.stoper.Stop( )
                                                 time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                                self.dziuraSound.play( )
+                                                if self.pressSound.lower( ) == 'voice':
+                                                        self.dziuraSound.play()
                                                 time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
                                                 self.stoper.Start( self.timeGap )
 
@@ -318,7 +323,8 @@ class cwiczenia(wx.Frame):
 					if self.flaga == 2 :
                                                 self.stoper.Stop( )
                                                 time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                                self.slowoSound.play( )
+                                                if self.pressSound.lower( ) == 'voice':
+                                                        self.slowoSound.play()
                                                 time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
                                                 self.stoper.Start( self.timeGap )
 
@@ -359,7 +365,8 @@ class cwiczenia(wx.Frame):
 					b = item.GetWindow( )
 					b.SetBackgroundColour( self.backgroundColour )
 					b.SetFocus( )
-
+                                if self.switchSound == "voice":
+                                        self.usypiamSound.play()
 				self.flaga = 'rest'
 
 			else:
@@ -373,7 +380,16 @@ class cwiczenia(wx.Frame):
 				b = item.GetWindow( )
 				b.SetBackgroundColour( self.scanningColour )
 				b.SetFocus( )
-
+                                logo = b.Name
+                                
+                                if self.switchSound.lower() == "voice":
+                                        if logo == "DZIURA":
+                                                self.dziuraSound.play()
+                                        elif logo == u"SŁOWO":
+                                                self.slowoSound.play()
+                                        elif logo == "back":
+                                                self.powrotSound.play()
+                                
 				if self.flaga == 2:
 					self.flaga = 0
 				else:

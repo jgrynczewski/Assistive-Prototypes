@@ -1,0 +1,16 @@
+#!/bin/env python2.7
+# -*- coding: utf-8 -*-
+import os
+from string import maketrans
+import time
+
+text='0'
+
+# inputTable = '~!#$&( )[]{}<>;:"\|'
+# outputTable = ' ' * len( inputTable )
+# translateTable = maketrans( inputTable, outputTable )
+# textToSpeech = text.translate( 
+
+textToSpeech = reduce( lambda text, replacer: text.replace( *replacer ), replacements.iteritems( ), text )
+print textToSpeech
+os.system( 'milena_say %s' %textToSpeech )

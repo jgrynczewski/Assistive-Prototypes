@@ -1,0 +1,12 @@
+import os
+
+inputTable = '~!#$&( )[]{}<>;:"\|'
+outputTable = ' ' * len( inputTable )
+translateTable = maketrans( inputTable, outputTable )
+textToSpeech = text.translate( translateTable )
+
+replacements = { '-' : ' minus ', '+' : ' plus ', '*' : ' razy ', '/' : ' podzielić na ', '=' : ' równa się ', '%' : ' procent ', '$' : 'dolar' }
+textToSpeech = reduce( lambda text, replacer: text.replace( *replacer ), replacements.iteritems( ), textToSpeech )
+print textToSpeech
+time.sleep( 1 )
+os.system( 'milena_say %s' %textToSpeech )

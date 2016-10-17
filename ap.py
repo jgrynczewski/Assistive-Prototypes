@@ -87,7 +87,7 @@ class main_menu( wx.Frame ):
                         except ValueError:
                                 setattr(self, item[:item.find('=')], item[item.find('=')+1:])
 
-                self.labels = 'PISAK EXERCISES RADIO MUSIC AUDIOBOOK NOWE AKTUALIZACJE EMPTY1 EMPTY2'.split( )
+                self.labels = 'PISAK EXERCISES RADIO MUSIC AUDIOBOOK NOWE AKTUALIZACJE PUSTE PUSTE'.split( )
 
                 self.flag = 'row'
                 self.pressFlag = False
@@ -110,19 +110,29 @@ class main_menu( wx.Frame ):
                         self.mousePosition = self.winWidth - 4 - self.xBorder, self.winHeight - 4 - self.yBorder
                         self.mouseCursor.move( *self.mousePosition )
                                                         
-                if self.switchSound.lower( ) == 'on' or self.pressSound.lower( ) == 'on':
-                        mixer.init( )
-                        if self.switchSound.lower( ) == 'on':
-                                self.switchingSound = mixer.Sound( self.path + '/sounds/switchSound.ogg' )
-                        if self.pressSound.lower( ) == 'on':
-                                self.pressingSound = mixer.Sound( self.path + '/sounds/pressSound.ogg' )
+                # if self.switchSound.lower( ) != 'off' or self.pressSound.lower( ) != 'off':
+                mixer.init( )
+                self.usypiamSound = mixer.Sound(self.path + '/sounds/usypiam.ogg')
 
-                self.zadanieSound = mixer.Sound( self.path + '/sounds/zadanie.ogg' )
-                self.blogSound = mixer.Sound( self.path + '/sounds/blog.ogg' )
-                self.muzykaSound = mixer.Sound( self.path + '/sounds/muzyka.ogg' )
-                self.filmSound = mixer.Sound( self.path + '/sounds/film.ogg' )
-                self.radioSound = mixer.Sound( self.path + '/sounds/radio.ogg' )
-                self.pisakSound = mixer.Sound( self.path + '/sounds/pisak.ogg' )
+                # if self.switchSound.lower( ) == 'on':
+                self.switchingSound = mixer.Sound( self.path + '/sounds/switchSound.ogg' )
+                #if self.pressSound.lower( ) == 'on':
+                self.pressingSound = mixer.Sound( self.path + '/sounds/pressSound.ogg' )
+
+                if self.switchSound.lower( ) == 'voice' or self.pressSound.lower( ) == 'voice':
+                    self.oneSound = mixer.Sound(self.path + '/sounds/rows/1.ogg')
+                    self.twoSound = mixer.Sound(self.path + '/sounds/rows/2.ogg')
+                    self.threeSound = mixer.Sound(self.path + '/sounds/rows/3.ogg')
+
+                    self.noweSound = mixer.Sound(self.path + '/sounds/nowe.ogg')
+                    self.zadanieSound = mixer.Sound( self.path + '/sounds/zadanie.ogg' )
+                    self.muzykaSound = mixer.Sound( self.path + '/sounds/muzyka.ogg' )
+                    self.filmSound = mixer.Sound( self.path + '/sounds/film.ogg' )
+                    self.radioSound = mixer.Sound( self.path + '/sounds/radio.ogg' )
+                    self.aktualizujSound = mixer.Sound( self.path + '/sounds/aktualizuj.ogg' )
+                    self.pisakSound = mixer.Sound( self.path + '/sounds/pisak.ogg' )
+                    self.pusteSound = mixer.Sound( self.path + '/sounds/puste.ogg' )
+                    self.audiobookSound = mixer.Sound( self.path + '/sounds/książki_czytane.ogg')
 
                 self.SetBackgroundColour( 'black' )
 
@@ -131,7 +141,7 @@ class main_menu( wx.Frame ):
         #-------------------------------------------------------------------------        
         def initializeBitmaps(self):
             
-            labelFiles = [ self.path + item for item in [ 'icons/modules/pisak.png', 'icons/modules/exercises.png', 'icons/modules/radio.png', 'icons/modules/music.png', 'icons/modules/audiobook.png', 'icons/modules/nowe.png', 'icons/modules/aktualizacja.png', 'icons/modules/empty.png', 'icons/modules/empty.png'] ]
+            labelFiles = [ self.path + item for item in [ 'icons/modules/pisak.png', 'icons/modules/exercises.png', 'icons/modules/radio.png', 'icons/modules/music.png', 'icons/modules/audiobook.png', 'icons/modules/nowe.png', 'icons/modules/aktualizacja.png', 'icons/modules/puste.png', 'icons/modules/puste.png'] ]
 
             self.labelbitmaps = { }
             for index in xrange( len(self.labels) ):
@@ -168,7 +178,7 @@ class main_menu( wx.Frame ):
 		self.vbox.Add( self.sizer, proportion=2, flag=wx.EXPAND | wx.TOP | wx.BOTTOM | wx.LEFT | wx.RIGHT, border=self.xBorder )
 		self.SetSizer( self.vbox )
 
-	        #-------------------------------------------------------------------------
+        #-------------------------------------------------------------------------
 	def initializeTimer(self):
 		self.stoper = wx.Timer( self )
 		self.Bind( wx.EVT_TIMER , self.timerUpdate , self.stoper )
@@ -233,8 +243,11 @@ class main_menu( wx.Frame ):
         #-------------------------------------------------------------------------
         def onPress( self, event ):
                 
-                if self.pressSound.lower( ) == 'on':
+                if self.pressSound.lower( ) != 'off':
                         self.pressingSound.play( )
+                # if self.pressSound.lower( ) == 'voice':
+                #         os.system("milena_say Wybrałeś")
+                # self.pressingSound.play( )
                 
                 if self.control == 'tracker':
                     if self.pressFlag == False:
@@ -246,6 +259,8 @@ class main_menu( wx.Frame ):
                             self.stoper.Start( 0.15 * self.timeGap )
 
                     if self.label == 'PISAK':
+                            if self.pressSound.lower() == 'voice':
+                                self.pisakSound.play()
                             self.stoper.Stop( )
                             time.sleep( 1 )
                             self.Hide( )
@@ -265,10 +280,14 @@ class main_menu( wx.Frame ):
                             self.stoper.Start( 0.15 * self.timeGap )
  
                     elif self.label == 'EXERCISES':
+                            if self.pressSound.lower() == 'voice':
+                                self.zadanieSound.play()
                             exercise.exercise( self, id = -1 ).Show( True )
                             self.Hide( )
 
                     elif self.label == 'AKTUALIZACJE':
+                            if self.pressSound.lower() == 'voice':
+                                self.aktualizujSound.play()
 
                             # cmd = "cd " + self.home + ".pisak && git pull --dry-run | grep -q -v 'Already up-to-date.' && changed=1"
                             # p = Popen( cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True )
@@ -294,18 +313,29 @@ class main_menu( wx.Frame ):
                             pass
 
                     elif self.label == 'MUSIC':
+
+                            if self.pressSound.lower() == 'voice':
+                                self.muzykaSound.play()
+
                             music.music( self, id = -1 ).Show( True )
                             self.Hide( )
 
                     elif self.label == 'AUDIOBOOK':
+                            if self.pressSound.lower() == 'voice':
+                                self.audiobookSound.play()
                             audiobook.audiobook( self, id = -1 ).Show( True )
                             self.Hide( )
 
                     elif self.label == 'MOVIES':
+                            if self.pressSound.lower() == 'voice':
+                                self.filmSound.play()
                             movie.movie( self, id = -1 ).Show( True )
                             self.Hide( )
 
                     elif self.label == 'RADIO':
+                            if self.pressSound.lower() == 'voice':
+                                self.radioSound.play()
+
                             if self.internet_on():
                                     radio.radio( parent = self, id = -1 ).Show( True )
                                     self.Hide( )
@@ -314,10 +344,16 @@ class main_menu( wx.Frame ):
                             
 
                     elif (self.label == 'NOWE'):
+                        if self.pressSound.lower() == 'voice':
+                            self.noweSound.play()
+
                         nowe.nowe( self, id = -1).Show( True )
                         self.Hide( )
 
-                    elif (self.label == 'EMPTY1' | self.label == 'EMPTY2'):
+                    elif (self.label == 'PUSTE'):
+                        if self.pressSound.lower() == 'voice':
+                            self.pusteSound.play()
+
                         pass
                 else:        
                         self.numberOfPresses += 1
@@ -332,6 +368,14 @@ class main_menu( wx.Frame ):
                                     self.countRows = 0
 
                             elif self.flag == 'row':
+
+                                    if self.pressSound == "voice":
+                                        if (self.rowIteration == 1):
+                                            self.oneSound.play()
+                                        if (self.rowIteration == 2):
+                                            self.twoSound.play()
+                                        if (self.rowIteration == 3):
+                                            self.threeSound.play()
 
                                     buttonsToHighlight = range( ( self.rowIteration - 1 ) * self.numberOfColumns[ 0 ], ( self.rowIteration - 1 ) * self.numberOfColumns[ 0 ] + self.numberOfColumns[ 0 ] )
                                     for button in buttonsToHighlight:
@@ -362,11 +406,14 @@ class main_menu( wx.Frame ):
                                     label = self.labels[ self.position ]                            
                                     
                                     if label == 'PISAK':
-                                            self.stoper.Stop( )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            self.pisakSound.play( )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            self.stoper.Start( self.timeGap )
+                                            if self.pressSound.lower() == 'voice':
+                                                self.pisakSound.play()
+
+                                            # self.stoper.Stop( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # self.pisakSound.play( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # self.stoper.Start( self.timeGap )
                                             
                                             self.stoper.Stop()
                                             self.Hide()
@@ -385,17 +432,22 @@ class main_menu( wx.Frame ):
                                             self.stoper.Start( self.timeGap )
                                             
                                     elif label == 'EXERCISES':
-                                            self.stoper.Stop( )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            self.zadanieSound.play( )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            self.stoper.Start( self.timeGap )
+                                            if self.pressSound.lower() == 'voice':
+                                                self.zadanieSound.play()
+
+                                            # self.stoper.Stop( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # self.zadanieSound.play( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # self.stoper.Start( self.timeGap )
 
                                             self.stoper.Stop( )
                                             exercise.exercise( self, id = -1 ).Show( True )
                                             self.Hide( )
 
                                     elif label == 'AKTUALIZACJE':
+                                            if self.pressSound.lower() == 'voice':
+                                                self.aktualizujSound.play()
 
                                             if self.output[:5] == "fatal":
                                                     os.system("milena_say Brak połączenia z repozytorium zewnętrznym. Prawdopodbnie nie jesteś połączony z internetem.")
@@ -452,43 +504,55 @@ class main_menu( wx.Frame ):
                                             # self.Hide( )
 
                                     elif label == 'MUSIC':
-                                            self.stoper.Stop( )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            self.muzykaSound.play( )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            self.stoper.Start( self.timeGap )
+                                            if self.pressSound.lower() == 'voice':
+                                                self.muzykaSound.play()
+
+                                            # self.stoper.Stop( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # self.muzykaSound.play( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # self.stoper.Start( self.timeGap )
 
                                             self.stoper.Stop( )
                                             music.music( self, id = -1 ).Show( True )
                                             self.Hide( )
 
                                     elif label == 'AUDIOBOOK':
-                                            self.stoper.Stop( )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            self.stoper.Start( self.timeGap )
+                                            if self.pressSound.lower() == 'voice':
+                                                self.audiobookSound.play()
+
+                                            # self.stoper.Stop( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # self.stoper.Start( self.timeGap )
 
                                             self.stoper.Stop( )
                                             audiobook.audiobook( self, id = -1 ).Show( True )
                                             self.Hide( )
 
                                     elif label == 'MOVIES':
-                                            self.stoper.Stop( )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            self.filmSound.play( )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            self.stoper.Start( self.timeGap )
+                                            if self.pressSound.lower() == 'voice':
+                                                self.flimSound.play()
+
+                                            # self.stoper.Stop( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # self.filmSound.play( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # self.stoper.Start( self.timeGap )
 
                                             self.stoper.Stop( )
                                             movie.movie( self, id = -1 ).Show( True )
                                             self.Hide( )
 
                                     elif label == 'RADIO':
-                                            self.stoper.Stop( )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            self.radioSound.play( )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            self.stoper.Start( self.timeGap )
+                                            if self.pressSound.lower() == 'voice':
+                                                self.radioSound.play()
+
+                                            # self.stoper.Stop( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # self.radioSound.play( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # self.stoper.Start( self.timeGap )
 
                                             if self.internet_on():
                                                     self.stoper.Stop( )
@@ -498,17 +562,22 @@ class main_menu( wx.Frame ):
                                                     os.system("milena_say Brak połączenia z internetem. Proszę podłączyć komputer do sieci.")
 
                                     elif label == 'NOWE':
-                                            self.stoper.Stop( )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # self.filmSound.play( )
-                                            time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            self.stoper.Start( self.timeGap )
+                                            if self.pressSound.lower() == 'voice':
+                                                self.noweSound.play()
+
+                                            # self.stoper.Stop( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # # self.filmSound.play( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # self.stoper.Start( self.timeGap )
 
                                             self.stoper.Stop( )
                                             nowe.nowe( self, id = -1 ).Show( True )
                                             self.Hide( )
 
-                                    elif (label == 'EMPTY1' | label == 'EMPTY2'):
+                                    elif (label == 'PUSTE'):
+                                            if self.pressSound.lower() == 'voice':
+                                                self.pusteSound.play()
                                             pass
 
                                     self.flag = 'row'
@@ -545,8 +614,16 @@ class main_menu( wx.Frame ):
                         elif self.countRows < self.maxRows[ 0 ]:
 
                                 if self.flag == 'row':
-
+                                    
                                         self.rowIteration = self.rowIteration % self.numberOfRows[ 0 ]
+                                        
+                                        if self.switchSound == "voice":
+                                            if (self.rowIteration == 0):
+                                                self.oneSound.play()
+                                            if (self.rowIteration == 1):
+                                                self.twoSound.play()
+                                            if (self.rowIteration == 2):
+                                                self.threeSound.play()
 
                                         items = self.sizer.GetChildren( )
                                         for item in items:
@@ -594,6 +671,24 @@ class main_menu( wx.Frame ):
                                                 b.SetBackgroundColour( self.scanningColour )
                                                 b.SetFocus( )
 
+                                                if self.switchSound == "voice":
+                                                    if (b.Name == "PISAK"):
+                                                        self.pisakSound.play()
+                                                    if (b.Name == "EXERCISES"):
+                                                        self.zadanieSound.play()
+                                                    if (b.Name == "RADIO"):
+                                                        self.radioSound.play()
+                                                    if (b.Name == "MUSIC"):
+                                                        self.muzykaSound.play()
+                                                    if (b.Name == "AUDIOBOOK"):
+                                                        self.audiobookSound.play()
+                                                    if (b.Name == "NOWE"):
+                                                        self.noweSound.play()
+                                                    if (b.Name == "AKTUALIZACJE"):
+                                                        self.aktualizujSound.play()
+                                                    if (b.Name == "PUSTE"):
+                                                        self.pusteSound.play()
+
                                                 self.Update( )
 
                                                 self.colIteration += 1
@@ -603,6 +698,8 @@ class main_menu( wx.Frame ):
                                         self.switchingSound.play( )
 
                         elif self.countRows == self.maxRows[ 0 ]:
+                                if self.switchSound == "voice":
+                                    self.usypiamSound.play()
                                 self.flag = 'rest'
                                 self.countRows += 1
 

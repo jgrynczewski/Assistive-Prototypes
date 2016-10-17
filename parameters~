@@ -6,7 +6,7 @@ textColour = black
 scanningColour = #0033FF
 selectionColour = #663300
 
-switchSound = voice
+switchSound = off
 pressSound = voice
 
 filmVolumeLevel = 100

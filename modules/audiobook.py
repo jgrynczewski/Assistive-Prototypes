@@ -105,14 +105,22 @@ class audiobook( wx.Frame ):
 			self.mousePosition = self.winWidth - 8 - self.xBorder, self.winHeight - 8 - self.yBorder
 			self.mouseCursor.move( *self.mousePosition )			
 
-		if self.switchSound.lower( ) == 'on' or self.pressSound.lower( ) == 'on':
+		if self.switchSound.lower( ) != 'off' or self.pressSound.lower( ) != 'off':
 			mixer.init( )
-			if self.switchSound.lower( ) == 'on':
-				self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
-			if self.pressSound.lower( ) == 'on':
-				self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
-
-                self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
+                        self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
+                        self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
+                        
+                        self.oneSound  = mixer.Sound( self.pathToAP + '/sounds/rows/1.ogg')
+                        self.twoSound  = mixer.Sound( self.pathToAP + '/sounds/rows/2.ogg')
+                        self.threeSound  = mixer.Sound( self.pathToAP + '/sounds/rows/3.ogg')
+                        self.fourSound  = mixer.Sound( self.pathToAP + '/sounds/rows/4.ogg')
+                        self.glosniejSound = mixer.Sound( self.pathToAP + '/sounds/glosniej.ogg' )
+                        self.ciszejSound = mixer.Sound( self.pathToAP + '/sounds/ciszej.ogg' )
+                        self.pilotSound = mixer.Sound( self.pathToAP + '/sounds/pilot.ogg' )
+                        self.wylaczycSound = mixer.Sound( self.pathToAP + '/sounds/wyłączyć.ogg' )
+                        self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
+                        self.usypiamSound = mixer.Sound( self.pathToAP + '/sounds/usypiam.ogg' )
+                        self.pusteSound = mixer.Sound( self.pathToAP + '/sounds/puste.ogg' )
 		
 		self.SetBackgroundColour( 'black' )
 		
@@ -325,7 +333,7 @@ class audiobook( wx.Frame ):
 	#-------------------------------------------------------------------------
         def onPress(self, event):
 
-		if self.pressSound.lower( ) == 'on':
+		if self.pressSound.lower( ) != 'off':
 			self.pressingSound.play( )
 
 		if self.control == 'tracker':
@@ -416,6 +424,14 @@ class audiobook( wx.Frame ):
 
 				elif self.flag == 'row':
 
+                                        if self.pressSound == "voice":
+                                                if (self.rowIteration == 1):
+                                                        self.oneSound.play()
+                                                if (self.rowIteration == 2):
+                                                        self.twoSound.play()
+                                                if (self.rowIteration == 3):
+                                                        self.threeSound.play()
+
 					buttonsToHighlight = range( ( self.rowIteration - 1 ) * self.numberOfColumns[ 0 ], ( self.rowIteration - 1 ) * self.numberOfColumns[ 0 ] + self.numberOfColumns[ 0 ] )
 
 					for button in buttonsToHighlight:
@@ -448,6 +464,8 @@ class audiobook( wx.Frame ):
 
 						if self.columnIteration == 1:
                                                         self.stoper.Stop( )
+                                                        if self.pressSound == 'voice':
+                                                                self.ciszejSound.play()
                                                         time.sleep( ( self.selectionTime + self.timeGap )/1000. )
                                                         self.stoper.Start( self.timeGap )
 
@@ -475,6 +493,8 @@ class audiobook( wx.Frame ):
 
 						elif self.columnIteration == 2:
                                                         self.stoper.Stop( )
+                                                        if self.pressSound == 'voice':
+                                                                self.glosniejSound.play()                                                        
                                                         time.sleep( ( self.selectionTime + self.timeGap )/1000. )
                                                         self.stoper.Start( self.timeGap )
 
@@ -502,6 +522,8 @@ class audiobook( wx.Frame ):
 
 						elif self.columnIteration == 3:
                                                         self.stoper.Stop( )
+                                                        if self.pressSound == 'voice':
+                                                                self.pilotSound.play()                                                        
                                                         time.sleep( ( self.selectionTime + self.timeGap )/1000. )
                                                         self.stoper.Start( self.timeGap )
 
@@ -511,6 +533,8 @@ class audiobook( wx.Frame ):
 
 						elif self.columnIteration == 4:
                                                         self.stoper.Stop( )
+                                                        if self.pressSound == 'voice':
+                                                                self.wylaczycSound.play()
                                                         time.sleep( ( self.selectionTime + self.timeGap )/1000. )
                                                         self.stoper.Start( self.timeGap )
 
@@ -520,16 +544,13 @@ class audiobook( wx.Frame ):
 						elif self.columnIteration == 5:
                                                         self.stoper.Stop( )
                                                         time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                                        self.powrotSound.play( )
+                                                        if self.pressSound == 'voice':
+                                                                self.powrotSound.play()
                                                         time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
                                                         self.stoper.Start( self.timeGap )
 
 							self.onExit( )
 					else:
-                                                self.stoper.Stop( )
-                                                time.sleep( ( self.selectionTime + self.timeGap )/1000. )
-                                                self.stoper.Start( self.timeGap )
-
 						try:
 
 							logo = self.panels[ self.panelIteration + 1 ][ 0 ][ self.position ]
@@ -538,9 +559,18 @@ class audiobook( wx.Frame ):
 							choice = self.existingMedia[ mediaIndex ]
 							print type(choice)
 							choicePath = self.path + choice
+
+                                                        self.stoper.Stop( )
+                                                        if self.pressSound == 'voice':
+                                                                os.system('milena_say %s' % logo[ logo.find('_') + 1 : logo.rfind('.') ] )
+                                                        time.sleep( ( self.selectionTime + self.timeGap )/1000. )
+                                                        self.stoper.Start( self.timeGap )
+
 							os.system( 'smplayer -pos 0 0 %s &' % choicePath.replace( ' ', '\ ' ) )
 
 						except IndexError:
+                                                        if self.pressSound == 'voice':
+                                                                self.pusteSound.play()
 							selectedButton.SetBackgroundColour( 'red' )
 							selectedButton.SetFocus( )
 
@@ -593,6 +623,8 @@ class audiobook( wx.Frame ):
 			if self.flag == 'panel': ## flag == panel ie. switching between panels
 				
 				if self.emptyPanelIteration == self.maxEmptyPanelIteration:
+                                        if self.switchSound == 'voice':
+                                                self.usypiamSound.play()
 					self.flag = 'rest'
 					self.emptyPanelIteration = 0
 				else:
@@ -617,6 +649,8 @@ class audiobook( wx.Frame ):
 					self.emptyPanelIteration = 0
 					
 					if self.numberOfPanels == 1:
+                                                if self.switchSound == 'voice':
+                                                        self.usypiamSound.play()
 						self.flag = 'rest'
 					else:
 						self.flag = 'panel'
@@ -638,6 +672,16 @@ class audiobook( wx.Frame ):
 ######################################################################################################################################			
 				else:
 					self.rowIteration = self.rowIteration % self.numberOfRows[ 0 ]
+
+                                        if self.switchSound == "voice":
+                                            if (self.rowIteration == 0):
+                                                self.oneSound.play()
+                                            if (self.rowIteration == 1):
+                                                self.twoSound.play()
+                                            if (self.rowIteration == 2):
+                                                self.threeSound.play()
+                                            if (self.rowIteration == 3):
+                                                self.fourSound.play()
                                 
 					items = self.subSizers[ self.panelIteration ].GetChildren( )
 					for item in items:
@@ -689,6 +733,30 @@ class audiobook( wx.Frame ):
 					b = item.GetWindow( )
 					b.SetBackgroundColour( self.scanningColour )
 					b.SetFocus( )
+                                        logo = b.Name
+
+                                        if self.switchSound.lower() == 'voice':
+                                                if logo == 'volume_down':
+                                                        self.ciszejSound.play()
+                                                elif logo == 'volume_up':
+                                                        self.glosniejSound.play()
+                                                elif logo == 'show':
+                                                        self.pilotSound.play()
+                                                elif logo == 'delete':
+                                                        self.wylaczycSound.play()
+                                                elif logo == 'back':
+                                                        self.powrotSound.play()
+                                                elif logo == 'empty':
+                                                        self.pusteSound.play()
+                                                else:
+                                                        # print '1 ', logo
+                                                        logo = b.Name[:b.Name.rfind('/')]
+                                                        logo = logo[logo.rfind('/')+1:].encode('utf-8')
+                                                        if '_' in logo:
+                                                                logo = logo[ logo.find('_') + 1 : logo.find('.') ]
+                                                        # print '2 ', logo
+
+                                                        os.system('milena_say %s' % logo)
 
 					self.columnIteration += 1
 

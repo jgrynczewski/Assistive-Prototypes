@@ -28,7 +28,6 @@ from pygame import mixer
 
 from pilots import radioPilot
 
-
 #=============================================================================
 class radio( wx.Frame ):
 	def __init__(self, parent, id):
@@ -103,14 +102,21 @@ class radio( wx.Frame ):
 			self.mousePosition = self.winWidth - 8 - self.xBorder, self.winHeight - 8 - self.yBorder
 			self.mouseCursor.move( *self.mousePosition )			
 
-		if self.switchSound.lower( ) == 'on' or self.pressSound.lower( ) == 'on':
+		if self.switchSound.lower( ) != 'off' or self.pressSound.lower( ) != 'off':
 			mixer.init( )
-			if self.switchSound.lower( ) == 'on':
-				self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
-			if self.pressSound.lower( ) == 'on':
-				self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
+                        self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
+                        self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
 
-                self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
+                        self.oneSound = mixer.Sound( self.pathToAP + '/sounds/rows/1.ogg' )
+                        self.twoSound = mixer.Sound( self.pathToAP + '/sounds/rows/2.ogg' )
+                        self.threeSound = mixer.Sound( self.pathToAP + '/sounds/rows/3.ogg' )
+                        self.fourSound = mixer.Sound( self.pathToAP + '/sounds/rows/4.ogg' )
+                        self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
+                        self.glosniejSound = mixer.Sound( self.pathToAP + '/sounds/glosniej.ogg' )
+                        self.ciszejSound = mixer.Sound( self.pathToAP + '/sounds/ciszej.ogg' )
+                        self.pilotSound = mixer.Sound( self.pathToAP + '/sounds/pilot.ogg' )
+                        self.wylaczycSound = mixer.Sound( self.pathToAP + '/sounds/wyłączyć.ogg' )
+                        self.usypiamSound = mixer.Sound( self.pathToAP + '/sounds/usypiam.ogg' )
 
 		self.radioFlag = 'OFF'
 		self.SetBackgroundColour( 'black' )
@@ -322,7 +328,7 @@ class radio( wx.Frame ):
 	#-------------------------------------------------------------------------
         def onPress(self, event):
 
-		if self.pressSound.lower( ) == 'on':
+		if self.pressSound.lower( ) != 'off':
 			self.pressingSound.play( )
 
 		if self.control == 'tracker':
@@ -418,6 +424,16 @@ class radio( wx.Frame ):
 
 					buttonsToHighlight = range( ( self.rowIteration - 1 ) * self.numberOfColumns[ 0 ], ( self.rowIteration - 1 ) * self.numberOfColumns[ 0 ] + self.numberOfColumns[ 0 ] )
 
+                                        if self.pressSound == "voice":
+                                                if (self.rowIteration == 1):
+                                                        self.oneSound.play()
+                                                if (self.rowIteration == 2):
+                                                        self.twoSound.play()
+                                                if (self.rowIteration == 3):
+                                                        self.threeSound.play()
+                                                if (self.rowIteration == 4):
+                                                        self.fourSound.play()
+
 					for button in buttonsToHighlight:
 						item = self.subSizers[ self.panelIteration ].GetItem( button )
 						b = item.GetWindow( )
@@ -444,6 +460,8 @@ class radio( wx.Frame ):
 					if self.rowIteration == self.numberOfRows[ 0 ]:
 
 						if self.columnIteration == 1:
+                                                        if self.pressSound == "voice":
+                                                                self.ciszejSound.play()
                                                         self.stoper.Stop( )
                                                         time.sleep( ( self.selectionTime + self.timeGap )/1000. )
                                                         self.stoper.Start( self.timeGap )
@@ -462,6 +480,8 @@ class radio( wx.Frame ):
 
 						elif self.columnIteration == 2:
 
+                                                        if self.pressSound == "voice":
+                                                                self.glosniejSound.play()
                                                         self.stoper.Stop( )
                                                         time.sleep( ( self.selectionTime + self.timeGap )/1000. )
                                                         self.stoper.Start( self.timeGap )
@@ -479,6 +499,8 @@ class radio( wx.Frame ):
 								time.sleep( 1.5 )
 
 						elif self.columnIteration == 3:
+                                                        if self.pressSound == "voice":
+                                                                self.pilotSound.play()
 
                                                         self.stoper.Stop( )
                                                         time.sleep( ( self.selectionTime + self.timeGap )/1000. )
@@ -489,6 +511,8 @@ class radio( wx.Frame ):
 							self.Hide( )
 
 						elif self.columnIteration == 4:
+                                                        if self.pressSound == "voice":
+                                                                self.wylaczycSound.play()
 
                                                         self.stoper.Stop( )
                                                         time.sleep( ( self.selectionTime + self.timeGap )/1000. )
@@ -500,20 +524,21 @@ class radio( wx.Frame ):
 						elif self.columnIteration == 5:
                                                         self.stoper.Stop( )
                                                         time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                                        self.powrotSound.play( )
+                                                        if self.pressSound == "voice":
+                                                                self.powrotSound.play()
                                                         time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
                                                         self.stoper.Start( self.timeGap )
 
 							self.onExit( )
 					else:
 						try:
-
-                                                        self.stoper.Stop( )
-                                                        time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
 							logo = self.panels[ self.panelIteration + 1 ][ 0 ][ self.position ]
-							os.system('milena_say %s' % logo[ logo.find('_') + 1 : logo.rfind('.') ] )
-                                                        time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                                        self.stoper.Start( self.timeGap )
+                                                        if self.pressSound == 'voice':
+                                                                self.stoper.Stop( )
+                                                                time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                                                os.system('milena_say %s' % logo[ logo.find('_') + 1 : logo.rfind('.') ] )
+                                                                time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                                                self.stoper.Start( self.timeGap )
 
 							mediaIndex = self.existingLogos.index( logo )
 							choice = self.radioURL[ mediaIndex ]
@@ -521,6 +546,8 @@ class radio( wx.Frame ):
 							os.system( 'smplayer -pos 0 0 %s &' % choice )
 
 						except IndexError:
+                                                        if self.pressSound == 'voice':
+                                                                self.pusteSound.play()
                                                         self.stoper.Stop( )
                                                         time.sleep( ( self.selectionTime + self.timeGap )/1000. )
                                                         self.stoper.Start( self.timeGap )
@@ -604,6 +631,8 @@ class radio( wx.Frame ):
 					self.emptyPanelIteration = 0
 					
 					if self.numberOfPanels == 1:
+                                                if self.pressSound.lower() == 'voice':
+                                                        self.usypiamSound.play()
 						self.flag = 'rest'
 					else:
 						self.flag = 'panel'
@@ -625,6 +654,16 @@ class radio( wx.Frame ):
 				else:
 					self.rowIteration = self.rowIteration % self.numberOfRows[ 0 ]
                                 
+                                        if self.switchSound == "voice":
+                                            if (self.rowIteration == 0):
+                                                self.oneSound.play()
+                                            if (self.rowIteration == 1):
+                                                self.twoSound.play()
+                                            if (self.rowIteration == 2):
+                                                self.threeSound.play()
+                                            if (self.rowIteration == 3):
+                                                self.fourSound.play()
+
 					items = self.subSizers[ self.panelIteration ].GetChildren( )
 					for item in items:
 						b = item.GetWindow( )
@@ -674,6 +713,21 @@ class radio( wx.Frame ):
 					b = item.GetWindow( )
 					b.SetBackgroundColour( self.scanningColour )
 					b.SetFocus( )
+                                        logo = b.Name.encode('utf-8')
+                                        
+                                        if self.switchSound.lower == 'voice':
+                                                if logo == 'volume_down':
+                                                        self.ciszejSound.play()
+                                                elif logo == 'volume_up':
+                                                        self.glosniejSound.play()
+                                                elif logo == 'show':
+                                                        self.pilotSound.play()
+                                                elif logo == 'delete':
+                                                        self.wylaczycSound.play()
+                                                elif logo == 'back':
+                                                        self.powrotSound.play()
+                                                else:
+                                                        os.system('milena_say %s' % logo[ logo.find('_') + 1 : logo.rfind('.') ] )
 
 					self.columnIteration += 1
 
@@ -685,7 +739,6 @@ class radio( wx.Frame ):
 				pass
 					
 			# print self.panelIteration, self.rowIteration, self.columnIteration
-
 
 #=============================================================================
 if __name__ == '__main__':

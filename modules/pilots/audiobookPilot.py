@@ -93,12 +93,33 @@ class pilot(wx.Frame):
 		    self.mousePosition = self.winWidth - 8 - self.xBorder, self.winHeight - 8 - self.yBorder
 		    self.mouseCursor.move( *self.mousePosition )	
 
-	    if self.switchSound.lower( ) == 'on' or self.pressSound.lower( ) == 'on':
+	    if self.switchSound.lower( ) != 'off' or self.pressSound.lower( ) != 'off':
 		    mixer.init( )
-		    if self.switchSound.lower( ) == 'on':
-			    self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
-		    if self.pressSound.lower( ) == 'on':
-			    self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
+                    self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
+                    self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
+
+                    self.ciszejSound = mixer.Sound( self.pathToAP + '/sounds/ciszej.ogg' )
+                    self.glosniejSound = mixer.Sound( self.pathToAP + '/sounds/glosniej.ogg' )
+
+                    self.przewinDoPrzoduPowoliSound = mixer.Sound( self.pathToAP + '/sounds/przewiń_do_przodu_powoli.ogg' )
+                    self.przewinDoPrzoduSound = mixer.Sound( self.pathToAP + '/sounds/przewiń_do_przodu.ogg' )
+                    self.przewinDoPrzoduSzybkoSound = mixer.Sound( self.pathToAP + '/sounds/przewiń_do_przodu_szybko.ogg' )
+                    self.przewinDoTyluPowoliSound = mixer.Sound( self.pathToAP + '/sounds/przewiń_do_tyłu_powoli.ogg' )
+                    self.przewinDoTyluSound = mixer.Sound( self.pathToAP + '/sounds/przewiń_do_tyłu.ogg' )
+                    self.przewinDoTyluSzybkoSound = mixer.Sound( self.pathToAP + '/sounds/przewiń_do_tyłu_szybko.ogg' )
+
+                    self.zatrzymajGrajSound = mixer.Sound( self.pathToAP + '/sounds/zatrzymaj_graj.ogg' )
+                    self.stopSound = mixer.Sound( self.pathToAP + '/sounds/stop.ogg' )
+
+                    self.wyjscieSound = mixer.Sound( self.pathToAP + '/sounds/wyjście.ogg' )
+                    self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
+
+                    self.oneSound = mixer.Sound( self.pathToAP + '/sounds/rows/1.ogg' )
+                    self.twoSound = mixer.Sound( self.pathToAP + '/sounds/rows/2.ogg' )
+                    self.threeSound = mixer.Sound( self.pathToAP + '/sounds/rows/3.ogg' )
+                    self.fourSound = mixer.Sound( self.pathToAP + '/sounds/rows/4.ogg' )
+                    self.fiveSound = mixer.Sound( self.pathToAP + '/sounds/rows/5.ogg' )
+                    self.sixSound = mixer.Sound( self.pathToAP + '/sounds/rows/6.ogg' )
             
 	    self.width = self.numberOfColumns[0] * 120
 	    self.height = self.numberOfRows[0] * 100
@@ -248,7 +269,7 @@ class pilot(wx.Frame):
         #-------------------------------------------------------------------------
         def onPress(self, event):
 
-		if self.pressSound.lower( ) == 'on':
+		if self.pressSound.lower( ) != 'off':
 			self.pressingSound.play( )
 
 		if self.control == 'tracker':
@@ -332,6 +353,20 @@ class pilot(wx.Frame):
 
 				if self.flag == 'row':
 
+                                        if self.pressSound == "voice":
+                                                if (self.rowIteration == 1):
+                                                        self.oneSound.play()
+                                                if (self.rowIteration == 2):
+                                                        self.twoSound.play()
+                                                if (self.rowIteration == 3):
+                                                        self.threeSound.play()
+                                                if (self.rowIteration == 4):
+                                                        self.fourSound.play()
+                                                if (self.rowIteration == 5):
+                                                        self.fiveSound.play()
+                                                if (self.rowIteration == 6):
+                                                        self.sixSound.play()
+
 					buttonsToHighlight = range( ( self.rowIteration - 1 ) * self.numberOfColumns[ 0 ], ( self.rowIteration - 1 ) * self.numberOfColumns[ 0 ] + self.numberOfColumns[ 0 ] )
 					for button in buttonsToHighlight:
 						item = self.subSizer.GetItem( button )
@@ -342,7 +377,7 @@ class pilot(wx.Frame):
 					self.flag = 'columns'
 					self.colIteration = 0                                
 
-				elif self.flag == 'columns':
+				elif self.flag == 'columns':                                                                
 
 					self.position = ( self.rowIteration - 1 ) * self.numberOfColumns[ 0 ] + self.colIteration
 
@@ -355,6 +390,8 @@ class pilot(wx.Frame):
 
 					if self.buttons[ self.position ][ 0 ] == 'volume down':
 						try:
+                                                        if self.pressSound == 'voice':
+                                                                self.ciszejSound.play()
 							recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
 							alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume - 15, 0 )
 							time.sleep(1.5)
@@ -368,6 +405,8 @@ class pilot(wx.Frame):
 
 					elif self.buttons[ self.position ][ 0 ] == 'volume up':
 						try:
+                                                        if self.pressSound == 'voice':
+                                                                self.glosniejSound.play()
 							recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
 							alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume + 15, 0 )
 							time.sleep( 1.5 )
@@ -381,6 +420,8 @@ class pilot(wx.Frame):
 
 					elif self.buttons[ self.position ][ 0 ] == 'play pause':
 						if self.pressedStopFlag == True:
+                                                        if self.pressSound == 'voice':
+                                                                self.zatrzymajGrajSound.play()
 							os.system( 'smplayer -send-action play' ) 
 							self.pressedStopFlag = False
 
@@ -388,34 +429,53 @@ class pilot(wx.Frame):
 							os.system( 'smplayer -send-action pause' )
 
 					elif self.buttons[ self.position ][ 0 ] == 'stop':
+                                                if self.pressSound == 'voice':
+                                                        self.stopSound.play()
 						os.system( 'smplayer -send-action stop && smplayer -send-action stop &' )
 						self.pressedStopFlag = True
 
 					elif self.buttons[ self.position ][ 0 ] == 'fast backward':
+                                                if self.pressSound == 'voice':
+                                                        self.przewinDoTyluSzybkoSound.play()
 						os.system( 'smplayer -send-action rewind3' )
 
 					elif self.buttons[ self.position ][ 0 ] == 'fast forward':
+                                                if self.pressSound == 'voice':
+                                                        self.przewinDoPrzoduSzybkoSound.play()
 						os.system( 'smplayer -send-action forward3' )
 
 					elif self.buttons[ self.position ][ 0 ] == 'backward':
+                                                if self.pressSound == 'voice':
+                                                        self.przewinDoTyluSound.play()
 						os.system( 'smplayer -send-action rewind2' )
 
 					elif self.buttons[ self.position ][ 0 ] == 'forward':
+                                                if self.pressSound == 'voice':
+                                                        self.przewinDoPrzoduSound.play()
 						os.system( 'smplayer -send-action forward2' )
 
 					elif self.buttons[ self.position ][ 0 ] == 'slow backward':
+                                                if self.pressSound == 'voice':
+                                                        self.przewinDoTyluPowoliSound.play()
 						os.system( 'smplayer -send-action rewind1' )
 
 					elif self.buttons[ self.position ][ 0 ] == 'slow forward':
+                                                if self.pressSound == 'voice':
+                                                        self.przewinDoPrzoduPowoliSound.play()
 						os.system( 'smplayer -send-action forward1' )
 
 					elif self.buttons[ self.position ][ 0 ] == 'cancel':
+                                                if self.pressSound == 'voice':
+                                                        self.wyjscieSound.play()
+
 						if "smplayer" in [psutil.Process(i).name() for i in psutil.pids( )]:
 							os.system( 'smplayer -send-action quit' )
 
 						self.onExit( )
 
 					elif self.buttons[ self.position ][ 0 ] == 'back':
+                                                if self.pressSound == 'voice':
+                                                        self.powrotSound.play()
 						self.onExit( )
 
 					selectedButton.SetBackgroundColour( self.backgroundColour )
@@ -462,6 +522,20 @@ class pilot(wx.Frame):
 						self.numberOfEmptyIteration += 1. / self.numberOfRows[ 0 ]        
 
 						self.rowIteration = self.rowIteration % self.numberOfRows[ 0 ]
+
+                                                if self.pressSound == "voice":
+                                                        if (self.rowIteration == 0):
+                                                                self.oneSound.play()
+                                                        if (self.rowIteration == 1):
+                                                                self.twoSound.play()
+                                                        if (self.rowIteration == 2):
+                                                                self.threeSound.play()
+                                                        if (self.rowIteration == 3):
+                                                                self.fourSound.play()
+                                                        if (self.rowIteration == 4):
+                                                                self.fiveSound.play()
+                                                        if (self.rowIteration == 5):
+                                                                self.sixSound.play()
 
 						items = self.subSizer.GetChildren( )
 						for item in items:
@@ -511,10 +585,40 @@ class pilot(wx.Frame):
 						b = item.GetWindow( )
 						b.SetBackgroundColour( self.scanningColour )
 						b.SetFocus( )
-
-						self.colIteration += 1
+                                                logo = b.Name
+                                                
+                                                if self.switchSound.lower() == 'voice':
+                                                        if logo == 'volume down':
+                                                                self.ciszejSound.play()
+                                                        elif logo == 'volume up':
+                                                                self.glosniejSound.play()
+                                                        elif logo == 'play pause':
+                                                                self.zatrzymajGrajSound.play()
+                                                        elif logo == 'stop':
+                                                                self.stopSound.play()
+                                                        elif logo == 'slow backward':
+                                                                self.przewinDoTyluPowoliSound.play()
+                                                        elif logo == 'slow forward':
+                                                                self.przewinDoPrzoduPowoliSound.play()
+                                                        elif logo == 'backward':
+                                                                self.przewinDoTyluSound.play()
+                                                        elif logo == 'forward':
+                                                                self.przewinDoPrzoduSound.play()
+                                                        elif logo == 'fast backward':
+                                                                self.przewinDoTyluSzybkoSound.play()
+                                                        elif logo == 'fast forward':
+                                                                self.przewinDoPrzoduSzybkoSound.play()
+                                                        elif logo == 'back':
+                                                                self.powrotSound.play()
+                                                        elif logo == 'cancel':
+                                                                self.wyjscieSound.play()
+                                                                
+                                                self.colIteration += 1
 
 			else:
+                                if self.switchSound == 'voice':
+                                        self.usypiamSound.play()
+
 				self.stoper.Stop( )
 				self.Hide( )
 				suspend.suspend( self, id = 2 ).Show( True )

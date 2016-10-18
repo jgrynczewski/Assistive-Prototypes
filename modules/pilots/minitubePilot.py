@@ -123,6 +123,7 @@ class pilot(wx.Frame):
 
                     self.wyjscieSound = mixer.Sound( self.pathToAP + '/sounds/wyjście.ogg' )
                     self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
+                    self.usypiamSound = mixer.Sound( self.pathToAP + '/sounds/usypiam.ogg' )
 
                     self.oneSound = mixer.Sound( self.pathToAP + '/sounds/rows/1.ogg' )
                     self.twoSound = mixer.Sound( self.pathToAP + '/sounds/rows/2.ogg' )
@@ -168,7 +169,7 @@ class pilot(wx.Frame):
 
 		self.subSizer = wx.GridBagSizer( 4, 4 )
 		
-		print self.radios.keys()[-5:]
+		# print self.radios.keys()[-5:]
 
 		for key, value in self.radios.items():
 			if key == 1 or key == 2 or key == 3 or key == 4:
@@ -301,7 +302,7 @@ class pilot(wx.Frame):
 						b.SetFocus()
 
 					self.rowIteration = 0
-					os.system("wid=`wmctrl -l | awk '/Minitube/ {print $1}'` && xdotool windowfocus $wid && xdotool key --window $wid F11 && wid=`wmctrl -l | awk '/Pilot/ {print $1}'` && xdotool windowactivate $wid' #&& xdotool keydown alt key Tab; sleep 0.2; xdotool keyup alt'  #&& wid2=`wmctrl -l | awk '/Pilot/ {print $1}'` && xdotool windowraise $wid2")
+					os.system("wid=`wmctrl -l | awk '/Minitube/ {print $1}'` && xdotool windowfocus $wid && xdotool key --window $wid F11 && wid=`wmctrl -l | awk '/Pilot/ {print $1}'` && xdotool windowactivate $wid' #&& xdotool keydown alt key Tab; sleep 0.2; xdotool keyup alt'  #&& wid2=`wmctrl -l | awk '/Pilot/ {print $1}'` && sleep 0.5 && xdotool windowraise $wid2")
 					
 				elif self.rowIteration == 3:
                                         if self.pressSound == "voice":
@@ -379,7 +380,7 @@ class pilot(wx.Frame):
                                 
                                 self.Update()
                                 
-                                print self.radios[self.position][0]
+                                # print self.radios[self.position][0]
 				if self.radios[self.position][0] == 'volume down':
 					try:
                                                 if self.pressSound == "voice":

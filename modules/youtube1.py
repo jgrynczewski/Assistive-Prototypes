@@ -208,7 +208,7 @@ class youtube1( wx.Frame ):
                         self.numberOfRows.append( self.defaultNumberOfRows )     
 
                 symbols = glob.glob( page + '/*.jpg' ) + glob.glob( page + '/*.png' ) + glob.glob( page + '/*.JPG' ) + glob.glob( page + '/*jpeg' )
-                symbols = [item.encode('utf-8') for item in symbols]
+                symbols = [item.decode('utf-8') for item in symbols]
 
                 symbolInfo = []
 
@@ -439,7 +439,7 @@ class youtube1( wx.Frame ):
                                                 self.displaySizer.Add( b, 0, flag = wx.EXPAND | wx.BOTTOM | wx.TOP | wx.ALIGN_LEFT, border = 2 )
                                                 self.displaySizer.Layout( )
 
-                                                unicodeLabel = item[ 2 ]
+                                                unicodeLabel = item[ 2 ].encode('utf-8')
                                                 self.lastTextLenght = len( unicodeLabel ) + 1
                                                 os.system('minitube "%s" &' %unicodeLabel)
 

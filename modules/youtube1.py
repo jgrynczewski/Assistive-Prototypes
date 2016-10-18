@@ -431,7 +431,7 @@ class youtube1( wx.Frame ):
                                                 else:
                                                     b = GenSymbolTextButton( self , -1 , bitmap = item[ 0 ], label = item[ 2 ] )
 
-                                                b.SetFont( wx.Font( 21, wx.FONTFAMILY_ROMAN, wx.FONTWEIGHT_NORMAL,  False ) )
+                                                b.SetFont( wx.Font( 21, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,  False ) )
                                                 b.SetBackgroundColour( self.backgroundColour )
                                                 
                                                 self.displaySizer.Add( b, 0, flag = wx.EXPAND | wx.BOTTOM | wx.TOP | wx.ALIGN_LEFT, border = 2 )

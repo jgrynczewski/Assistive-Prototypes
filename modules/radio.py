@@ -718,7 +718,7 @@ class radio( wx.Frame ):
 					b.SetFocus( )
                                         logo = b.Name.encode('utf-8')
                                         
-                                        if self.switchSound.lower == 'voice':
+                                        if self.switchSound.lower() == 'voice':
                                                 if logo == 'volume_down':
                                                         self.ciszejSound.play()
                                                 elif logo == 'volume_up':

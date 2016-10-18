@@ -456,13 +456,13 @@ class youtube2( wx.Frame ):
                                         if self.pressSound.lower() == 'voice':
                                                 self.youtubeSound.play()
 					text = self.textField.GetValue().encode('UTF-8')
-					
+                                        os.system('minitube %s &' %text)
+
 					self.stoper.Stop()
 					self.Hide()
 					self.menu = minitubePilot.pilot( self, id =1 )
 					
 					self.menu.Show()
-					os.system('minitube %s &' %text)
 
 				elif self.label == 'SAVE':
                                         if self.pressSound.lower() == 'voice':
@@ -632,13 +632,17 @@ class youtube2( wx.Frame ):
                                                 if self.pressSound.lower() == 'voice':
                                                         self.youtubeSound.play()
                                                 text = self.textField.GetValue().encode('UTF-8')
-                                                
+
+                                                os.system('minitube %s &' %text)
+                                                time.sleep(0.5)
+                                                os.system("sleep 1")
+
                                                 self.stoper.Stop()
                                                 self.Hide()
+                                                
                                                 self.menu = minitubePilot.pilot( self, id =1 )
                                                 
                                                 self.menu.Show()
-                                                os.system('minitube %s &' %text)
 
 					elif label == 'SAVE':
                                                 if self.pressSound.lower() == 'voice':

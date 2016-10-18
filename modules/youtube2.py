@@ -455,7 +455,7 @@ class youtube2( wx.Frame ):
 				elif self.label == 'YOUTUBE':								
                                         if self.pressSound.lower() == 'voice':
                                                 self.youtubeSound.play()
-					text = self.textField.GetValue().encode('UTF-8')
+					text = self.textField.GetValue().encode('utf-8')
                                         os.system('minitube %s &' %text)
 
 					self.stoper.Stop()
@@ -631,7 +631,7 @@ class youtube2( wx.Frame ):
 					elif label == 'YOUTUBE':
                                                 if self.pressSound.lower() == 'voice':
                                                         self.youtubeSound.play()
-                                                text = self.textField.GetValue().encode('UTF-8')
+                                                text = self.textField.GetValue().encode('utf-8')
 
                                                 os.system('minitube %s &' %text)
                                                 time.sleep(0.5)

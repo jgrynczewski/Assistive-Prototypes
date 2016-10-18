@@ -268,7 +268,8 @@ class pilot(wx.Frame):
                          
 			if self.flag == 'row':
 
-                                self.rowIteration -= 1
+                                if (self.rowIteration > 0):
+                                        self.rowIteration -= 1
 
                                 if self.pressSound == "voice":
                                         if (self.rowIteration == 0):

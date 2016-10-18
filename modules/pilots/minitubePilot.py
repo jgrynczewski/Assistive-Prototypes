@@ -301,7 +301,7 @@ class pilot(wx.Frame):
 						b.SetFocus()
 
 					self.rowIteration = 0
-					os.system("wid=`wmctrl -l | awk '/Minitube/ {print $1}'` && xdotool windowfocus $wid && xdotool key --window $wid F11 && wid=`wmctrl -l | awk '/Pilot/ {print $1}'` && xdotool windowactivate $wid' #&& xdotool keydown alt key Tab; sleep 1; xdotool keyup alt'  #&& wid2=`wmctrl -l | awk '/Pilot/ {print $1}'` && xdotool windowraise $wid2")
+					os.system("wid=`wmctrl -l | awk '/Minitube/ {print $1}'` && xdotool windowfocus $wid && xdotool key --window $wid F11 && wid=`wmctrl -l | awk '/Pilot/ {print $1}'` && xdotool windowactivate $wid' #&& xdotool keydown alt key Tab; sleep 0.2; xdotool keyup alt'  #&& wid2=`wmctrl -l | awk '/Pilot/ {print $1}'` && xdotool windowraise $wid2")
 					
 				elif self.rowIteration == 3:
                                         if self.pressSound == "voice":
@@ -315,7 +315,7 @@ class pilot(wx.Frame):
 						b.SetFocus()                                
 					
 					self.rowIteration = 0
-					os.system("wid=`wmctrl -l | awk '/Minitube/ {print $1}'` && xdotool windowfocus $wid && xdotool key --window $wid space")
+					os.system("wid=`wmctrl -l | awk '/Minitube/ {print $1}'` && xdotool windowfocus $wid && xdotool key --window --sync $wid space")
 					# self.mouseCursor.click( self.playButtonPosition[self.radioID][0], self.playButtonPosition[self.radioID][1], 1 )
 					# time.sleep(0.2)
 					# self.mouseCursor.click( self.playButtonPosition[self.radioID][0], self.playButtonPosition[self.radioID][1], 1 )
@@ -436,12 +436,12 @@ class pilot(wx.Frame):
 				if self.radios[self.position][0] == 'previous':
                                         if self.pressSound == "voice":
                                                 self.poprzedniEkranSound.play()
-					os.system("wid=`wmctrl -l | awk '/Minitube/ {print $1}'` && xdotool windowfocus $wid && xdotool key --window $wid ctrl+Left")					
+					os.system("wid=`wmctrl -l | awk '/Minitube/ {print $1}'` && xdotool windowfocus $wid && xdotool key --window --sync $wid ctrl+Left")					
 			
 				elif self.radios[self.position][0] == 'next':
                                         if self.pressSound == "voice":
                                                 self.nastepnySound.play()
-					os.system("wid=`wmctrl -l | awk '/Minitube/ {print $1}'` && xdotool windowfocus $wid && xdotool key --window $wid ctrl+Right")					
+					os.system("wid=`wmctrl -l | awk '/Minitube/ {print $1}'` && xdotool windowfocus $wid && xdotool key --window --sync $wid ctrl+Right")					
 
                                 elif self.radios[self.position][0] == 'tab switch':
                                         if self.pressSound == "voice":

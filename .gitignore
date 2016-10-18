@@ -1,6 +1,8 @@
 # files
-.*
-!/.gitignore
+*.py[cod]
+.path*
+*.*~
+.m3u
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

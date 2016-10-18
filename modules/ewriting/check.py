@@ -66,7 +66,7 @@ class check(wx.Frame):
 			self.mouseCursor.move( *self.mousePosition )
 
 		mixer.init( )
-		if self.pressSound.lower( ) == 'on':
+		if self.pressSound.lower( ) != 'off':
 			self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
 
 	#-------------------------------------------------------------------------
@@ -190,7 +190,7 @@ class check(wx.Frame):
 	#-------------------------------------------------------------------------
 	def zamknij(self, event):
 
-		if self.pressSound.lower( ) == 'on':
+		if self.pressSound.lower( ) != 'off':
 			self.pressingSound.play( )
 
 		self.parent.checkFlag = False

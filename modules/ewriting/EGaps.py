@@ -95,14 +95,12 @@ class cwiczenia(wx.Frame):
 			self.mousePosition = self.winWidth - 8 - self.xBorder, self.winHeight - 8 - self.yBorder
 			self.mouseCursor.move( *self.mousePosition )			
 							
-		if self.switchSound.lower( ) == 'on' or self.pressSound.lower( ) == 'on':
+		if self.switchSound.lower( ) != 'off' or self.pressSound.lower( ) != 'off':
 			mixer.init( )
-			if self.switchSound.lower( ) == 'on':
-				self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
-			if self.pressSound.lower( ) == 'on':
-				self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
+                        self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
+                        self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
 
-                self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
+                        self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
 
 	#-------------------------------------------------------------------------	
 	def initializeTimer(self):
@@ -320,7 +318,7 @@ class cwiczenia(wx.Frame):
 	#-------------------------------------------------------------------------	
 	def onPress( self, event ):
 		
-		if self.pressSound.lower( ) == 'on':
+		if self.pressSound.lower( ) != 'off':
 			self.pressingSound.play( )
 
 		if self.control == 'tracker':
@@ -541,7 +539,7 @@ class cwiczenia(wx.Frame):
 					self.stoper.Start( self.timeGap )
 					self.poczatek = False
 
-				if self.switchSound.lower( ) == 'on' and not( self.checkFlag ):
+				if self.switchSound.lower( ) != 'off' and not( self.checkFlag ):
 					self.switchingSound.play( )
 
 				for i in range( 5 ):

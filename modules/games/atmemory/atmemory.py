@@ -103,14 +103,12 @@ class memory_GUI( wx.Frame ):
 			self.mouseCursor = PyMouse( )
 			self.mousePosition = self.winWidth - 8 - self.xBorder, self.winHeight - 8 - self.yBorder
 
-		if self.switchSound.lower( ) == 'on' or self.pressSound.lower( ) == 'on':
+		if self.switchSound.lower( ) != 'off' or self.pressSound.lower( ) != 'off':
 			mixer.init( )
-			if self.switchSound.lower( ) == 'on':
-				self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
-			if self.pressSound.lower( ) == 'on':
-				self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
+                        self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
+                        self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
 				
-		self.SetBackgroundColour( 'black' )
+                self.SetBackgroundColour( 'black' )
 
 		self.path = self.pathToAP
 
@@ -295,7 +293,7 @@ class memory_GUI( wx.Frame ):
 	#----------------------------------------------------------------------------
 	def onPress(self, event):
 		
-		if self.pressSound.lower( ) == 'on':
+		if self.pressSound.lower( ) != 'off':
 			self.pressingSound.play( )
 
 		if self.control == 'tracker':
@@ -607,7 +605,7 @@ class memory_GUI( wx.Frame ):
 
 						# print self.countColumns, self.columnIteration				
 
-				if self.switchSound.lower( ) == 'on':
+				if self.switchSound.lower( ) != 'off':
 					self.switchingSound.play( )
 
 			else:

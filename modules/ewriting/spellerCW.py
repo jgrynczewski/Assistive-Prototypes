@@ -107,11 +107,9 @@ class speller( wx.Frame ):
 		self.numberOfColumns = [ 8, 9 ]
 			
 		mixer.init( )	
-		if self.switchSound.lower( ) == 'on' or self.pressSound.lower( ) == 'on':
-			if self.switchSound.lower( ) == 'on':
-				self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
-			if self.pressSound.lower( ) == 'on':
-				self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
+		if self.switchSound.lower( ) != 'off' or self.pressSound.lower( ) != 'off':
+                        self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
+                        self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
 		
 		if self.voice == 'True':
 			self.phones = glob.glob( self.pathToAP + 'sounds/phone/*' )
@@ -329,7 +327,7 @@ class speller( wx.Frame ):
 	#----------------------------------------------------------------------------
 	def onPress(self, event):
 
-		if self.pressSound.lower( ) == 'on':
+		if self.pressSound.lower( ) != 'off':
 			self.pressingSound.play( )
 
 		if self.control == 'tracker':
@@ -669,7 +667,7 @@ class speller( wx.Frame ):
 						b.SetFocus( )
 
 				else:
-					if self.switchSound.lower( ) == 'on' and self.voice == 'False':
+					if self.switchSound.lower( ) != 'off' and self.voice == 'False':
 						self.switchingSound.play( )
 
 					self.rowIteration = self.rowIteration % self.numberOfRows[ self.subSizerNumber ]
@@ -745,7 +743,7 @@ class speller( wx.Frame ):
 							pass
 
 
-					if self.switchSound.lower( ) == 'on' and self.voice == 'False':
+					if self.switchSound.lower( ) != 'off' and self.voice == 'False':
 						self.switchingSound.play( )
 
 					self.columnIteration += 1

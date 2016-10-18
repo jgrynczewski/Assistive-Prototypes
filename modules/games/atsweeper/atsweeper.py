@@ -106,12 +106,10 @@ class sweeper_GUI( wx.Frame ):
 			self.mousePosition = self.winWidth - 10 - self.xBorder, self.winHeight - 12 - self.yBorder
 			self.mouseCursor.move( *self.mousePosition )
 
-		if self.switchSound.lower( ) == 'on' or self.pressSound.lower( ) == 'on':
+		if self.switchSound.lower( ) != 'off' or self.pressSound.lower( ) != 'off':
 			mixer.init( )
-			if self.switchSound.lower( ) == 'on':
-				self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
-			if self.pressSound.lower( ) == 'on':
-				self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
+                        self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
+                        self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
 
 		self.SetBackgroundColour( 'black' )
 
@@ -314,7 +312,7 @@ class sweeper_GUI( wx.Frame ):
 	#----------------------------------------------------------------------------
 	def onPress(self, event):
 		
-		if self.pressSound.lower( ) == 'on':
+		if self.pressSound.lower( ) != 'off':
 			self.pressingSound.play( )
 
 		if self.control == 'tracker':
@@ -637,7 +635,7 @@ class sweeper_GUI( wx.Frame ):
 
 							self.columnIteration += 1
 
-				if self.switchSound.lower( ) == 'on':
+				if self.switchSound.lower( ) != 'off':
 					self.switchingSound.play( )
 
 			elif self.countRows == self.maxNumberOfRows:

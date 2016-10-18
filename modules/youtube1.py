@@ -23,6 +23,7 @@ import glob, os, time, sys, alsaaudio
 
 import wx
 import wx.lib.buttons as bt
+import subprocess
 
 from pymouse import PyMouse
 from pygame import mixer
@@ -375,7 +376,7 @@ class youtube1( wx.Frame ):
 			elif self.flag == 'row':
 
                                 self.rowIteration -= 1
-                                print self.rowIteration
+
                                 if self.pressSound == "voice":
                                     if (self.rowIteration == 0):
                                         self.oneSound.play()
@@ -577,7 +578,7 @@ class youtube1( wx.Frame ):
                                     if b.Name == 'puste':
                                         self.pusteSound.play()
                                     else:
-                                        cmd = "milena_say %s" % selectedButton.GetName()
+                                        cmd = "milena_say %s" % b.Name
                                         subprocess.Popen(cmd , shell=True, stdin=subprocess.PIPE)
 
                                 elif self.switchSound.lower() != 'off':

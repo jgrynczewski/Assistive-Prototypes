@@ -244,7 +244,7 @@ class youtube2( wx.Frame ):
 			
 		for index_1, item in enumerate( self.labels[ 0 ][ :-7 ] ):
 			b = bt.GenButton( self, -1, item, name = item, size = ( self.buttonsBoardWidth / float( self.numberOfColumns[ 0 ] ), self.buttonsBoardHeight / float( self.numberOfRows[ 0 ] ) ) )
-			b.SetFont( wx.Font( self.tableFontSize, eval(self.textFont), wx.FONTWEIGHT_NORMAL,  False ) )
+			b.SetFont( wx.Font( self.tableFontSize, eval(self.textFont), wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,  False ) )
 			b.SetBezelWidth( 3 )
 			b.SetBackgroundColour( self.backgroundColour )
 

@@ -625,6 +625,8 @@ class audiobook( wx.Frame ):
             
 			if self.flag == 'panel': ## flag == panel ie. switching between panels
 				
+                                self.switchingSound.play( )
+				
 				if self.emptyPanelIteration == self.maxEmptyPanelIteration:
                                         if self.switchSound == 'voice':
                                                 self.usypiamSound.play()

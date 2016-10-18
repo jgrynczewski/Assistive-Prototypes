@@ -654,6 +654,8 @@ class music( wx.Frame ):
                         self.numberOfPresses = 0
             
 			if self.flag == 'panel': ## flag == panel ie. switching between panels
+
+                                self.switchingSound.play( )
 				
 				if self.emptyPanelIteration == self.maxEmptyPanelIteration:
                                         if self.switchSound == 'voice':

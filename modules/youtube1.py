@@ -415,43 +415,43 @@ class youtube1( wx.Frame ):
                                         cmd = "milena_say %s" % selectedButton.GetName()
                                         subprocess.Popen(cmd , shell=True, stdin=subprocess.PIPE)
                                 
-                                for item in self.blissBook[ self.panelIteration ]:
+                                        for item in self.blissBook[ self.panelIteration ]:
                                     
-                                    if item[ 1 ] == self.rowIteration * self.numberOfColumns[ self.panelIteration ] + self.columnIteration + 1:
+                                            if item[ 1 ] == self.rowIteration * self.numberOfColumns[ self.panelIteration ] + self.columnIteration + 1:
 
-                                        self.bitmapSize = item[ 0 ].GetSize( )
+                                                self.bitmapSize = item[ 0 ].GetSize( )
 
-                                        if self.bitmapSize[ 1 ] > 0.7 * self.panelSize[ 1 ]:
-                                            image = wx.ImageFromBitmap( item[ 0 ] )
-                                            rescaleImage = image.Rescale( ( 0.7 * self.panelSize[ 1 ] / self.bitmapSize[ 1 ] ) * self.bitmapSize[ 0 ], 0.7 * self.panelSize[ 1 ], wx.IMAGE_QUALITY_HIGH )
-                                            rescaleItem = wx.BitmapFromImage( image )
+                                                if self.bitmapSize[ 1 ] > 0.7 * self.panelSize[ 1 ]:
+                                                    image = wx.ImageFromBitmap( item[ 0 ] )
+                                                    rescaleImage = image.Rescale( ( 0.7 * self.panelSize[ 1 ] / self.bitmapSize[ 1 ] ) * self.bitmapSize[ 0 ], 0.7 * self.panelSize[ 1 ], wx.IMAGE_QUALITY_HIGH )
+                                                    rescaleItem = wx.BitmapFromImage( image )
 
-                                            b = GenSymbolTextButton( self , -1 , bitmap = rescaleItem, label = item[ 2 ] )
+                                                    b = GenSymbolTextButton( self , -1 , bitmap = rescaleItem, label = item[ 2 ] )
 
-                                        else:
-                                            b = GenSymbolTextButton( self , -1 , bitmap = item[ 0 ], label = item[ 2 ] )
+                                                else:
+                                                    b = GenSymbolTextButton( self , -1 , bitmap = item[ 0 ], label = item[ 2 ] )
 
-                                        b.SetFont( wx.Font( 21, wx.FONTFAMILY_ROMAN, wx.FONTWEIGHT_NORMAL,  False ) )
-                                        b.SetBackgroundColour( self.backgroundColour )
-                                        
-                                        self.displaySizer.Add( b, 0, flag = wx.EXPAND | wx.BOTTOM | wx.TOP | wx.ALIGN_LEFT, border = 2 )
-                                        self.displaySizer.Layout( )
+                                                b.SetFont( wx.Font( 21, wx.FONTFAMILY_ROMAN, wx.FONTWEIGHT_NORMAL,  False ) )
+                                                b.SetBackgroundColour( self.backgroundColour )
+                                                
+                                                self.displaySizer.Add( b, 0, flag = wx.EXPAND | wx.BOTTOM | wx.TOP | wx.ALIGN_LEFT, border = 2 )
+                                                self.displaySizer.Layout( )
 
-                                        unicodeLabel = item[ 2 ].decode( 'utf-8' )
-                                        self.lastTextLenght = len( unicodeLabel ) + 1
-                                        time.sleep( 0.5 )
-
-                                        self.numberOfSymbol += 1
-					time.sleep( 1 )
-
-					self.stoper.Stop()
-					self.Hide()
-					self.menu = minitubePilot.pilot( self, id =1 )
-					
-					self.menu.Show()
-					os.system('minitube "%s" &' %unicodeLabel)
-
-                                # selectedButton.SetBackgroundColour( self.backgroundColour )
+                                                unicodeLabel = item[ 2 ].decode( 'utf-8' )
+                                                self.lastTextLenght = len( unicodeLabel ) + 1
+                                                time.sleep( 0.5 )
+                                                
+                                                self.numberOfSymbol += 1
+                                                time.sleep( 1 )
+                                                
+                                                self.stoper.Stop()
+                                                self.Hide()
+                                                self.menu = minitubePilot.pilot( self, id =1 )
+                                                
+                                                self.menu.Show()
+                                                os.system('minitube "%s" &' %unicodeLabel)
+                                                
+                                                # selectedButto.nSetBackgroundColour( self.backgroundColour )
 
                                 self.flag = 'row'
                                 self.panelIteration = 0

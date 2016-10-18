@@ -439,17 +439,18 @@ class youtube1( wx.Frame ):
 
                                                 unicodeLabel = item[ 2 ].decode( 'utf-8' )
                                                 self.lastTextLenght = len( unicodeLabel ) + 1
+                                                os.system('minitube "%s" &' %unicodeLabel)
+
                                                 time.sleep( 0.5 )
                                                 
                                                 self.numberOfSymbol += 1
-                                                time.sleep( 1 )
+                                                os.system("sleep 1")
                                                 
                                                 self.stoper.Stop()
                                                 self.Hide()
                                                 self.menu = minitubePilot.pilot( self, id =1 )
                                                 
                                                 self.menu.Show()
-                                                os.system('minitube "%s" &' %unicodeLabel)
                                                 
                                                 # selectedButto.nSetBackgroundColour( self.backgroundColour )
 

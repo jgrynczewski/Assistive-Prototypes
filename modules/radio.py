@@ -19,7 +19,7 @@
 import wxversion
 # wxversion.select( '2.8' )
 
-import glob, os, time, sys
+import glob, os, time, sys, subprocess
 import wx, alsaaudio, psutil
 import wx.lib.buttons as bt
 

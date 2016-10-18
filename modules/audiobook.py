@@ -20,6 +20,7 @@ import wxversion
 # wxversion.select( '2.8' )
 
 import sys, glob, os, time #modules of the Python standard library 
+import subprocess
 import wx, alsaaudio, psutil
 import wx.lib.buttons as bt
 import glib
@@ -348,8 +349,8 @@ class audiobook( wx.Frame ):
 
 			if self.label == 'volume_down':
 				try:
-					recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
-					alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume - 15, 0 )
+					recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ] 
+					alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( recentVolume - 15, 0 )
 							
 				except alsaaudio.ALSAAudioError:
 					self.button.SetBackgroundColour( 'red' )
@@ -359,8 +360,8 @@ class audiobook( wx.Frame ):
 
 			elif self.label == 'volume_up':
 				try:
-					recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
-					alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume + 15, 0 )
+					recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ] 
+					alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( recentVolume + 15, 0 )
 							
 				except alsaaudio.ALSAAudioError:
 					self.button.SetBackgroundColour( 'red' )
@@ -472,7 +473,7 @@ class audiobook( wx.Frame ):
 
 
 					                try:
-						                recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ]
+						                recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ]
                                                                 if recentVolume == 0: 
                                                                         raise alsaaudio.ALSAAudioError
 
@@ -482,7 +483,7 @@ class audiobook( wx.Frame ):
                                                                 else:
                                                                         furtherVolume = int( self.volumeDownFactor*recentVolume ) 
 
-						                alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( furtherVolume, 0 )
+						                alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( furtherVolume, 0 )
                                                                 time.sleep( 1.5 )
 
 					                except alsaaudio.ALSAAudioError:
@@ -501,7 +502,7 @@ class audiobook( wx.Frame ):
 
 
 					                try:
-						                recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ]
+						                recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ]
                                                                 if recentVolume == 100: 
                                                                         raise alsaaudio.ALSAAudioError
 
@@ -511,7 +512,7 @@ class audiobook( wx.Frame ):
                                                                 else:
                                                                         furtherVolume = int( self.volumeUpFactor*recentVolume ) 
 
-						                alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( furtherVolume, 0 )
+						                alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( furtherVolume, 0 )
                                                                 time.sleep( 1.5 )
 
 							except alsaaudio.ALSAAudioError:
@@ -563,7 +564,8 @@ class audiobook( wx.Frame ):
 
                                                         self.stoper.Stop( )
                                                         if self.pressSound == 'voice':
-                                                                os.system('milena_say %s' % logo[ logo.find('_') + 1 : logo.rfind('.') ] )
+                                                                cmd = "milena_say %s" %  logo[ logo.find('_') + 1 : logo.rfind('.') ]
+                                                                subprocess.Popen(cmd , shell=True, stdin=subprocess.PIPE)
                                                         time.sleep( ( self.selectionTime + self.timeGap )/1000. )
                                                         self.stoper.Start( self.timeGap )
 
@@ -757,7 +759,8 @@ class audiobook( wx.Frame ):
                                                                 logo = logo[ logo.find('_') + 1 : logo.find('.') ]
                                                         # print '2 ', logo
 
-                                                        os.system('milena_say %s' % logo)
+                                                        cmd = "milena_say %s" %  logo
+                                                        subprocess.Popen(cmd , shell=True, stdin=subprocess.PIPE)
 
 					self.columnIteration += 1
 

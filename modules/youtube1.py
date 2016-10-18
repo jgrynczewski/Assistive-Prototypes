@@ -411,7 +411,8 @@ class youtube1( wx.Frame ):
                                     else:
                                         selectedButton.SetBackgroundColour( self.selectionColour )
                                         selectedButton.SetFocus( )
-                                        os.system( 'milena_say %s' % selectedButton.GetName() )
+                                        cmd = "milena_say %s" % selectedButton.GetName()
+                                        subprocess.Popen(cmd , shell=True, stdin=subprocess.PIPE)
                                 
                                 for item in self.blissBook[ self.panelIteration ]:
                                     
@@ -576,7 +577,9 @@ class youtube1( wx.Frame ):
                                     if b.Name == 'puste':
                                         self.pusteSound.play()
                                     else:
-                                        os.system( 'milena_say %s' % ( b.Name ) )
+                                        cmd = "milena_say %s" % selectedButton.GetName()
+                                        subprocess.Popen(cmd , shell=True, stdin=subprocess.PIPE)
+
                                 elif self.switchSound.lower() != 'off':
                                     self.switchingSound.play()
 

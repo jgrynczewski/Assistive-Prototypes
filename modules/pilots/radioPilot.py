@@ -92,12 +92,22 @@ class pilot( wx.Frame ):
 		    self.mousePosition = self.winWidth - 8 - self.xBorder, self.winHeight - 8 - self.yBorder
 		    self.mouseCursor.move( *self.mousePosition )	
 
-	    if self.switchSound.lower( ) == 'on' or self.pressSound.lower( ) == 'on':
+	    if self.switchSound.lower( ) != 'off' or self.pressSound.lower( ) != 'off':
 		    mixer.init( )
-		    if self.switchSound.lower( ) == 'on':
-			    self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
-		    if self.pressSound.lower( ) == 'on':
-			    self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
+                    self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
+                    self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
+
+                    self.ciszejSound = mixer.Sound( self.pathToAP + '/sounds/ciszej.ogg' )
+                    self.glosniejSound = mixer.Sound( self.pathToAP + '/sounds/glosniej.ogg' )
+                    self.zatrzymajGrajSound = mixer.Sound( self.pathToAP + '/sounds/zatrzymaj_graj.ogg' )
+
+                    self.wyjscieSound = mixer.Sound( self.pathToAP + '/sounds/wyjście.ogg' )
+                    self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
+                    self.usypiamSound = mixer.Sound( self.pathToAP + '/sounds/usypiam.ogg' )
+
+                    self.oneSound = mixer.Sound( self.pathToAP + '/sounds/rows/1.ogg' )
+                    self.twoSound = mixer.Sound( self.pathToAP + '/sounds/rows/2.ogg' )
+                    self.threeSound = mixer.Sound( self.pathToAP + '/sounds/rows/3.ogg' )
 
 	    self.width = self.numberOfColumns[0] * 120
 	    self.height = self.numberOfRows[0] * 120
@@ -263,7 +273,7 @@ class pilot( wx.Frame ):
 	#-------------------------------------------------------------------------
         def onPress(self, event):
 
-		if self.pressSound.lower( ) == 'on':
+		if self.pressSound.lower( ) != 'off':
 			self.pressingSound.play( )
 
 		if self.control == 'tracker':
@@ -277,8 +287,8 @@ class pilot( wx.Frame ):
 				
 				if self.label == 'volume down':
 					try:
-						recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
-						alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume - 15, 0 )
+						recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ] 
+						alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( recentVolume - 15, 0 )
 						time.sleep( 1.5 )
 
 					except alsaaudio.ALSAAudioError:
@@ -290,8 +300,8 @@ class pilot( wx.Frame ):
 
 				elif self.label == 'volume up':
 					try:
-						recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
-						alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume + 15, 0 )
+						recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ] 
+						alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( recentVolume + 15, 0 )
 						time.sleep( 1.5 )
 
 					except alsaaudio.ALSAAudioError:
@@ -305,7 +315,7 @@ class pilot( wx.Frame ):
 					if "smplayer" in [psutil.Process(i).name() for i in psutil.pids( )]:
 						os.system( 'smplayer -send-action quit' )
 
-					alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( self.filmVolumeLevel, 0 )
+					alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( self.filmVolumeLevel, 0 )
 
 					self.onExit( )
 
@@ -322,6 +332,12 @@ class pilot( wx.Frame ):
 			if self.numberOfPresses == 1:
 
 				if self.flag == 'row':
+                                        
+                                        if self.pressSound == "voice":
+                                                if (self.rowIteration == 1):
+                                                        self.oneSound.play()
+                                                if (self.rowIteration == 3):
+                                                        self.threeSound.play()
 
 					if self.rowIteration == 1:
 						buttonsToHighlight = range( ( self.rowIteration - 1 ) * self.numberOfColumns[ 0 ], ( self.rowIteration - 1 ) * self.numberOfColumns[ 0 ] + self.numberOfColumns[ 0 ] )
@@ -336,6 +352,8 @@ class pilot( wx.Frame ):
 						self.stoper.Start( self.timeGap )
 
 					elif self.rowIteration == 2:
+                                                if self.pressSound == "voice":
+                                                        self.zatrzymajGrajSound.play()
 						buttonsToHighlight = ( self.rowIteration - 1 ) * self.numberOfColumns[ 0 ],
 						for button in buttonsToHighlight:
 							item = self.subSizer.GetItem( button )
@@ -378,8 +396,11 @@ class pilot( wx.Frame ):
 
 					if self.buttons[ self.position ][ 0 ] == 'volume down':
 						try:
-							recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
-							alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume - 15, 0 )
+                                                        if self.pressSound == "voice":
+                                                                self.ciszejSound.play()
+
+							recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ] 
+							alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( recentVolume - 15, 0 )
 							time.sleep( 1.5 )
 
 						except alsaaudio.ALSAAudioError:
@@ -391,8 +412,11 @@ class pilot( wx.Frame ):
 
 					elif self.buttons[ self.position ][ 0 ] == 'volume up':
 						try:
-							recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
-							alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume + 15, 0 )
+                                                        if self.pressSound == "voice":
+                                                                self.glosniejSound.play()
+
+							recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ] 
+							alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( recentVolume + 15, 0 )
 							time.sleep( 1.5 )
 
 						except alsaaudio.ALSAAudioError:
@@ -403,14 +427,19 @@ class pilot( wx.Frame ):
 							time.sleep( 1.5 )
 
 					elif self.buttons[ self.position ][ 0 ] == 'cancel':
+                                                if self.pressSound == "voice":
+                                                        self.wyjscieSound.play()
+
 						if "smplayer" in [psutil.Process(i).name() for i in psutil.pids( )]:
 							os.system( 'smplayer -send-action quit &' )
 
-						alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( self.filmVolumeLevel, 0 )
+						alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( self.filmVolumeLevel, 0 )
 
 						self.onExit( )
 
 					elif self.buttons[ self.position ][ 0 ] == 'undo':
+                                                if self.pressSound == "voice":
+                                                        self.powrotSound.play()
 						self.onExit( )
 
 					selectedButton.SetBackgroundColour( self.backgroundColour )
@@ -457,6 +486,12 @@ class pilot( wx.Frame ):
 
 						self.rowIteration = self.rowIteration % self.numberOfRows[ 0 ]
 
+                                                if self.switchSound == "voice":
+                                                        if (self.rowIteration == 0):
+                                                                self.oneSound.play()
+                                                        if (self.rowIteration == 2):
+                                                                self.threeSound.play()
+
 						items = self.subSizer.GetChildren( )
 						for item in items:
 							b = item.GetWindow( )
@@ -467,6 +502,8 @@ class pilot( wx.Frame ):
 							scope = range( self.rowIteration * self.numberOfColumns[ 0 ], self.rowIteration * self.numberOfColumns[ 0 ] + self.numberOfColumns[ 0 ] )
 
 						elif self.rowIteration == 1:
+                                                        if self.switchSound == "voice":
+                                                                self.zatrzymajGrajSound.play( )
 							scope = self.rowIteration * self.numberOfColumns[ 0 ], 
 
 						else:
@@ -516,6 +553,19 @@ class pilot( wx.Frame ):
 						b = item.GetWindow( )
 						b.SetBackgroundColour( self.scanningColour )
 						b.SetFocus( )
+                                                logo = b.Name
+                                                print logo
+                                                if self.switchSound == "voice":
+                                                        if logo == 'volume down':
+                                                                self.ciszejSound.play()
+                                                        if logo == 'volume up':
+                                                                self.glosniejSound.play()
+                                                        if logo == 'play pause':
+                                                                self.zatrzymajGrajSound.play()
+                                                        if logo == 'cancel':
+                                                                self.wyjscieSound.play()
+                                                        if logo == 'undo':
+                                                                self.powrotSound.play()
 
 						self.colIteration += 1
 			else:

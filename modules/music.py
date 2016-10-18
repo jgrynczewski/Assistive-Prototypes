@@ -20,6 +20,7 @@
 # wxversion.select( '2.8' )
 
 import glob, os, sys, time #modules of the Python standard library 
+import subprocess
 import wx, alsaaudio, psutil
 import wx.lib.buttons as bt
 
@@ -157,6 +158,9 @@ class music( wx.Frame ):
 					self.existingMedia.append( itemPath + 'playlist.m3u' )
                                         self.existingLogos.append( [itemPath+f for f in os.listdir(itemPath) if f.startswith("cover")][0] )
 
+                        self.existingLogos = [item.decode('utf-8') for item in self.existingLogos]
+                        self.existingMedia = [item.decode('utf-8') for item in self.existingMedia]
+
                         if len( self.existingMedia ) > 0:
                                 self.numberOfPanels = 1 + ( len( self.existingMedia )-1) / ( ( self.numberOfRows[ 0 ]-1 ) * self.numberOfColumns[ 0 ] )
                         else:
@@ -171,6 +175,7 @@ class music( wx.Frame ):
 
 				logos = [ wx.ImageFromStream( open( logo, "rb" ) ) for logo in logoNames ]
 				logos = [ logo.Rescale( logo.GetSize( )[ 0 ] * ( self.newHeight / float( logo.GetSize( )[ 1 ] ) ), self.newHeight, wx.IMAGE_QUALITY_HIGH ) for logo in logos ]
+
 				logoBitmaps = [ wx.BitmapFromImage( logo ) for logo in logos ]
 
 				self.panels[ number+1 ] = [ logoNames,  logoBitmaps ]
@@ -361,7 +366,7 @@ class music( wx.Frame ):
 				
 				if self.label == 'volume_down':
 					try:
-						recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ]
+						recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ]
                                                 if recentVolume == 10:
                                                         raise alsaaudio.ASLAAudioError
 
@@ -369,7 +374,7 @@ class music( wx.Frame ):
                                                 if furtherVolume < 20:
                                                         furtherVolume = 10
                                                 
-						alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( furtherVolume, 0 )
+						alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( furtherVolume, 0 )
 
 					except alsaaudio.ALSAAudioError:
 						self.button.SetBackgroundColour( 'red' )
@@ -379,8 +384,8 @@ class music( wx.Frame ):
 
 				elif self.label == 'volume_up':
 					try:
-						recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
-						alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume + 15, 0 )
+						recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ] 
+						alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( recentVolume + 15, 0 )
 
 					except alsaaudio.ALSAAudioError:
 						self.button.SetBackgroundColour( 'red' )
@@ -495,7 +500,7 @@ class music( wx.Frame ):
                                                         self.stoper.Start( self.timeGap )
 
 					                try:
-						                recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ]
+						                recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ]
                                                                 if recentVolume == 0: 
                                                                         raise alsaaudio.ALSAAudioError
 
@@ -505,7 +510,7 @@ class music( wx.Frame ):
                                                                 else:
                                                                         furtherVolume = int( self.volumeDownFactor*recentVolume ) 
 
-						                alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( furtherVolume, 0 )
+						                alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( furtherVolume, 0 )
                                                                 time.sleep( 1.5 )
 
 					                except alsaaudio.ALSAAudioError:
@@ -525,7 +530,7 @@ class music( wx.Frame ):
 
 
 					                try:
-						                recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ]
+						                recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ]
                                                                 if recentVolume == 100: 
                                                                         raise alsaaudio.ALSAAudioError
 
@@ -535,7 +540,7 @@ class music( wx.Frame ):
                                                                 else:
                                                                         furtherVolume = int( self.volumeUpFactor*recentVolume ) 
 
-						                alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( furtherVolume, 0 )
+						                alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( furtherVolume, 0 )
                                                                 time.sleep( 1.5 )
 
 							except alsaaudio.ALSAAudioError:
@@ -584,11 +589,17 @@ class music( wx.Frame ):
 
                                                         self.stoper.Stop( )
                                                         if self.pressSound == 'voice':
-                                                                os.system('milena_say %s' % logo[ logo.find('_') + 1 : logo.rfind('.') ] )
+                                                                logo = logo[:logo.rfind('/')]
+                                                                logo = logo[logo.rfind('/')+1:].encode('utf-8')
+                                                                logo = logo[ logo.find('_') + 1 : ]
+
+                                                                cmd = "milena_say %s" %  logo
+                                                                subprocess.Popen(cmd , shell=True, stdin=subprocess.PIPE)
+
                                                         time.sleep( ( self.selectionTime + self.timeGap )/1000. )
                                                         self.stoper.Start( self.timeGap )
                                                         
-							os.system( 'smplayer -pos 0 0 %s &' % choice.replace( ' ', r'\ ' ).replace( '&', r'\&' ).replace( '#', r'\#' ).replace( '(', r'\(' ).replace( ')', r'\)' ) )
+							os.system( 'smplayer -pos 0 0 %s &' % choice.encode('utf-8').replace( ' ', r'\ ' ).replace( '&', r'\&' ).replace( '#', r'\#' ).replace( '(', r'\(' ).replace( ')', r'\)' ) )
 
 						except IndexError:
                                                         if self.pressSound == 'voice':
@@ -776,8 +787,9 @@ class music( wx.Frame ):
                                                         if '_' in logo:
                                                                 logo = logo[ logo.find('_') + 1 : ]
                                                         # print '2 ', logo
-
-                                                        os.system('milena_say %s' % logo)
+                                                        
+                                                        cmd = "milena_say %s" % logo
+                                                        subprocess.Popen(cmd , shell=True, stdin=subprocess.PIPE)
 				
 					self.columnIteration += 1
 

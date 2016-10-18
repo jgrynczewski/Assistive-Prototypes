@@ -120,7 +120,7 @@ class nowe( wx.Frame ):
 
                 self.SetBackgroundColour( 'black' )
 
-		#alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( self.musicVolumeLevel, 0 )
+		#alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( self.musicVolumeLevel, 0 )
 
         #-------------------------------------------------------------------------        
         def initializeBitmaps(self):

@@ -107,13 +107,29 @@ class pilot(wx.Frame):
 		    # self.mouseCursor.move( *self.mousePosition )	
                     self.mouseCursor.move( self.dw - 225, self.dh - 265 )	
 
-	    if self.switchSound.lower( ) == 'on' or self.pressSound.lower( ) == 'on':
+	    if self.switchSound.lower( ) != 'off' or self.pressSound.lower( ) != 'off':
 		    mixer.init( )
-		    if self.switchSound.lower( ) == 'on':
-			    self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
-		    if self.pressSound.lower( ) == 'on':
-			    self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
-            	    
+                    self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
+                    self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
+
+                    self.ciszejSound = mixer.Sound( self.pathToAP + '/sounds/ciszej.ogg' )
+                    self.glosniejSound = mixer.Sound( self.pathToAP + '/sounds/glosniej.ogg' )
+
+                    self.nastepnySound = mixer.Sound( self.pathToAP + '/sounds/następny.ogg' )
+                    self.poprzedniSound = mixer.Sound( self.pathToAP + '/sounds/poprzedni.ogg' )
+
+                    self.zatrzymajGrajSound = mixer.Sound( self.pathToAP + '/sounds/zatrzymaj_graj.ogg' )
+                    self.pelnyEkranSound = mixer.Sound( self.pathToAP + '/sounds/pełny_ekran.ogg' )
+
+                    self.wyjscieSound = mixer.Sound( self.pathToAP + '/sounds/wyjście.ogg' )
+                    self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
+
+                    self.oneSound = mixer.Sound( self.pathToAP + '/sounds/rows/1.ogg' )
+                    self.twoSound = mixer.Sound( self.pathToAP + '/sounds/rows/2.ogg' )
+                    self.threeSound = mixer.Sound( self.pathToAP + '/sounds/rows/3.ogg' )
+                    self.fourSound = mixer.Sound( self.pathToAP + '/sounds/rows/4.ogg' )
+                    self.fiveSound = mixer.Sound( self.pathToAP + '/sounds/rows/5.ogg' )
+
 	    self.width = self.numberOfColumns[0] * 120
 	    self.height = self.numberOfRows[0] * 100
 
@@ -187,13 +203,13 @@ class pilot(wx.Frame):
 				
 			# 	self.subSizer.Add(b, ( (key+1) / self.numberOfColumns[0], (key+1) % self.numberOfColumns[0] ), wx.DefaultSpan, wx.EXPAND)
 			
-			elif key == 9:
+			elif key == 9 or key == 10:
 				b = bt.GenBitmapButton( self, -1, name = value[0], bitmap = value[1] )
 				b.SetBackgroundColour( self.backgroundColour )
 				b.SetBezelWidth( 3 )
 				b.Bind( wx.EVT_LEFT_DOWN, self.onPress )
 				
-				self.subSizer.Add(b, ( (key-1) / self.numberOfColumns[0], (key-1) % self.numberOfColumns[0] ), (1, 2), wx.EXPAND)
+				self.subSizer.Add(b, ( (key-1) / self.numberOfColumns[0], (key-1) % self.numberOfColumns[0] ), wx.DefaultSpan, wx.EXPAND)
 			
                 for number in range(self.numberOfRows[0]):
                     self.subSizer.AddGrowableRow( number )
@@ -241,7 +257,7 @@ class pilot(wx.Frame):
 	#-------------------------------------------------------------------------
         def onPress(self, event):
 
-		if self.pressSound.lower( ) == 'on':
+		if self.pressSound.lower( ) != 'off':
 			self.pressingSound.play( )
 		
 		self.numberOfEmptyIteration = 0
@@ -252,6 +268,14 @@ class pilot(wx.Frame):
 			if self.flag == 'row':
 
                                 self.rowIteration -= 1
+
+                                if self.pressSound == "voice":
+                                        if (self.rowIteration == 0):
+                                                self.oneSound.play()
+                                        if (self.rowIteration == 1):
+                                                self.twoSound.play()
+                                        if (self.rowIteration == 4):
+                                                self.fiveSound.play()
 
 				if self.rowIteration == 0 or self.rowIteration == 1:
 					buttonsToHighlight = range(self.rowIteration*self.numberOfColumns[0], self.rowIteration*self.numberOfColumns[0] + self.numberOfColumns[0])
@@ -266,6 +290,9 @@ class pilot(wx.Frame):
 					#self.stoper.Start( self.timeGap )
 									
 				elif self.rowIteration == 2:
+                                        if self.pressSound == "voice":
+                                                self.pelnyEkranSound.play()
+
 					buttonsToHighlight = self.rowIteration*self.numberOfColumns[0],
 					for button in buttonsToHighlight:
 						item = self.subSizer.GetItem( button )
@@ -277,6 +304,9 @@ class pilot(wx.Frame):
 					os.system("wid=`wmctrl -l | awk '/Minitube/ {print $1}'` && xdotool windowfocus $wid && xdotool key --window $wid F11 && wid=`wmctrl -l | awk '/Pilot/ {print $1}'` && xdotool windowactivate $wid' #&& xdotool keydown alt key Tab; sleep 1; xdotool keyup alt'  #&& wid2=`wmctrl -l | awk '/Pilot/ {print $1}'` && xdotool windowraise $wid2")
 					
 				elif self.rowIteration == 3:
+                                        if self.pressSound == "voice":
+                                                self.zatrzymajGrajSound.play()
+
 					buttonsToHighlight = self.rowIteration*self.numberOfColumns[0] - 1,
 					for button in buttonsToHighlight:
 						item = self.subSizer.GetItem( button )
@@ -301,15 +331,14 @@ class pilot(wx.Frame):
 				# 	self.colIteration = 0                                
 
 				elif self.rowIteration == 4:
-					
-					buttonsToHighlight = self.rowIteration*self.numberOfColumns[0] - 2,
+					buttonsToHighlight = range(self.rowIteration*self.numberOfColumns[0]-2, self.rowIteration*self.numberOfColumns[0] + self.numberOfColumns[0]-2)
 					for button in buttonsToHighlight:
 						item = self.subSizer.GetItem( button )
 						b = item.GetWindow()
 						b.SetBackgroundColour( self.selectionColour )
 						b.SetFocus()
-						
-					os.system('wmctrl -c Minitube')
+					self.flag = 'columns'
+					self.colIteration = 0                                
 
                                         ### if download option exists
 					# time.sleep(0.5)
@@ -333,18 +362,15 @@ class pilot(wx.Frame):
 						# files.sort(key=lambda f: os.path.getmtime(os.path.join(path, f)))
 						# os.system( 'rm ./youtube\ playlist/%s' % files[-1].replace(' ', '\ ') )
 
-					self.onExit()
-					
 			elif self.flag == 'columns':
                             
                                 self.colIteration -= 1
 				
 				if self.rowIteration == 0 or self.rowIteration == 1:
 					self.position = self.rowIteration*self.numberOfColumns[ 0 ] + self.colIteration + 1
-					
-                                ### if download option were available BEG#####
-				# elif self.rowIteration == 4:
-				# 	self.position = self.rowIteration*self.numberOfColumns[ 0 ] + self.colIteration - 1
+
+                                if self.rowIteration == 4:
+					self.position = self.rowIteration*self.numberOfColumns[ 0 ] + self.colIteration + 1 - 2
 					
 				item = self.subSizer.GetItem( self.position - 1 )
 				selectedButton = item.GetWindow()
@@ -352,34 +378,39 @@ class pilot(wx.Frame):
 				selectedButton.SetFocus()
                                 
                                 self.Update()
-
-                                ### if download option were available END####
-###                                
-				# if self.radios[self.position][0] == 'volume down':
-				# 	try:
-				# 		recentVolume = alsaaudio.Mixer( control = 'Master' ).getvolume()[0] 
-				# 		alsaaudio.Mixer( control = 'Master' ).setvolume( recentVolume - 15, 0 )
-				# 		time.sleep(1.5)
-
-				# 	except alsaaudio.ALSAAudioError:
-				# 		selectedButton.SetBackgroundColour( 'red' )
-				# 		selectedButton.SetFocus()
                                 
-				# 		self.Update()
-				# 		time.sleep( 1.5 )
-					
-				# elif self.radios[self.position][0] == 'volume up':
-				# 	try:
-				# 		recentVolume = alsaaudio.Mixer( control = 'Master' ).getvolume()[0] 
-				# 		alsaaudio.Mixer( control = 'Master' ).setvolume( recentVolume + 15, 0 )
-				# 		time.sleep(1.5)
-					
-				# 	except alsaaudio.ALSAAudioError:
-				# 		selectedButton.SetBackgroundColour( 'red' )
-				# 		selectedButton.SetFocus()
+                                print self.radios[self.position][0]
+				if self.radios[self.position][0] == 'volume down':
+					try:
+                                                if self.pressSound == "voice":
+                                                        self.ciszejSound.play()
+                                                recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ] 
+                                                alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( recentVolume - 15, 0 )
+
+						time.sleep(1.5)
+
+					except alsaaudio.ALSAAudioError:
+						selectedButton.SetBackgroundColour( 'red' )
+						selectedButton.SetFocus()
                                 
-				# 		self.Update()
-				# 		time.sleep( 1.5 )
+						self.Update()
+						time.sleep( 1.5 )
+					
+				elif self.radios[self.position][0] == 'volume up':
+					try:
+                                                if self.pressSound == "voice":
+                                                        self.glosniejSound.play()
+
+                                                recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ] 
+                                                alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( recentVolume + 15, 0 )
+						time.sleep(1.5)
+					
+					except alsaaudio.ALSAAudioError:
+						selectedButton.SetBackgroundColour( 'red' )
+						selectedButton.SetFocus()
+                                
+						self.Update()
+						time.sleep( 1.5 )
 
 ########################
 				# elif self.radios[self.position][0] == 'undo':
@@ -403,11 +434,42 @@ class pilot(wx.Frame):
 				# 	os.system('wid=`xdotool search --onlyvisible --name Minitube` && xdotool windowfocus $wid && xdotool key --window $wid F11 && wid=`xdotool search --onlyvisible --name Pilot` && xdotool windowactivate $wid') #&& xdotool keydown alt key Tab; sleep 1; xdotool keyup alt')  #&& wid2=`xdotool search --onlyvisible --name Pilot` && xdotool windowraise $wid2')
 						
 				if self.radios[self.position][0] == 'previous':
+                                        if self.pressSound == "voice":
+                                                self.poprzedniEkranSound.play()
 					os.system("wid=`wmctrl -l | awk '/Minitube/ {print $1}'` && xdotool windowfocus $wid && xdotool key --window $wid ctrl+Left")					
 			
 				elif self.radios[self.position][0] == 'next':
+                                        if self.pressSound == "voice":
+                                                self.nastepnySound.play()
 					os.system("wid=`wmctrl -l | awk '/Minitube/ {print $1}'` && xdotool windowfocus $wid && xdotool key --window $wid ctrl+Right")					
-					
+
+                                elif self.radios[self.position][0] == 'tab switch':
+                                        if self.pressSound == "voice":
+                                                self.powrotSound.play()
+
+					buttonsToHighlight = self.rowIteration*self.numberOfColumns[0] - 2,
+					for button in buttonsToHighlight:
+						item = self.subSizer.GetItem( button )
+						b = item.GetWindow()
+						b.SetBackgroundColour( self.selectionColour )
+						b.SetFocus()
+                                        
+                                        self.onExit()
+
+                                elif self.radios[self.position][0] == 'download':
+                                        if self.pressSound == "voice":
+                                                self.wyjscieSound.play()
+
+					buttonsToHighlight = self.rowIteration*self.numberOfColumns[0] - 2,
+					for button in buttonsToHighlight:
+						item = self.subSizer.GetItem( button )
+						b = item.GetWindow()
+						b.SetBackgroundColour( self.selectionColour )
+						b.SetFocus()
+						
+					os.system('wmctrl -c Minitube')
+                                        self.onExit()
+
                                 ### if download were available
 				# elif self.radios[self.position][0] == 'download':
 				# 	os.system("wid=`wmctrl -l | awk '/Minitube/ {print $1}'` && xdotool windowfocus $wid && xdotool key --window $wid ctrl+s")
@@ -468,21 +530,36 @@ class pilot(wx.Frame):
 						b = item.GetWindow()
 						b.SetBackgroundColour( self.backgroundColour )
 						b.SetFocus()
+                                                
+                                        if self.switchSound == "voice":
+                                                if (self.rowIteration == 0):
+                                                        self.oneSound.play()
+                                                if (self.rowIteration == 1):
+                                                        self.twoSound.play()
+                                                if (self.rowIteration == 4):
+                                                        self.fiveSound.play()
 
 					if self.rowIteration == 0 or self.rowIteration == 1:
 						zakres = range(self.rowIteration*self.numberOfColumns[0], self.rowIteration*self.numberOfColumns[0] + self.numberOfColumns[0])
+                                        elif self.rowIteration == 4:
+						zakres = range(self.rowIteration*self.numberOfColumns[0]-2, self.rowIteration*self.numberOfColumns[0] + self.numberOfColumns[0]-2)
 
 					elif self.rowIteration == 2:
+                                                if self.switchSound == "voice":
+                                                        self.pelnyEkranSound.play()
 						zakres = self.rowIteration*self.numberOfColumns[0], 
 						
 					elif self.rowIteration == 3:
+                                                if self.switchSound == "voice":
+                                                        self.zatrzymajGrajSound.play()
 						zakres = self.rowIteration*self.numberOfColumns[0] - 1, 
 
-                                        ### if download version were available
 					# elif self.rowIteration == 4:
 					# 	zakres = range(self.rowIteration*self.numberOfColumns[0] - 2, self.rowIteration*self.numberOfColumns[0] + self.numberOfColumns[0] - 2)
-					elif self.rowIteration == 4:
-						zakres = self.rowIteration*self.numberOfColumns[0] - 2, 
+					# elif self.rowIteration == 4:
+                                        #         if self.switchSound == "voice":
+                                        #                 self.powrotSound.play()
+					# 	zakres = self.rowIteration*self.numberOfColumns[0] - 2, 
 
 					for i in zakres:
 						item = self.subSizer.GetItem( i )
@@ -505,36 +582,63 @@ class pilot(wx.Frame):
 						b = item.GetWindow()
 						b.SetBackgroundColour( self.backgroundColour )
 						b.SetFocus()
-
+                                                
 				else:
 					if self.colIteration == self.numberOfColumns[0]:
 						self.colIteration = 0
-
+                                                
 					if self.colIteration == self.numberOfColumns[0]-1:
 						self.countColumns += 1
-
+                                                
 					items = self.subSizer.GetChildren()
 					for item in items:
 						b = item.GetWindow()
 						b.SetBackgroundColour( self.backgroundColour )
 						b.SetFocus()
-
+                                                
 					if self.rowIteration == 0:
 						item = self.subSizer.GetItem( self.rowIteration*self.numberOfColumns[ 0 ] + self.colIteration )
-					
+                                                
 					elif self.rowIteration == 1:
 						item = self.subSizer.GetItem( self.rowIteration*self.numberOfColumns[ 0 ] + self.colIteration )
-
+                                                
+                                        elif self.rowIteration == 4:
+						item = self.subSizer.GetItem( self.rowIteration*self.numberOfColumns[ 0 ] + self.colIteration - 2 )
+                                                
                                         # if download option was available
 					# elif self.rowIteration == 4:
+					# elif self.rowIteration == 4:
+					# 	zakres = range(self.rowIteration*self.numberOfColumns[0] - 2, self.rowIteration*self.numberOfColumns[0] + self.numberOfColumns[0] - 2)
+					# elif self.rowIteration == 4:
+                                        #         if self.switchSound == "voice":
+                                        #                 self.powrotSound.play()
+					# 	zakres = self.rowIteration*self.numberOfColumns[0] - 2, 
 					# 	item = self.subSizer.GetItem( self.rowIteration*self.numberOfColumns[ 0 ] + self.colIteration - 2 )				
 					b = item.GetWindow()
 					b.SetBackgroundColour( self.scanningColour )
 					b.SetFocus()
-
+                                        logo = b.Name
+                                        
+                                        if self.switchSound == "voice":
+                                                if logo == 'volume down':
+                                                        self.ciszejSound.play()
+                                                if logo == 'volume up':
+                                                        self.glosniejSound.play()
+                                                if logo == 'previous':
+                                                        self.poprzedniSound.play()
+                                                if logo == 'next':
+                                                        self.nastepnySound.play()
+                                                if logo == 'undo':
+                                                        self.powrotSound.play()
+                                                if logo == 'cancel':
+                                                        self.wyjscieSound.play()
+                                                                
 					self.colIteration += 1
-
+                                        
 		else:
+                    if self.switchSound == 'voice':
+                            self.usypiamSound.play()
+
                     self.stoper.Stop( )
                     suspend.suspend( self, id = 2 ).Show( True )
                     self.Hide( )

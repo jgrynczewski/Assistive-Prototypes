@@ -282,8 +282,8 @@ class pilot(wx.Frame):
 
 				if self.label == 'volume down':
 					try:
-						recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
-						alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume - 15, 0 )
+						recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ] 
+						alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( recentVolume - 15, 0 )
 						time.sleep(1.5)
 
 					except alsaaudio.ALSAAudioError:
@@ -295,8 +295,8 @@ class pilot(wx.Frame):
 
 				elif self.label == 'volume up':
 					try:
-						recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
-						alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume + 15, 0 )
+						recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ] 
+						alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( recentVolume + 15, 0 )
 						time.sleep( 1.5 )
 
 					except alsaaudio.ALSAAudioError:
@@ -392,8 +392,8 @@ class pilot(wx.Frame):
 						try:
                                                         if self.pressSound == 'voice':
                                                                 self.ciszejSound.play()
-							recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
-							alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume - 15, 0 )
+							recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ] 
+							alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( recentVolume - 15, 0 )
 							time.sleep(1.5)
 
 						except alsaaudio.ALSAAudioError:
@@ -407,8 +407,8 @@ class pilot(wx.Frame):
 						try:
                                                         if self.pressSound == 'voice':
                                                                 self.glosniejSound.play()
-							recentVolume = alsaaudio.Mixex( control = 'Master', cardindex = card_index ).getvolume( )[ 0 ] 
-							alsaaudio.Mixex( control = 'Master', cardindex = card_index ).setvolume( recentVolume + 15, 0 )
+							recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ] 
+							alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( recentVolume + 15, 0 )
 							time.sleep( 1.5 )
 
 						except alsaaudio.ALSAAudioError:

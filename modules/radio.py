@@ -388,8 +388,10 @@ class radio( wx.Frame ):
 					# print choice
 
 					os.system( 'smplayer -pos 0 0 %s &' % choice )
-					os.system('milena_say %s' % self.label[ self.label.find('_') + 1 : self.label.rfind('.') ] )
-				
+                                        
+                                        cmd = "milena_say %s" %  self.label[ self.label.find('_') + 1 : self.label.rfind('.') ]
+                                        subprocess.Popen(cmd , shell=True, stdin=subprocess.PIPE)
+
 				except IndexError:
 					self.button.SetBackgroundColour( 'red' )
 					self.button.SetFocus( )
@@ -536,7 +538,8 @@ class radio( wx.Frame ):
                                                         if self.pressSound == 'voice':
                                                                 self.stoper.Stop( )
                                                                 time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                                                os.system('milena_say %s' % logo[ logo.find('_') + 1 : logo.rfind('.') ] )
+                                                                cmd = "milena_say %s" % logo[ logo.find('_') + 1 : logo.rfind('.') ]
+                                                                subprocess.Popen(cmd , shell=True, stdin=subprocess.PIPE)
                                                                 time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
                                                                 self.stoper.Start( self.timeGap )
 
@@ -727,7 +730,8 @@ class radio( wx.Frame ):
                                                 elif logo == 'back':
                                                         self.powrotSound.play()
                                                 else:
-                                                        os.system('milena_say %s' % logo[ logo.find('_') + 1 : logo.rfind('.') ] )
+                                                        cmd = "milena_say %s" % logo[ logo.find('_') + 1 : logo.rfind('.') ]
+                                                        subprocess.Popen(cmd , shell=True, stdin=subprocess.PIPE)
 
 					self.columnIteration += 1
 

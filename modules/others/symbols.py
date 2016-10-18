@@ -238,7 +238,7 @@ class bliss_symbols( wx.Frame ):
                 self.panel.SetSizeWH( self.winWidth, 0.22*self.winHeight )
                 self.panelSize = self.panel.GetSize( )
 
-                self.displaySizer = wx.BoxSizer ( wx.HORIZONTAL | wx.LEFT )
+                self.displaySizer = wx.BoxSizer ( wx.HORIZONTAL )
                 self.displaySizer.SetMinSize( self.panelSize )
                 self.displaySizer.Fit( self.panel )
                 self.displaySizer.Add( self.panel, 1, wx.EXPAND )

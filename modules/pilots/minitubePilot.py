@@ -352,16 +352,6 @@ class pilot(wx.Frame):
 					# cmd = 'wmctrl -l'
 					# p = sp.Popen(cmd, shell=True, stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.STDOUT, close_fds=True)
 					# output = p.stdout.read()
-
-					# if 'minitube' in output:
-						# for button in buttonsToHighlight:
-						# 	item = self.subSizer.GetItem( button )
-						# 	b = item.GetWindow()
-						# 	b.SetBackgroundColour( 'red' )
-						# 	b.SetFocus()
-						# self.Update()
-
-						# os.system('wid=`xdotool search --onlyvisible --name minitube|head -1` && xdotool windowfocus $wid && xdotool windowactivate $wid && sleep 0.2 && xdotool key Escape && xdotool key Escape')
                                                 
 						# os.system('milena_say Nie ukończono pobierania materiału. Po ponownym włączeniu proszę rozpocząć pobieranie od początku')
 						# path = '/home/jgrynczewski/Desktop/changes/youtube playlist'
@@ -498,6 +488,7 @@ class pilot(wx.Frame):
 					# self.menu.Show()
 
                                 selectedButton.SetBackgroundColour( self.backgroundColour )
+
 				self.flag = 'row'
                                 self.panelIteration = 0
 				self.rowIteration = 0

@@ -307,7 +307,9 @@ class pilot(wx.Frame):
 
                                         os.system("sleep 0.5")
                                         os.system("wid=`wmctrl -l | awk '/Pilot/ {print $1}'` && xdotool windowactivate $wid' #&& xdotool keydown alt key Tab; sleep 0.2; xdotool keyup alt'")
-					
+                                        os.system("sleep 0.5")
+                                        os.system("wid2=`xdotool search --onlyvisible --name Pilot` && xdotool windowraise $wid2'")
+
 				elif self.rowIteration == 3:
                                         if self.pressSound == "voice":
                                                 self.zatrzymajGrajSound.play()

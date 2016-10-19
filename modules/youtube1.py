@@ -454,6 +454,7 @@ class youtube1( wx.Frame ):
                                                 
                                                 self.menu.Show()
                                                 
+                                                selectedButton.SetBackgroundColour( self.selectionColour )
                                                 # selectedButto.nSetBackgroundColour( self.backgroundColour )
 
                                 self.flag = 'row'

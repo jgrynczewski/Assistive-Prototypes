@@ -42,6 +42,8 @@ class nowe( wx.Frame ):
                 wx.Frame.__init__( self , parent , id, 'AP News' )
                 style = self.GetWindowStyle( )
                 self.SetWindowStyle( style | wx.STAY_ON_TOP )
+                
+                self.parent = parent
 
                 self.Maximize( True )
                 self.Centre( True )
@@ -151,7 +153,7 @@ class nowe( wx.Frame ):
 		self.vbox.Add( self.sizer, proportion=2, flag=wx.EXPAND | wx.TOP | wx.BOTTOM | wx.LEFT | wx.RIGHT, border=self.xBorder )
 		self.SetSizer( self.vbox )
 
-	        #-------------------------------------------------------------------------
+        #-------------------------------------------------------------------------
 	def initializeTimer(self):
 		self.stoper = wx.Timer( self )
 		self.Bind( wx.EVT_TIMER , self.timerUpdate , self.stoper )

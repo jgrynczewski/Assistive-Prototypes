@@ -347,7 +347,7 @@ class main_menu( wx.Frame ):
                         if self.pressSound.lower() == 'voice':
                             self.noweSound.play()
 
-                        nowe.nowe( self, id = -1).Show( True )
+                        nowe.nowe( parent = self, id = -1).Show( True )
                         self.Hide( )
 
                     elif (self.label == 'PUSTE'):

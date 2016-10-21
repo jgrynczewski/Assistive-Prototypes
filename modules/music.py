@@ -153,7 +153,7 @@ class music( wx.Frame ):
                                                 
 				else:
 					ositem = item.replace( ' ', '\ ' ).replace( '(', '\(').replace( ')', '\)' ).replace( '&', '\&')
-					os.system( 'ls -d -1 -I %s/*.mp -I %s/*.ogg* > %s/playlist.m3u' % ( self.path.replace( ' ', '\ ' ) + ositem , self.path.replace( ' ', '\ ' ) + ositem ) )
+					os.system( 'ls -d -1 -I %s/*.mp -I %s/*.ogg* > %s/playlist.m3u' % ( self.path.replace( ' ', '\ ' ) + ositem , self.path.replace( ' ', '\ ' ) + ositem, self.path.replace( ' ', '\ ' ) + ositem ) )
 
 					self.existingMedia.append( itemPath + 'playlist.m3u' )
                                         self.existingLogos.append( [itemPath+f for f in os.listdir(itemPath) if f.startswith("cover")][0] )

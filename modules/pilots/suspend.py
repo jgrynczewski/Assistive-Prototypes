@@ -193,6 +193,9 @@ class suspend( wx.Frame ):
 				self.onExit( )
 		else:
 			self.mouseCursor.move( *self.mousePosition )
+                        if (self.initCount == 0):
+                                os.system("wid=`wmctrl -l | awk '/suspend/ {print $1}'` && xdotool windowactivate $wid")
+                                self.initCount = 1
 			
 #=============================================================================
 if __name__ == '__main__':

@@ -305,10 +305,10 @@ class pilot(wx.Frame):
 					self.rowIteration = 0
 					os.system("wid=`wmctrl -l | awk '/Minitube/ {print $1}'` && xdotool windowfocus $wid && xdotool key --window $wid F11") 
 
+                                        os.system("sleep 1")
+                                        os.system("wid=`wmctrl -l | awk '/Pilot/ {print $1}'` && xdotool windowactivate $wid #&& xdotool keydown alt key Tab; sleep 0.1; xdotool keyup alt")
                                         os.system("sleep 0.5")
-                                        os.system("wid=`wmctrl -l | awk '/Pilot/ {print $1}'` && xdotool windowactivate $wid' #&& xdotool keydown alt key Tab; sleep 0.2; xdotool keyup alt'")
-                                        os.system("sleep 0.5")
-                                        os.system("wid2=`xdotool search --onlyvisible --name Pilot` && xdotool windowraise $wid2'")
+                                        os.system("wid=`wmctrl -l | awk '/Pilot/ {print $1}'` && xdotool windowraise $wid")
 
 				elif self.rowIteration == 3:
                                         if self.pressSound == "voice":
@@ -432,7 +432,7 @@ class pilot(wx.Frame):
 						
 				if self.radios[self.position][0] == 'previous':
                                         if self.pressSound == "voice":
-                                                self.poprzedniEkranSound.play()
+                                                self.poprzedniSound.play()
 					os.system("wid=`wmctrl -l | awk '/Minitube/ {print $1}'` && xdotool windowfocus $wid && xdotool key --window --sync $wid ctrl+Left")					
 			
 				elif self.radios[self.position][0] == 'next':

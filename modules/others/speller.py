@@ -17,7 +17,7 @@
 # along with AP. If not, see <http://www.gnu.org/licenses/>.
 
 import wxversion
-wxversion.select( '2.8' )
+# wxversion.select( '2.8' )
 
 import glob, os, time, sys, psutil
 import wx, alsaaudio
@@ -203,7 +203,7 @@ class speller( wx.Frame ):
 			
 		for index_1, item in enumerate( self.labels[ 0 ][ :-7 ] ):
 			b = bt.GenButton( self, -1, item, name = item, size = ( self.buttonsBoardWidth / float( self.numberOfColumns[ 0 ] ), self.buttonsBoardHeight / float( self.numberOfRows[ 0 ] ) ) )
-			b.SetFont( wx.Font( self.tableFontSize, eval(self.textFont), wx_FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,  False ) )
+			b.SetFont( wx.Font( self.tableFontSize, eval(self.textFont), wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,  False ) )
 			b.SetBezelWidth( 3 )
 			b.SetBackgroundColour( self.backgroundColour )
 
@@ -232,7 +232,7 @@ class speller( wx.Frame ):
 			if self.specialButtonsMarker == -4:
 				b = bt.GenButton( self, -1, item, name = item, size = ( 2 * ( self.buttonsBoardWidth / float( self.numberOfColumns[ 0 ] ) ), self.buttonsBoardHeight / float( self.numberOfRows[ 0 ] ) ) )
 				
-			b.SetFont( wx.Font( self.tableFontSize, eval(self.tableFont), wx_FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,  False ) )
+			b.SetFont( wx.Font( self.tableFontSize, eval(self.tableFont), wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,  False ) )
 			b.SetBezelWidth( 3 )
 			b.SetBackgroundColour( self.backgroundColour )
 			b.SetForegroundColour( self.textColour )
@@ -262,7 +262,7 @@ class speller( wx.Frame ):
 
 		for index_1, item in enumerate( self.labels[ 1 ][ :-6 ] ):
 			b = bt.GenButton( self, -1, item, name = item, size = ( self.buttonsBoardWidth2 / float( self.numberOfColumns[ 1 ] ), self.buttonsBoardHeight2 / float( self.numberOfRows[ 1 ] ) ) )
-			b.SetFont( wx.Font( self.tableFontSize, eval(self.tableFont), wx_FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,  False ) )
+			b.SetFont( wx.Font( self.tableFontSize, eval(self.tableFont), wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,  False ) )
 			b.SetBezelWidth( 3 )
 			b.SetBackgroundColour( self.backgroundColour )
 			b.SetForegroundColour( self.textColour )
@@ -278,7 +278,7 @@ class speller( wx.Frame ):
 
 		for item in ( self.labels[ 1 ][ -3 ], ):
 			b = bt.GenButton( self, -1, item, name = item, size = ( 3 * (self.buttonsBoardWidth2 / float( self.numberOfColumns[ 1 ] )), self.buttonsBoardHeight2 / float( self.numberOfRows[ 1 ] ) ) )
-			b.SetFont( wx.Font( self.tableFontSize, eval(self.tableFont), wx_FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,  False ) )
+			b.SetFont( wx.Font( self.tableFontSize, eval(self.tableFont), wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,  False ) )
 			b.SetBezelWidth( 3 )
 			b.SetBackgroundColour( self.backgroundColour )
 			b.SetForegroundColour( self.textColour )

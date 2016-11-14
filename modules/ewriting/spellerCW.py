@@ -62,7 +62,7 @@ class speller( wx.Frame ):
 			except ValueError:
 				setattr(self, item[:item.find('=')], item[item.find('=')+1:])
 
-		sys.path.append( self.pathToAP + 'modules' )
+		sys.path.append( self.pathToAP + 'modules/others' )
 		from speller import speller
 		sp = speller( parent = None, id = -1, con = 0 )
 		label = sp.getLabels( )

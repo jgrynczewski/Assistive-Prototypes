@@ -303,7 +303,7 @@ class speller( wx.Frame ):
                         slowo[ i ] = '_'       
 
                 self.ktore = ktore
-		self.textField.WriteText( u''.join( slowo ) )
+		self.textField.WriteText( ''.join( slowo ) )
 		self.ilejuz = 0
 		self.czyjuz = False
 		self.parent.Layout( )

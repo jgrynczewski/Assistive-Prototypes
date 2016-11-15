@@ -24,8 +24,9 @@ class reader():
     def readParameters(self):
         with open( './.pathToAP' ,'r' ) as textFile:
             self.pathToAP = textFile.readline( )
-
+        
         with open( self.pathToAP + 'parameters', 'r' ) as parametersFile:
+            self.parameters = []
             for line in parametersFile:
                 self.parameters.append( "".join( line.split() ) )
     

@@ -65,7 +65,7 @@ class main_menu( wx.Frame ):
                 p = sp.Popen( cmd, shell = True, stdin = sp.PIPE, stdout = sp.PIPE, stderr = sp.STDOUT, close_fds = True )
                 self.path = p.stdout.read( )[ :-1 ] + '/'
                 self.home = self.path[:self.path[:-1].rfind("/")] + '/' 
-                self.configurationPath = self.home+".pisak/"
+                self.configurationPath = self.home+"Assistive-Prototypes/"
                 
                 files = [ '.pathToAP', './modules/.pathToAP', './modules/pilots/.pathToAP', './modules/others/.pathToAP', 'modules/ewriting/.pathToAP', 'modules/games/atmemory/.pathToAP', 'modules/games/atsweeper/.pathToAP' ]
 
@@ -165,7 +165,7 @@ class main_menu( wx.Frame ):
         #-------------------------------------------------------------------------
         def createGui(self):
 
-                cmd = "cd " + self.home + ".pisak && git pull --dry-run | grep -q -v 'Already up-to-date.' && changed=1"
+                cmd = "cd " + self.home + "Assistive-Prototypes && git pull --dry-run | grep -q -v 'Already up-to-date.' && changed=1"
                 p = Popen( cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True )
                 self.output = p.stdout.read( )
 
@@ -469,7 +469,7 @@ class main_menu( wx.Frame ):
                                             elif len(self.output) == 0:
                                                     os.system("milena_say Brak aktualizacji")
                                             else:
-                                                    os.system("cd " + self.home + ".pisak && git pull")
+                                                    os.system("cd " + self.home + "Assistive-Prototypes && git pull")
                                                     os.system("milena_say Zaktualizowano pisaka")
                                                     
                                                     with open(self.path + "read", 'a+') as f:
@@ -486,22 +486,19 @@ class main_menu( wx.Frame ):
 
                                                     lenght = len(messages)
                                                     
+                                                    if lenght == 0:
+                                                            os.system("milena_say Nie masz żadnych wiadomości.")
                                                     if lenght == 1:
-                                                            os.system("milena_say Masz jedną aktualizację.")
+                                                            os.system("milena_say Masz jedną wiadomość.")
                                                             os. system("milena_say %s" % messages[0])
                                                     else:
-                                                            if lenght == 2:
-                                                                    os.system("milena_say Masz dwie aktualizację")
-                                                            elif (lenght%10 in [2,3,4]):
-                                                                    os.system("milena_say Masz %i aktualizację" % lenght)
-                                                            else:
-                                                                    os.system("milena_say Masz %i aktualizacji" % lenght)
+                                                        os.system("milena_say Masz %i wiadomości" % lenght)
                                                                     
                                                             for (i, j) in enumerate(messages, start=1):
-                                                                    os.system("milena_say Aktualizacja numer %i." % i)
+                                                                    os.system("milena_say Wiadomość numer %i." % i)
                                                                     os.system("milena_say %s" % j)
                                                                     
-                                                    cmd = "cd " + self.home + ".pisak && git pull --dry-run | grep -q -v 'Already up-to-date.' && changed=1"
+                                                    cmd = "cd " + self.home + "Assistive-Prototypes && git pull --dry-run | grep -q -v 'Already up-to-date.' && changed=1"
                                                     p = Popen( cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True )
                                                     self.output = p.stdout.read( )
 

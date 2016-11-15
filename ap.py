@@ -19,7 +19,7 @@
 import wxversion
 # wxversion.select( '2.8' )
 
-import wx, glob, os, sys, time, psutil, urllib2, zmq
+import wx, glob, os, sys, time, psutil, alsaaudio, urllib2, zmq
 import wx.lib.buttons as bt
 import subprocess as sp
 from subprocess import Popen, PIPE, STDOUT
@@ -77,30 +77,39 @@ class main_menu( wx.Frame ):
 
                 from reader import reader
                 
-                reader = reader()
-                reader.readParameters()
-                parameters = reader.getParameters()
-
-                for item in parameters:
-                        try:
-                                setattr(self, item[:item.find('=')], int(item[item.find('=')+1:]))
-                        except ValueError:
-                                setattr(self, item[:item.find('=')], item[item.find('=')+1:])
-
+		self.reader = reader()
+		self.reader.readParameters()
+		parameters = self.reader.getParameters()
+                
+                self.unpackParameters(parameters)
+                
                 self.labels = 'PISAK EXERCISES RADIO MUSIC AUDIOBOOK NOWE AKTUALIZACJE PUSTE PUSTE'.split( )
-
+                
                 self.flag = 'row'
                 self.pressFlag = False
-
+                
                 self.numberOfRows = [ 3 ]
                 self.numberOfColumns = [ 3 ]
                 self.maxRows = [ 3 * item for item in self.numberOfRows ]
                 self.maxColumns = [ 2 * item for item in self.numberOfColumns ]
-
+                
                 self.rowIteration = 0
                 self.colIteration = 0
                 self.countRows = 0
                 self.countColumns = 0
+                
+                if self.volumeLevel == 0:
+                    self.volumeLevel = 100
+
+                    os.system("pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo %d%%" % self.volumeLevel)
+                    self.reader.saveVolume(self.volumeLevel)
+                    
+                else:
+                    self.volumeLevels = [0, 20, 40, 60, 80, 100, 120, 140, 160]
+                    
+                    if self.volumeLevel not in self.volumeLevels:
+                        raise("Wrong value of volumeLevel. Accepted values: 0, 20, 40, 60, 80, 100, 120, 140, 160")
+                    os.system("pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo %d%%" % self.volumeLevel)
 
                 self.numberOfPresses = 1
                 self.mouseCursor = PyMouse( )
@@ -113,17 +122,17 @@ class main_menu( wx.Frame ):
                 # if self.switchSound.lower( ) != 'off' or self.pressSound.lower( ) != 'off':
                 mixer.init( )
                 self.usypiamSound = mixer.Sound(self.path + '/sounds/usypiam.ogg')
-
+                
                 # if self.switchSound.lower( ) == 'on':
                 self.switchingSound = mixer.Sound( self.path + '/sounds/switchSound.ogg' )
                 #if self.pressSound.lower( ) == 'on':
                 self.pressingSound = mixer.Sound( self.path + '/sounds/pressSound.ogg' )
-
+                
                 if self.switchSound.lower( ) == 'voice' or self.pressSound.lower( ) == 'voice':
                     self.oneSound = mixer.Sound(self.path + '/sounds/rows/1.ogg')
                     self.twoSound = mixer.Sound(self.path + '/sounds/rows/2.ogg')
                     self.threeSound = mixer.Sound(self.path + '/sounds/rows/3.ogg')
-
+                    
                     self.noweSound = mixer.Sound(self.path + '/sounds/nowe.ogg')
                     self.zadanieSound = mixer.Sound( self.path + '/sounds/zadanie.ogg' )
                     self.muzykaSound = mixer.Sound( self.path + '/sounds/muzyka.ogg' )
@@ -135,6 +144,14 @@ class main_menu( wx.Frame ):
                     self.audiobookSound = mixer.Sound( self.path + '/sounds/książki_czytane.ogg')
 
                 self.SetBackgroundColour( 'black' )
+
+	#-------------------------------------------------------------------------	
+        def unpackParameters(self, parameters):
+		for item in parameters:
+			try:
+				setattr(self, item[:item.find('=')], int(item[item.find('=')+1:]))
+			except ValueError:
+				setattr(self, item[:item.find('=')], item[item.find('=')+1:])			
 
         #-------------------------------------------------------------------------        
         def initializeBitmaps(self):

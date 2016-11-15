@@ -487,16 +487,16 @@ class main_menu( wx.Frame ):
                                                     lenght = len(messages)
                                                     
                                                     if lenght == 0:
-                                                            os.system("milena_say Nie masz żadnych wiadomości.")
+                                                        os.system("milena_say Nie masz żadnych wiadomości.")
                                                     if lenght == 1:
-                                                            os.system("milena_say Masz jedną wiadomość.")
-                                                            os. system("milena_say %s" % messages[0])
+                                                        os.system("milena_say Masz jedną wiadomość.")
+                                                        os. system("milena_say %s" % messages[0])
                                                     else:
                                                         os.system("milena_say Masz %i wiadomości" % lenght)
                                                                     
-                                                            for (i, j) in enumerate(messages, start=1):
-                                                                    os.system("milena_say Wiadomość numer %i." % i)
-                                                                    os.system("milena_say %s" % j)
+                                                    for (i, j) in enumerate(messages, start=1):
+                                                        os.system("milena_say Wiadomość numer %i." % i)
+                                                        os.system("milena_say %s" % j)
                                                                     
                                                     cmd = "cd " + self.home + "Assistive-Prototypes && git pull --dry-run | grep -q -v 'Already up-to-date.' && changed=1"
                                                     p = Popen( cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True )

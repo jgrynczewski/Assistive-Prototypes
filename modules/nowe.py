@@ -19,7 +19,7 @@
 import wxversion
 # wxversion.select( '2.8' )
 
-import wx, glob, os, sys, time, alsaaudio, psutil, urllib2, zmq
+import wx, glob, os, sys, time, psutil, urllib2, zmq
 import wx.lib.buttons as bt
 import subprocess as sp
 from subprocess import Popen, PIPE, STDOUT
@@ -74,14 +74,6 @@ class nowe( wx.Frame ):
 				setattr(self, item[:item.find('=')], int(item[item.find('=')+1:]))
 			except ValueError:
 				setattr(self, item[:item.find('=')], item[item.find('=')+1:])			
-		
-                self.card_index = 0
-                try:
-                        alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
-                except alsaaudio.ALSAAudioError:
-                        self.card_index = 1
-
-                alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
 
                 self.labels = 'YOUTUBE1 YOUTUBE2 PUSTE PUSTE PUSTE EXIT'.split( )
 
@@ -121,8 +113,6 @@ class nowe( wx.Frame ):
                         self.threeSound = mixer.Sound( self.pathToAP + '/sounds/rows/3.ogg' )
 
                 self.SetBackgroundColour( 'black' )
-
-		#alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( self.musicVolumeLevel, 0 )
 
         #-------------------------------------------------------------------------        
         def initializeBitmaps(self):

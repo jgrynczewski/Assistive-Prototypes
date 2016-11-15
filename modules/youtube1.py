@@ -19,7 +19,7 @@
 import wxversion
 # wxversion.select( '2.8' )
 
-import glob, os, time, sys, alsaaudio
+import glob, os, time, sys
 
 import wx
 import wx.lib.buttons as bt
@@ -129,14 +129,6 @@ class youtube1( wx.Frame ):
                 except ValueError:
                     setattr(self, item[:item.find('=')], item[item.find('=')+1:])			
 		
-            self.card_index = 0
-            try:
-                alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
-            except alsaaudio.ALSAAudioError:
-                self.card_index = 1
-
-            alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
-                                    
             self.panelIteration = 0
             self.rowIteration = 0						
             self.columnIteration = 0

@@ -28,7 +28,6 @@ from pygame import mixer
 
 from pilots import moviePilot
 
-
 #=============================================================================
 class movie( wx.Frame ):
 	def __init__(self, parent, id):

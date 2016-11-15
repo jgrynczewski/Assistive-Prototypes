@@ -21,7 +21,8 @@ import wxversion
 
 import Tkinter
 import glob, os, time, sys, psutil
-import wx, alsaaudio
+
+import wx
 import wx.lib.buttons as bt
 
 from pymouse import PyMouse

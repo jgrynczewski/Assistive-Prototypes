@@ -60,25 +60,13 @@ class music( wx.Frame ):
 
 		sys.path.append( self.pathToAP )
 		from reader import reader
+                
+		self.reader = reader()
+		self.reader.readParameters()
+		parameters = self.reader.getParameters()
 
-		reader = reader()
-		reader.readParameters()
-		parameters = reader.getParameters()
-
-		for item in parameters:
-			try:
-				setattr(self, item[:item.find('=')], int(item[item.find('=')+1:]))
-			except ValueError:
-				setattr(self, item[:item.find('=')], item[item.find('=')+1:])			
+                self.unpackParameters(parameters)
 		
-                self.card_index = 0
-                try:
-                        alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
-                except alsaaudio.ALSAAudioError:
-                        self.card_index = 1
-
-                alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
-
 		self.pressFlag = False
 
 		self.numberOfRows = 3,
@@ -94,8 +82,9 @@ class music( wx.Frame ):
 		self.maxEmptyRowIteration = 2									
 		self.maxEmptyPanelIteration = 2
 
-                self.volumeDownFactor = .9
-                self.volumeUpFactor = 1.1
+                self.volumeLevels = [0, 20, 40, 60, 80, 100, 120, 140, 160]
+                if self.volumeLevel not in self.volumeLevels:
+                        raise("Wrong value of volumeLevel. Accepted values: 0, 20, 40, 60, 80, 100, 120, 140, 160")
 
 		self.numberOfPresses = 1
 		
@@ -123,6 +112,14 @@ class music( wx.Frame ):
 		
 		self.SetBackgroundColour( 'black' )
 		
+	#-------------------------------------------------------------------------	
+        def unpackParameters(self, parameters):
+		for item in parameters:
+			try:
+				setattr(self, item[:item.find('=')], int(item[item.find('=')+1:]))
+			except ValueError:
+				setattr(self, item[:item.find('=')], item[item.find('=')+1:])			
+
 	#-------------------------------------------------------------------------	
         def initializeBitmaps(self):
 		
@@ -500,17 +497,20 @@ class music( wx.Frame ):
                                                         self.stoper.Start( self.timeGap )
 
 					                try:
-						                recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ]
-                                                                if recentVolume == 0: 
+                                                                self.reader.readParameters()
+                                                                parameters = self.reader.getParameters()
+                                                                self.unpackParameters(parameters)
+                                                                
+                                                                if self.volumeLevel == 0: 
                                                                         raise alsaaudio.ALSAAudioError
-
-                                                                elif recentVolume < 55:
-                                                                        furtherVolume = 0
-                                                                        
                                                                 else:
-                                                                        furtherVolume = int( self.volumeDownFactor*recentVolume ) 
+                                                                        for idx, item in enumerate(self.volumeLevels):
+                                                                                if self.volumeLevel == item:
+                                                                                        self.volumeLevel = self.volumeLevels[idx-1]
+                                                                                        break
 
-						                alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( furtherVolume, 0 )
+                                                                os.system("pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo %d%%" % self.volumeLevel)
+                                                                self.reader.saveVolume(self.volumeLevel)
                                                                 time.sleep( 1.5 )
 
 					                except alsaaudio.ALSAAudioError:
@@ -530,17 +530,21 @@ class music( wx.Frame ):
 
 
 					                try:
-						                recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ]
-                                                                if recentVolume == 100: 
+                                                                self.reader.readParameters()
+                                                                parameters = self.reader.getParameters()
+                                                                self.unpackParameters(parameters)
+                                                                
+                                                                if self.volumeLevel == 160: 
                                                                         raise alsaaudio.ALSAAudioError
-
-                                                                elif recentVolume > 90:
-                                                                        furtherVolume = 100
-                                                                        
                                                                 else:
-                                                                        furtherVolume = int( self.volumeUpFactor*recentVolume ) 
+                                                                        for idx, item in enumerate(self.volumeLevels):
+                                                                                if self.volumeLevel == item:
+                                                                                        self.volumeLevel = self.volumeLevels[idx+1]
+                                                                                        break
+                                                                                        
+                                                                os.system("pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo %d%%" % self.volumeLevel)
+                                                                self.reader.saveVolume(self.volumeLevel)
 
-						                alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( furtherVolume, 0 )
                                                                 time.sleep( 1.5 )
 
 							except alsaaudio.ALSAAudioError:
@@ -624,7 +628,6 @@ class music( wx.Frame ):
 					self.emptyRowIteration = 0
 					self.emptyColumnIteration = 0
 
-					selectedButton = item.GetWindow( )
 					selectedButton.SetBackgroundColour( self.backgroundColour )
 					selectedButton.SetFocus( )
 

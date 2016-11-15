@@ -19,7 +19,7 @@
 import wxversion
 # wxversion.select( '2.8' )
 
-import wx, glob, os, sys, time, alsaaudio, psutil, urllib2, zmq
+import wx, glob, os, sys, time, psutil, urllib2, zmq
 import wx.lib.buttons as bt
 import subprocess as sp
 from subprocess import Popen, PIPE, STDOUT
@@ -135,8 +135,6 @@ class main_menu( wx.Frame ):
                     self.audiobookSound = mixer.Sound( self.path + '/sounds/książki_czytane.ogg')
 
                 self.SetBackgroundColour( 'black' )
-
-		#alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( self.musicVolumeLevel, 0 )
 
         #-------------------------------------------------------------------------        
         def initializeBitmaps(self):

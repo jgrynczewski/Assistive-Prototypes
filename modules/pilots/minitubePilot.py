@@ -61,15 +61,10 @@ class pilot(wx.Frame):
 	    sys.path.append( self.pathToAP )
 	    from reader import reader
 	    
-	    reader = reader()
-	    reader.readParameters()
-	    parameters = reader.getParameters()
-	    
-	    for item in parameters:
-		    try:
-			    setattr(self, item[:item.find('=')], int(item[item.find('=')+1:]))
-		    except ValueError:
-			    setattr(self, item[:item.find('=')], item[item.find('=')+1:])
+            self.reader = reader()
+            self.reader.readParameters()
+            parameters = self.reader.getParameters()
+            self.unpackParameters(parameters)
                         
             self.flag = 'row'
 	    self.pressFlag = False
@@ -93,6 +88,10 @@ class pilot(wx.Frame):
             self.countMaxRows = 2									
             self.countMaxColumns = 2									
             self.numberOfPresses = 0
+
+            self.volumeLevels = [0, 20, 40, 60, 80, 100, 120, 140, 160]
+            if self.volumeLevel not in self.volumeLevels:
+                raise("Wrong value of volumeLevel. Accepted values: 0, 20, 40, 60, 80, 100, 120, 140, 160")
 
             ### if download option was available
 	    # self.youtubeFiles = sorted( glob.glob('./youtube playlist/*') )
@@ -134,12 +133,14 @@ class pilot(wx.Frame):
 	    self.width = self.numberOfColumns[0] * 120
 	    self.height = self.numberOfRows[0] * 100
 
-            self.card_index = 0
-            try:
-                    alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
-            except alsaaudio.ALSAAudioError:
-                    self.card_index = 1
-                    
+	#-------------------------------------------------------------------------	
+        def unpackParameters(self, parameters):
+		for item in parameters:
+			try:
+				setattr(self, item[:item.find('=')], int(item[item.find('=')+1:]))
+			except ValueError:
+				setattr(self, item[:item.find('=')], item[item.find('=')+1:])			
+
 	#-------------------------------------------------------------------------	
         def initializeBitmaps(self):
 
@@ -381,10 +382,22 @@ class pilot(wx.Frame):
 					try:
                                                 if self.pressSound == "voice":
                                                         self.ciszejSound.play()
-                                                recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ] 
-                                                alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( recentVolume - 15, 0 )
+                                                        
+                                                self.reader.readParameters()
+                                                parameters = self.reader.getParameters()
+                                                self.unpackParameters(parameters)
+                                                
+                                                if self.volumeLevel == 0: 
+                                                        raise alsaaudio.ALSAAudioError
+                                                else:
+                                                        for idx, item in enumerate(self.volumeLevels):
+                                                                if self.volumeLevel == item:
+                                                                        self.volumeLevel = self.volumeLevels[idx-1]
+                                                                        break
 
-						time.sleep(1.5)
+                                                os.system("pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo %d%%" % self.volumeLevel)
+                                                self.reader.saveVolume(self.volumeLevel)
+                                                time.sleep( 1.5 )
 
 					except alsaaudio.ALSAAudioError:
 						selectedButton.SetBackgroundColour( 'red' )
@@ -398,9 +411,22 @@ class pilot(wx.Frame):
                                                 if self.pressSound == "voice":
                                                         self.glosniejSound.play()
 
-                                                recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ] 
-                                                alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( recentVolume + 15, 0 )
-						time.sleep(1.5)
+                                                self.reader.readParameters()
+                                                parameters = self.reader.getParameters()
+                                                self.unpackParameters(parameters)
+                                                
+                                                if self.volumeLevel == 160: 
+                                                        raise alsaaudio.ALSAAudioError
+                                                else:
+                                                        for idx, item in enumerate(self.volumeLevels):
+                                                                if self.volumeLevel == item:
+                                                                        self.volumeLevel = self.volumeLevels[idx+1]
+                                                                        break
+                                                                                        
+                                                os.system("pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo %d%%" % self.volumeLevel)
+                                                self.reader.saveVolume(self.volumeLevel)
+                                                
+                                                time.sleep( 1.5 )
 					
 					except alsaaudio.ALSAAudioError:
 						selectedButton.SetBackgroundColour( 'red' )

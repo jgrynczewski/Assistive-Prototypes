@@ -20,7 +20,7 @@ import wxversion
 # wxversion.select( '2.8' )
 
 import glob, os, time, sys, psutil
-import wx, alsaaudio
+import wx
 import wx.lib.buttons as bt
 
 from pymouse import PyMouse

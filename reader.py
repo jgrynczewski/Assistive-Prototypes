@@ -23,12 +23,22 @@ class reader():
     #-------------------------------------------------------------------------    
     def readParameters(self):
         with open( './.pathToAP' ,'r' ) as textFile:
-            pathToAP = textFile.readline( )
+            self.pathToAP = textFile.readline( )
 
-        with open( pathToAP + 'parameters', 'r' ) as parametersFile:
+        with open( self.pathToAP + 'parameters', 'r' ) as parametersFile:
             for line in parametersFile:
                 self.parameters.append( "".join( line.split() ) )
     
     #-------------------------------------------------------------------------
     def getParameters(self):
         return self.parameters
+
+    #-------------------------------------------------------------------------
+    def saveVolume(self, value):
+
+        for idx, item in enumerate(self.parameters):
+            if item.startswith("volumeLevel"):
+                self.parameters[idx] = "volumeLevel = " + str(value)
+
+        with open( self.pathToAP + 'parameters', 'w' ) as parametersFile:
+                parametersFile.write( "\n".join(self.parameters) )

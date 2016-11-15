@@ -58,28 +58,15 @@ class radio( wx.Frame ):
 			self.pathToAP = textFile.readline( )
 
 		sys.path.append( self.pathToAP )
+
 		from reader import reader
 		
-		reader = reader()
-		reader.readParameters()
-		parameters = reader.getParameters()
+                self.reader = reader()
+		self.reader.readParameters()
+		parameters = self.reader.getParameters()
+                self.unpackParameters(parameters)
 
-		for item in parameters:
-			try:
-				setattr(self, item[:item.find('=')], int(item[item.find('=')+1:]))
-			except ValueError:
-				setattr(self, item[:item.find('=')], item[item.find('=')+1:])					    
-	
-                self.card_index = 0
-                try:
-                        alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
-                except alsaaudio.ALSAAudioError:
-                        self.card_index = 1
-
-                alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
-                        
-                        
-		self.flag = 'row'
+                self.flag = 'row'
 		self.pressFlag = False
 
 		self.numberOfRows = 4,
@@ -94,6 +81,10 @@ class radio( wx.Frame ):
 		self.maxEmptyColumnIteration = 2									
 		self.maxEmptyRowIteration = 2									
 		self.maxEmptyPanelIteration = 2
+
+                self.volumeLevels = [0, 20, 40, 60, 80, 100, 120, 140, 160]
+                if self.volumeLevel not in self.volumeLevels:
+                        raise("Wrong value of volumeLevel. Accepted values: 0, 20, 40, 60, 80, 100, 120, 140, 160")
 
 		self.numberOfPresses = 1
 
@@ -121,6 +112,14 @@ class radio( wx.Frame ):
 		self.radioFlag = 'OFF'
 		self.SetBackgroundColour( 'black' )
 	    
+	#-------------------------------------------------------------------------	
+        def unpackParameters(self, parameters):
+		for item in parameters:
+			try:
+				setattr(self, item[:item.find('=')], int(item[item.find('=')+1:]))
+			except ValueError:
+				setattr(self, item[:item.find('=')], item[item.find('=')+1:])			
+
 	#-------------------------------------------------------------------------	
 	def initializeBitmaps(self):
 
@@ -469,9 +468,21 @@ class radio( wx.Frame ):
                                                         self.stoper.Start( self.timeGap )
 
 							try:
-								recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ] 
-								alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( recentVolume - 15, 0 )
-								time.sleep( 1.5 )
+                                                                self.reader.readParameters()
+                                                                parameters = self.reader.getParameters()
+                                                                self.unpackParameters(parameters)
+                                                                
+                                                                if self.volumeLevel == 0: 
+                                                                        raise alsaaudio.ALSAAudioError
+                                                                else:
+                                                                        for idx, item in enumerate(self.volumeLevels):
+                                                                                if self.volumeLevel == item:
+                                                                                        self.volumeLevel = self.volumeLevels[idx-1]
+                                                                                        break
+
+                                                                os.system("pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo %d%%" % self.volumeLevel)
+                                                                self.reader.saveVolume(self.volumeLevel)
+                                                                time.sleep( 1.5 )
 
 							except alsaaudio.ALSAAudioError:
 								selectedButton.SetBackgroundColour( 'red' )
@@ -489,9 +500,22 @@ class radio( wx.Frame ):
                                                         self.stoper.Start( self.timeGap )
 
 							try:
-								recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ] 
-								alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( recentVolume + 15, 0 )
-								time.sleep( 1.5 )
+                                                                self.reader.readParameters()
+                                                                parameters = self.reader.getParameters()
+                                                                self.unpackParameters(parameters)
+                                                                
+                                                                if self.volumeLevel == 160: 
+                                                                        raise alsaaudio.ALSAAudioError
+                                                                else:
+                                                                        for idx, item in enumerate(self.volumeLevels):
+                                                                                if self.volumeLevel == item:
+                                                                                        self.volumeLevel = self.volumeLevels[idx+1]
+                                                                                        break
+                                                                                        
+                                                                os.system("pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo %d%%" % self.volumeLevel)
+                                                                self.reader.saveVolume(self.volumeLevel)
+
+                                                                time.sleep( 1.5 )
 
 							except alsaaudio.ALSAAudioError:
 								selectedButton.SetBackgroundColour( 'red' )

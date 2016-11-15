@@ -28,7 +28,6 @@ from pygame import mixer
 
 import suspend
 
-
 #=============================================================================
 class pilot(wx.Frame):
 	def __init__(self, parent, id):
@@ -123,14 +122,6 @@ class pilot(wx.Frame):
 	    self.width = self.numberOfColumns[0] * 120
 	    self.height = self.numberOfRows[0] * 100
 
-            self.card_index = 0
-            try:
-                    alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
-            except alsaaudio.ALSAAudioError:
-                    self.card_index = 1
-                    
-            alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
-		
         #-------------------------------------------------------------------------	
         def unpackParameters(self, parameters):
 

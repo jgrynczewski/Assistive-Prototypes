@@ -126,10 +126,6 @@ class bliss_symbols( wx.Frame ):
                         self.scanningColour = line[ line.rfind('=')+2:-1 ]
                     elif line[ :line.find('=')-1 ] == 'selectionColour':
                         self.selectionColour = line[ line.rfind('=')+2:-1 ]
-                    elif line[ :line.find('=')-1 ] == 'filmVolume':
-                        self.filmVolumeLevel = int( line[ line.rfind('=')+2:-1 ] )
-                    elif line[ :line.find('=')-1 ] == 'musicVolume':
-                        self.musicVolumeLevel = int( line[ line.rfind('=')+2:-1 ] )
                         
                     elif not line.isspace( ):
                         print 'Niewłaściwie opisane parametry'
@@ -140,8 +136,6 @@ class bliss_symbols( wx.Frame ):
                         self.textColour = 'black'
                         self.scanningColour =  '#E7FAFD'
                         self.selectionColour = '#9EE4EF'
-                        self.filmVolumeLevel = 100
-                        self.musicVolumeLevel = 40
                                     
             self.panelIteration = 0
             self.rowIteration = 0						

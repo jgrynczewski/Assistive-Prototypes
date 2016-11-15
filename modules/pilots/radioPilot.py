@@ -316,8 +316,6 @@ class pilot( wx.Frame ):
 					if "smplayer" in [psutil.Process(i).name() for i in psutil.pids( )]:
 						os.system( 'smplayer -send-action quit' )
 
-					alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( self.filmVolumeLevel, 0 )
-
 					self.onExit( )
 
 				elif self.label == 'undo':

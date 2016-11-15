@@ -317,14 +317,6 @@ class movie( wx.Frame ):
 						self.stoper.Stop( )
 						self.Hide( )
 
-                                                self.card_index = 0
-                                                try:
-                                                        alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
-                                                except alsaaudio.ALSAAudioError:
-                                                        self.card_index = 1
-                                                        
-                                                alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
-
 						moviePilot.pilot( self, id=2 ).Show( True )
 						os.system( 'smplayer -no-fullscreen  %s &' % choicePath.replace( ' ', r'\ ' ).replace( '(', r'\(' ).replace( ')', r'\)' ).replace( '[', r'\[' ).replace( ']', r'\]').replace( '&', r'\&' ) )
 
@@ -414,13 +406,6 @@ class movie( wx.Frame ):
 
 						self.stoper.Stop( )
 						self.Hide( )
-
-                                                try:
-                                                        alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
-                                                except alsaaudio.ALSAAudioError:
-                                                        self.card_index = 1
-                                                        
-                                                alsaaudio.Mixer( control = 'Master', cardindex=self.card_index ).setvolume( self.musicVolumeLevel, 0 )
 
 						moviePilot.pilot( self, id=2 ).Show( True )
 						os.system( 'smplayer -no-fullscreen  %s &' % choicePath.replace( ' ', r'\ ' ).replace( '(', r'\(' ).replace( ')', r'\)' ).replace( '[', r'\[' ).replace( ']', r'\]').replace( '&', r'\&' ) )

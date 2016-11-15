@@ -27,7 +27,6 @@ from pymouse import PyMouse
 
 from pilots import bookSuspend
 
-
 #=============================================================================
 class book( wx.Frame ):
 	def __init__(self, parent, id):
@@ -68,10 +67,6 @@ class book( wx.Frame ):
 					self.scanningColour = line[ line.rfind('=')+2:-1 ]
 				elif line[ :line.find('=')-1 ] == 'selectionColour':
 					self.selectionColour = line[ line.rfind('=')+2:-1 ]
-				elif line[ :line.find('=')-1 ] == 'filmVolume':
-					self.filmVolumeLevel = int( line[ line.rfind('=')+2:-1 ] )
-				elif line[ :line.find('=')-1 ] == 'musicVolume':
-					self.musicVolumeLevel = int( line[ line.rfind('=')+2:-1 ] )
 			
 				elif not line.isspace( ):
 					print 'Niewłaściwie opisane parametry'
@@ -82,8 +77,6 @@ class book( wx.Frame ):
 					self.textColour = 'black'
 					self.scanningColour =  '#E7FAFD'
 					self.selectionColour = '#9EE4EF'
-					self.filmVolumeLevel = 100
-					self.musicVolumeLevel = 70
 
 		self.numberOfRows = 4,
 		self.numberOfColumns = 6,
@@ -466,7 +459,6 @@ class book( wx.Frame ):
 				pass
 					
 		# print self.panelIteration, self.rowIteration, self.columnIteration
-
 
 #=============================================================================
 if __name__ == '__main__':

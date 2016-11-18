@@ -83,7 +83,7 @@ target/
 celerybeat-schedule
 
 #dirs
-multimedia/*
+
 
 # dotenv
 .env

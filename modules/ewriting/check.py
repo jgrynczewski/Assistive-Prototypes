@@ -146,9 +146,9 @@ class check(wx.Frame):
 		self.parent.Layout( )
 
 		if self.oklaski:
-                        mixer.music.load( self.pathToAP + 'multimedia/ewriting/oklaski.ogg' )
+			voice = open(self.pathToAP + 'multimedia/ewriting/oklaski.ogg', 'rb')
+                        mixer.music.load( voice )
                         mixer.music.play( )
-
 
                 self.ileklik = 0
 

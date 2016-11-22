@@ -19,7 +19,7 @@
 import wxversion
 # wxversion.select( '2.8' )
 
-import glob, os, time, sys
+import glob, os, time, sys, codecs
 import wx
 import wx.lib.buttons as bt
 
@@ -46,8 +46,9 @@ class speller( wx.Frame ):
 	#-------------------------------------------------------------------------
 	def initializeParameters(self):
 
-		with open( './.pathToAP' ,'r' ) as textFile:
-			self.pathToAP = textFile.readline( )
+                textFile = codecs.open("./.pathToAP", mode="r", encoding="utf-8")
+                self.pathToAP = textFile.readline()
+                textFile.close()
 
 		sys.path.append( self.pathToAP )
 		from reader import reader
@@ -120,10 +121,11 @@ class speller( wx.Frame ):
 			self.rowLabels = [ item[ item.rfind( '/' )+1 : item.rfind( '.' ) ] for item in self.rows ]
 			self.rowSounds = [ mixer.Sound( self.sound ) for self.sound in self.rows ]
 
-		self.slowo = self.parent.WORD
+		self.SLOWO = self.parent.WORD
+                self.slowo = self.parent.word
 
-		if self.ileLuk >= len( self.slowo ):
-                        self.ileLuk = len( self.slowo ) - 1
+		if self.ileLuk >= len( self.SLOWO ):
+                        self.ileLuk = len( self.SLOWO ) - 1
 
                 self.flag = 'row'						
 		self.pressFlag = False
@@ -288,22 +290,22 @@ class speller( wx.Frame ):
 		
 		ktore = [ ] #ktore litery wykropkowac
 
-		if len( self.slowo ) == 2:
+		if len( self.SLOWO ) == 2:
                         ktore = [ 1 ]
                 else:
                         while len( ktore ) < self.ileLuk:
-                                ktore.append( np.random.randint( 0, len( self.slowo ), 1 )[ 0 ] )
+                                ktore.append( np.random.randint( 0, len( self.SLOWO ), 1 )[ 0 ] )
                                 ktore = list( set( ktore ) )
 
-		slowo = list( self.slowo )
+		SLOWO = list( self.SLOWO )
 		ktore = sorted( ktore )
 		self.samogloski = [ ]
 
 		for i in ktore:
-                        slowo[ i ] = '_'       
+                        SLOWO[ i ] = '_'       
 
                 self.ktore = ktore
-		self.textField.WriteText( ''.join( slowo ) )
+		self.textField.WriteText( ''.join( SLOWO ) )
 		self.ilejuz = 0
 		self.czyjuz = False
 		self.parent.Layout( )
@@ -381,19 +383,24 @@ class speller( wx.Frame ):
 
 				elif self.label == 'ORISPEAK':
 					self.parent.stoper2.Stop( )
-					if str( self.parent.word ) + '.ogg' not in os.listdir( self.pathToAP + 'multimedia/ewriting/spelling/' ):
-						command = 'sox -m ' + self.pathToAP + 'sounds/phone/' + list( self.parent.word )[ 0 ].swapcase( ) + '.ogg'
-						ile = 0
-						for l in list( self.parent.word )[ 1: ]:
-							ile += 2
-							command += ' "|sox ' + self.pathToAP + 'sounds/phone/' + l.swapcase() + '.ogg' + ' -p pad ' + str( ile ) + '"'
-						command += ' ' + self.pathToAP + 'multimedia/ewriting/spelling/' + self.parent.word + '.ogg'
-						wykonaj = sp.Popen( shlex.split( command ) )
 
-					time.sleep( 1.5 )
-					do_literowania = mixer.Sound( self.pathToAP + 'multimedia/ewriting/spelling/' + self.parent.word + '.ogg' )
-					do_literowania.play( )
-					self.parent.stoper4.Start( ( do_literowania.get_length( ) + 0.5 ) * 1000 )
+                                        if (self.slowo + ".ogg") not in os.listdir( self.pathToAP + u"multimedia/ewriting/spelling/" ):        
+                                                command = 'sox -m '+ self.pathToAP + 'sounds/phone/' + list( self.slowo )[ 0 ].swapcase( ) + '.ogg'
+                                                ile = 0
+
+                                                for l in list( self.slowo )[ 1: ]:
+                                                        ile += 2
+                                                        command += ' "|sox ' + self.pathToAP + "sounds/phone/" + l.swapcase() + ".ogg" + ' -p pad ' + str( ile ) + '"'
+
+                                                command += ' ' + self.pathToAP + 'multimedia/ewriting/spelling/' + self.slowo + '.ogg'
+                                                wykonaj = sp.Popen( shlex.split( command.encode("utf-8") ) )
+
+						time.sleep( 1.5 )
+                                                unicodePath = self.pathToAP + u"multimedia/ewriting/spelling/" + self.slowo + u".ogg"
+                                                voice = open(unicodePath, 'rb')
+						do_literowania = mixer.Sound(voice)
+						do_literowania.play( )
+						self.parent.stoper4.Start( ( do_literowania.get_length( ) + 0.5 ) * 1000 )
 
 				elif self.label == 'TRASH':
 					text = self.textField.GetValue( )
@@ -555,17 +562,22 @@ class speller( wx.Frame ):
 
 					elif label == 'ORISPEAK':
 						self.parent.stoper2.Stop( )
-						if str( self.parent.word ) + '.ogg' not in os.listdir( self.pathToAP + 'multimedia/ewriting/spelling/' ):
-							command = 'sox -m ' + self.pathToAP + 'sounds/phone/' + list( self.parent.word )[ 0 ].swapcase( ) + '.ogg'
+
+						if (self.slowo + ".ogg") not in os.listdir( self.pathToAP + u"multimedia/ewriting/spelling/" ):        
+							command = 'sox -m '+ self.pathToAP + 'sounds/phone/' + list( self.slowo )[ 0 ].swapcase( ) + '.ogg'
 							ile = 0
-							for l in list( self.parent.word )[ 1: ]:
-								ile += 2
-								command += ' "|sox ' + self.pathToAP + 'sounds/phone/' + l.swapcase() + '.ogg' + ' -p pad ' + str( ile ) + '"'
-							command += ' ' + self.pathToAP + 'multimedia/ewriting/spelling/' + self.parent.word + '.ogg'
-							wykonaj = sp.Popen( shlex.split( command ) )
+
+							for l in list( self.slowo )[ 1: ]:
+                                                                ile += 2
+                                                                command += ' "|sox ' + self.pathToAP + "sounds/phone/" + l.swapcase() + ".ogg" + ' -p pad ' + str( ile ) + '"'
+
+							command += ' ' + self.pathToAP + 'multimedia/ewriting/spelling/' + self.slowo + '.ogg'
+							wykonaj = sp.Popen( shlex.split( command.encode("utf-8") ) )
 
 						time.sleep( 1.5 )
-						do_literowania = mixer.Sound( self.pathToAP + 'multimedia/ewriting/spelling/' + self.parent.word + '.ogg' )
+                                                unicodePath = self.pathToAP + u"multimedia/ewriting/spelling/" + self.slowo + u".ogg"
+                                                voice = open(unicodePath, 'rb')
+						do_literowania = mixer.Sound(voice)
 						do_literowania.play( )
 						self.parent.stoper4.Start( ( do_literowania.get_length( ) + 0.5 ) * 1000 )
 

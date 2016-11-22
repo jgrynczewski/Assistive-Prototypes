@@ -19,7 +19,7 @@
 import wxversion
 # wxversion.select('2.8')
 
-import os, time, sys, psutil
+import os, time, sys, psutil, codecs
 from random import shuffle
 
 import wx
@@ -57,8 +57,9 @@ class cwiczenia(wx.Frame):
 	#-------------------------------------------------------------------------
 	def initializeParameters(self):
 
-		with open( './.pathToAP' ,'r' ) as textFile:
-			self.pathToAP = textFile.readline( )
+                textFile = codecs.open("./.pathToAP", mode="r", encoding="utf-8")
+                self.pathToAP = textFile.readline()
+                textFile.close()
 
 		sys.path.append( self.pathToAP )
 		from reader import reader
@@ -146,8 +147,12 @@ class cwiczenia(wx.Frame):
 			if self.poczatek:
 				time.sleep( 1 )
 				self.stoper.Stop( )
-				mixer.music.load( self.pathToAP + 'multimedia/ewriting/voices/' + str( self.word ) + '.ogg' )
+
+                                unicodePath = self.pathToAP + u"multimedia/ewriting/voices/" + self.word + u".ogg"
+                                voice = open(unicodePath, 'rb')
+				mixer.music.load( voice )
 				mixer.music.play( )
+
 				time.sleep( 2 )
 				self.stoper.Start( self.timeGap )
 				self.poczatek = False
@@ -163,8 +168,12 @@ class cwiczenia(wx.Frame):
 			if self.poczatek:
 				time.sleep( 1 )
 				self.stoper.Stop( )
-				mixer.music.load( self.pathToAP + 'multimedia/ewriting/voices/' + str( self.word ) + '.ogg' )
+
+                                unicodePath = self.pathToAP + u"multimedia/ewriting/voices/" + self.word + u".ogg"
+                                voice = open(unicodePath, 'rb')
+				mixer.music.load( voice )
 				mixer.music.play( )
+
 				time.sleep( 2 )
 				self.stoper.Start( self.timeGap )
 				self.poczatek = False
@@ -464,24 +473,33 @@ class cwiczenia(wx.Frame):
 
 				if self.name == 'speak':
 					self.stoper.Stop( )
-					mixer.music.load( self.pathToAP + 'multimedia/ewriting/voices/' + str( self.word ) + '.ogg' )
-					mixer.music.play( )
+
+                                        unicodePath = self.pathToAP + u"multimedia/ewriting/voices/" + self.word + u".ogg"
+                                        voice = open(unicodePath, 'rb')
+                                        mixer.music.load( voice )
+                                        mixer.music.play( )
 					self.stoper4.Start( 2000 )
 
 				elif self.name == 'literuj':
 					self.stoper.Stop( )
-					if str( self.word ) + '.ogg' not in os.listdir( self.pathToAP + 'multimedia/ewriting/spelling/' ):        
-						command = 'sox -m ' + self.pathToAP + 'sounds/phone/' + list( self.word )[ 0 ].upper( ) + '.ogg'
-						ile = 0
-						for l in list( self.word )[ 1: ]:
-							ile += 2
-							command += ' "|sox ' + self.pathToAP + 'sounds/phone/' + l.upper( ) + '.ogg' + ' -p pad ' + str( ile ) + '"'
-						command += ' ' + self.pathToAP + 'multimedia/ewriting/spelling/' + self.word + '.ogg'
-						wykonaj = sp.Popen( shlex.split( command ) )
 
-					do_literowania = mixer.Sound( self.pathToAP + 'multimedia/ewriting/spelling/' + self.word + '.ogg' )
-					do_literowania.play( )
-					self.stoper4.Start( ( do_literowania.get_length( ) + 0.5 ) * 1000 )
+                                        if (self.word + ".ogg") not in os.listdir( self.pathToAP + u"multimedia/ewriting/spelling/" ):        
+                                                command = 'sox -m '+ self.pathToAP + 'sounds/phone/' + list( self.word )[ 0 ].swapcase( ) + '.ogg'
+                                                ile = 0
+
+                                                for l in list( self.word )[ 1: ]:
+                                                        ile += 2
+                                                        command += ' "|sox ' + self.pathToAP + "sounds/phone/" + l.swapcase() + ".ogg" + ' -p pad ' + str( ile ) + '"'
+
+                                                command += ' ' + self.pathToAP + 'multimedia/ewriting/spelling/' + self.word + '.ogg'
+                                                wykonaj = sp.Popen( shlex.split( command.encode("utf-8") ) )
+
+                                        time.sleep( 1.5 )
+                                        unicodePath = self.pathToAP + u"multimedia/ewriting/spelling/" + self.word + u".ogg"
+                                        voice = open(unicodePath, 'rb')
+                                        do_literowania = mixer.Sound(voice)
+                                        do_literowania.play( )
+                                        self.stoper4.Start( ( do_literowania.get_length( ) + 0.5 ) * 1000 )
 
 				elif self.name == 'undo':
 
@@ -580,7 +598,9 @@ class cwiczenia(wx.Frame):
                                                 self.stoper.Start( self.timeGap )
 
 						self.stoper.Stop( )
-						mixer.music.load( self.pathToAP + 'multimedia/ewriting/voices/' + str( self.word ) + '.ogg' )
+                                                unicodePath = self.pathToAP + u"multimedia/ewriting/voices/" + self.word + u".ogg"
+                                                voice = open(unicodePath, 'rb')
+                                                mixer.music.load( voice )
 						mixer.music.play( )
 						self.stoper4.Start( 2000 )
 
@@ -595,17 +615,22 @@ class cwiczenia(wx.Frame):
                                                 self.stoper.Start( self.timeGap )
 
 						self.stoper.Stop( )
-						if str( self.word ) + '.ogg' not in os.listdir( self.pathToAP + 'multimedia/ewriting/spelling/' ):        
-							command = 'sox -m ' + self.pathToAP + 'sounds/phone/' + list( self.word )[ 0 ].upper( ) + '.ogg'
+
+						if (self.word + ".ogg") not in os.listdir( self.pathToAP + u"multimedia/ewriting/spelling/" ):        
+							command = 'sox -m '+ self.pathToAP + 'sounds/phone/' + list( self.word )[ 0 ].swapcase( ) + '.ogg'
 							ile = 0
+
 							for l in list( self.word )[ 1: ]:
-								ile += 2
-								command += ' "|sox ' + self.pathToAP + 'sounds/phone/' + l.upper( ) + '.ogg' + ' -p pad ' + str( ile ) + '"'
+                                                                ile += 2
+                                                                command += ' "|sox ' + self.pathToAP + "sounds/phone/" + l.swapcase() + ".ogg" + ' -p pad ' + str( ile ) + '"'
+
 							command += ' ' + self.pathToAP + 'multimedia/ewriting/spelling/' + self.word + '.ogg'
-							wykonaj = sp.Popen( shlex.split( command ) )
+							wykonaj = sp.Popen( shlex.split( command.encode("utf-8") ) )
 
 						time.sleep( 1.5 )
-						do_literowania = mixer.Sound( self.pathToAP + 'multimedia/ewriting/spelling/' + self.word + '.ogg' )
+                                                unicodePath = self.pathToAP + u"multimedia/ewriting/spelling/" + self.word + u".ogg"
+                                                voice = open(unicodePath, 'rb')
+						do_literowania = mixer.Sound(voice)
 						do_literowania.play( )
 						self.stoper4.Start( ( do_literowania.get_length( ) + 0.5 ) * 1000 )
 

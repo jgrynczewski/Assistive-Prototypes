@@ -3,6 +3,7 @@
 .path*
 *.*~
 .m3u
+parameters 
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

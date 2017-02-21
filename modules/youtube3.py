@@ -89,7 +89,7 @@ class GenSymbolTextButton( bt.GenBitmapTextButton ): #Derive a class from GenBit
 
 
 #=============================================================================
-class youtube1( wx.Frame ):
+class youtube3( wx.Frame ):
 	def __init__(self, parent, id):
 
 	    self.winWidth, self.winHeight = wx.DisplaySize( )
@@ -586,6 +586,6 @@ class youtube1( wx.Frame ):
 if __name__ == '__main__':
 
 	app = wx.App(False)
-	frame = youtube1( parent = None, id = -1 )
+	frame = youtube3( parent = None, id = -1 )
         frame.Show( True )
 	app.MainLoop( )

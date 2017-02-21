@@ -169,8 +169,13 @@ class cwiczenia(wx.Frame):
 				time.sleep( 1 )
 				self.stoper.Stop( )
 
-                                unicodePath = self.pathToAP + u"multimedia/ewriting/voices/" + self.word + u".ogg"
-                                voice = open(unicodePath, 'rb')
+                                try:
+                                        unicodePath = self.pathToAP + u"multimedia/ewriting/voices/" + self.word + u".ogg"
+                                        voice = open(unicodePath, 'rb')
+                                except:
+                                        unicodePath = self.pathToAP + u"multimedia/ewriting/voices/" + self.word.swapcase() + u".ogg"
+                                        voice = open(unicodePath, 'rb')
+
 				mixer.music.load( voice )
 				mixer.music.play( )
 
@@ -484,12 +489,12 @@ class cwiczenia(wx.Frame):
 					self.stoper.Stop( )
 
                                         if (self.word + ".ogg") not in os.listdir( self.pathToAP + u"multimedia/ewriting/spelling/" ):        
-                                                command = 'sox -m '+ self.pathToAP + 'sounds/phone/' + list( self.word )[ 0 ].swapcase( ) + '.ogg'
+                                                command = 'sox -m '+ self.pathToAP + 'sounds/phone/' + list( self.WORD )[ 0 ] + '.ogg'
                                                 ile = 0
 
-                                                for l in list( self.word )[ 1: ]:
+                                                for l in list( self.WORD )[ 1: ]:
                                                         ile += 2
-                                                        command += ' "|sox ' + self.pathToAP + "sounds/phone/" + l.swapcase() + ".ogg" + ' -p pad ' + str( ile ) + '"'
+                                                        command += ' "|sox ' + self.pathToAP + "sounds/phone/" + l + ".ogg" + ' -p pad ' + str( ile ) + '"'
 
                                                 command += ' ' + self.pathToAP + 'multimedia/ewriting/spelling/' + self.word + '.ogg'
                                                 wykonaj = sp.Popen( shlex.split( command.encode("utf-8") ) )
@@ -617,12 +622,12 @@ class cwiczenia(wx.Frame):
 						self.stoper.Stop( )
 
 						if (self.word + ".ogg") not in os.listdir( self.pathToAP + u"multimedia/ewriting/spelling/" ):        
-							command = 'sox -m '+ self.pathToAP + 'sounds/phone/' + list( self.word )[ 0 ].swapcase( ) + '.ogg'
+							command = 'sox -m '+ self.pathToAP + 'sounds/phone/' + list( self.WORD )[ 0 ] + '.ogg'
 							ile = 0
 
-							for l in list( self.word )[ 1: ]:
+							for l in list( self.WORD )[ 1: ]:
                                                                 ile += 2
-                                                                command += ' "|sox ' + self.pathToAP + "sounds/phone/" + l.swapcase() + ".ogg" + ' -p pad ' + str( ile ) + '"'
+                                                                command += ' "|sox ' + self.pathToAP + "sounds/phone/" + l + ".ogg" + ' -p pad ' + str( ile ) + '"'
 
 							command += ' ' + self.pathToAP + 'multimedia/ewriting/spelling/' + self.word + '.ogg'
 							wykonaj = sp.Popen( shlex.split( command.encode("utf-8") ) )
@@ -663,18 +668,22 @@ class cwiczenia(wx.Frame):
 	def check(self):
 		
 		self.checkFlag = True
-                self.mainSizer.Clear( deleteWindows = True )
+                self.mainSizer.Clear( deleteWindows = True)
 		self.checkW = check.check( self )
 
 	#-------------------------------------------------------------------------
 	def back(self):
                 
 		self.czyBack = True
-		
+
+                print "w back: powrot do parent"
 		del self.checkW
+                print "w back: usunal checkW"
                 self.mainSizer.Clear( deleteWindows = True )
-		
+                print "w back: wyczyscil"
+                
 		self.createGui( )
+                print "w back: utworzyl GUI"
 		self.stoper.Start( self.timeGap )
 
 		

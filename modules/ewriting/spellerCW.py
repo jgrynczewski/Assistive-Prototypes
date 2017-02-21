@@ -1,4 +1,4 @@
-#!/bin/env python2.7
+ #!/bin/env python2.7
 # -*- coding: utf-8 -*-
 
 # This file is part of AP - Assistive Prototypes.
@@ -385,12 +385,12 @@ class speller( wx.Frame ):
 					self.parent.stoper2.Stop( )
 
                                         if (self.slowo + ".ogg") not in os.listdir( self.pathToAP + u"multimedia/ewriting/spelling/" ):        
-                                                command = 'sox -m '+ self.pathToAP + 'sounds/phone/' + list( self.slowo )[ 0 ].swapcase( ) + '.ogg'
+                                                command = 'sox -m '+ self.pathToAP + 'sounds/phone/' + list( self.slowo )[ 0 ].lower( ) + '.ogg'
                                                 ile = 0
 
-                                                for l in list( self.slowo )[ 1: ]:
+                                                for l in list( self.SLOWO )[ 1: ]:
                                                         ile += 2
-                                                        command += ' "|sox ' + self.pathToAP + "sounds/phone/" + l.swapcase() + ".ogg" + ' -p pad ' + str( ile ) + '"'
+                                                        command += ' "|sox ' + self.pathToAP + "sounds/phone/" + l + ".ogg" + ' -p pad ' + str( ile ) + '"'
 
                                                 command += ' ' + self.pathToAP + 'multimedia/ewriting/spelling/' + self.slowo + '.ogg'
                                                 wykonaj = sp.Popen( shlex.split( command.encode("utf-8") ) )
@@ -564,12 +564,12 @@ class speller( wx.Frame ):
 						self.parent.stoper2.Stop( )
 
 						if (self.slowo + ".ogg") not in os.listdir( self.pathToAP + u"multimedia/ewriting/spelling/" ):        
-							command = 'sox -m '+ self.pathToAP + 'sounds/phone/' + list( self.slowo )[ 0 ].swapcase( ) + '.ogg'
+							command = 'sox -m '+ self.pathToAP + 'sounds/phone/' + list( self.SLOWO )[ 0 ] + '.ogg'
 							ile = 0
 
-							for l in list( self.slowo )[ 1: ]:
+							for l in list( self.SLOWO )[ 1: ]:
                                                                 ile += 2
-                                                                command += ' "|sox ' + self.pathToAP + "sounds/phone/" + l.swapcase() + ".ogg" + ' -p pad ' + str( ile ) + '"'
+                                                                command += ' "|sox ' + self.pathToAP + "sounds/phone/" + l + ".ogg" + ' -p pad ' + str( ile ) + '"'
 
 							command += ' ' + self.pathToAP + 'multimedia/ewriting/spelling/' + self.slowo + '.ogg'
 							wykonaj = sp.Popen( shlex.split( command.encode("utf-8") ) )

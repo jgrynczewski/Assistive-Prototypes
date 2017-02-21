@@ -27,7 +27,7 @@ from subprocess import Popen, PIPE, STDOUT
 from pymouse import PyMouse
 from pygame import mixer
 
-import youtube1, youtube2
+import youtube1, youtube2, youtube3
 
 #=============================================================================
 class nowe( wx.Frame ):
@@ -75,7 +75,7 @@ class nowe( wx.Frame ):
 			except ValueError:
 				setattr(self, item[:item.find('=')], item[item.find('=')+1:])			
 
-                self.labels = 'YOUTUBE1 YOUTUBE2 PUSTE PUSTE PUSTE EXIT'.split( )
+                self.labels = 'YOUTUBE1 YOUTUBE2 YOUTUBE3 PUSTE PUSTE EXIT'.split( )
 
                 self.flag = 'row'
                 self.pressFlag = False
@@ -103,7 +103,8 @@ class nowe( wx.Frame ):
                 self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
                                                         
                 if self.switchSound.lower( ) == 'voice' or self.pressSound.lower( ) == 'voice':
-                        self.youtubeHaslaSound = mixer.Sound( self.pathToAP + '/sounds/youtube_hasła.ogg' )
+                        self.youtubeSlowaSound = mixer.Sound( self.pathToAP + '/sounds/youtube_slowa.ogg' )
+                        self.youtubeSlowoSound = mixer.Sound( self.pathToAP + '/sounds/youtube_slowo.ogg' )
                         self.youtubeLiterySound = mixer.Sound( self.pathToAP + '/sounds/youtube_litery.ogg' )
                         self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
                         self.pusteSound = mixer.Sound( self.pathToAP + '/sounds/puste.ogg' )
@@ -117,7 +118,7 @@ class nowe( wx.Frame ):
         #-------------------------------------------------------------------------        
         def initializeBitmaps(self):
             
-            labelFiles = [ self.pathToAP + item for item in [ 'icons/modules/youtube1.png', 'icons/modules/youtube2.png', 'icons/modules/puste.png', 'icons/modules/puste.png', 'icons/modules/puste.png', 'icons/back.png'] ]
+            labelFiles = [ self.pathToAP + item for item in [ 'icons/modules/youtube1.png', 'icons/modules/youtube2.png', 'icons/modules/youtube3.png', 'icons/modules/puste.png', 'icons/modules/puste.png', 'icons/back.png'] ]
 
             self.labelbitmaps = { }
             for index in xrange( len(self.labels) ):
@@ -361,7 +362,7 @@ class nowe( wx.Frame ):
                                         if self.internet_on():
 
                                             if self.pressSound.lower() == 'voice':
-                                                self.youtubeHaslaSound.play()
+                                                self.youtubeSlowaSound.play()
 
                                             # self.stoper.Stop( )
                                             # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
@@ -379,7 +380,7 @@ class nowe( wx.Frame ):
                                         if self.internet_on():
 
                                             if self.pressSound.lower() == 'voice':
-                                                self.youtubeLiterySound.play()
+                                                self.youtubeSlowoSound.play()
 
                                             # self.stoper.Stop( )
                                             # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
@@ -390,6 +391,23 @@ class nowe( wx.Frame ):
                                             self.stoper.Stop( )
                                             youtube2.youtube2( self, id = -1 ).Show( True )
                                             self.Hide( )
+
+                                    elif label == 'YOUTUBE3':
+                                        if self.internet_on():
+                                                
+                                            if self.pressSound.lower() == 'voice':
+                                                self.youtubeLiterySound.play()
+
+                                            # self.stoper.Stop( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # # self.muzykaSound.play( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # self.stoper.Start( self.timeGap )
+                                            
+                                            self.stoper.Stop( )
+                                            youtube3.youtube3( self, id = -1 ).Show( True )
+                                            self.Hide( )
+
                                         else:
                                             os.system("milena_say Brak połączenia z internetem. Proszę podłączyć komputer do sieci.")
 
@@ -497,8 +515,10 @@ class nowe( wx.Frame ):
 
                                                 if self.switchSound == "voice":
                                                     if (b.Name == "YOUTUBE1"):
-                                                        self.youtubeHaslaSound.play()
+                                                        self.youtubeSlowaSound.play()
                                                     if (b.Name == "YOUTUBE2"):
+                                                        self.youtubeSlowoSound.play()
+                                                    if (b.Name == "YOUTUBE3"):
                                                         self.youtubeLiterySound.play()
                                                     if (b.Name == "EXIT"):
                                                         self.powrotSound.play()

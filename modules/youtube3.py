@@ -19,13 +19,16 @@
 import wxversion
 # wxversion.select( '2.8' )
 
-import glob, os, time
+import glob, os, time, sys
 
 import wx
 import wx.lib.buttons as bt
+import subprocess
 
 from pymouse import PyMouse
 from pygame import mixer
+
+from pilots import minitubePilot
 
 #=============================================================================
 class GenSymbolTextButton( bt.GenBitmapTextButton ): #Derive a class from GenBitmapTextButton and override _GetLabelSize and DrawLabel
@@ -86,13 +89,13 @@ class GenSymbolTextButton( bt.GenBitmapTextButton ): #Derive a class from GenBit
 
 
 #=============================================================================
-class bliss_symbols( wx.Frame ):
+class youtube1( wx.Frame ):
 	def __init__(self, parent, id):
 
 	    self.winWidth, self.winHeight = wx.DisplaySize( )
             self.winHeight -= 20
 
-            wx.Frame.__init__( self , parent , id, 'ATSymbols' )            
+            wx.Frame.__init__( self , parent , id, 'APYoutube1' )            
             style = self.GetWindowStyle( )
             self.SetWindowStyle( style | wx.STAY_ON_TOP )
             self.parent = parent
@@ -112,31 +115,20 @@ class bliss_symbols( wx.Frame ):
 
             with open( './.pathToAP' ,'r' ) as textFile:
                 self.pathToAP = textFile.readline( )
-		    
-            with open( self.pathToAP + 'parameters', 'r' ) as parametersFile:
-                for line in parametersFile:
+            
+            sys.path.append( self.pathToAP )
+            from reader import reader
+            
+            reader = reader()
+            reader.readParameters()
+            parameters = reader.getParameters()
 
-                    if line[ :line.find('=')-1 ] == 'timeGap':
-                        self.timeGap = int( line[ line.rfind('=')+2:-1 ] )
-                    elif line[ :line.find('=')-1 ] == 'backgroundColour':
-                        self.backgroundColour = line[ line.rfind('=')+2:-1 ]
-                    elif line[ :line.find('=')-1 ] == 'textColour':
-                        self.textColour = line[ line.rfind('=')+2:-1 ]
-                    elif line[ :line.find('=')-1 ] == 'scanningColour':
-                        self.scanningColour = line[ line.rfind('=')+2:-1 ]
-                    elif line[ :line.find('=')-1 ] == 'selectionColour':
-                        self.selectionColour = line[ line.rfind('=')+2:-1 ]
-                        
-                    elif not line.isspace( ):
-                        print 'Niewłaściwie opisane parametry'
-                        print 'Błąd w linii', line
-                        
-                        self.timeGap = 1500
-                        self.backgroundColour = 'white'
-                        self.textColour = 'black'
-                        self.scanningColour =  '#E7FAFD'
-                        self.selectionColour = '#9EE4EF'
-                                    
+            for item in parameters:
+                try:
+                    setattr(self, item[:item.find('=')], int(item[item.find('=')+1:]))
+                except ValueError:
+                    setattr(self, item[:item.find('=')], item[item.find('=')+1:])			
+		
             self.panelIteration = 0
             self.rowIteration = 0						
             self.columnIteration = 0
@@ -153,23 +145,34 @@ class bliss_symbols( wx.Frame ):
 
             self.numberOfSymbol = 0
             self.flag = 'panel'
-            self.mouseCursor = PyMouse( )
-            self.mousePosition = self.winWidth - 8, self.winHeight + 20 - 8 #+20 becouse of self.winHeight -= 20 in initializator
-            self.mouseCursor.move( *self.mousePosition )			
 
-            self.pageFlipSounds = glob.glob( self.pathToAP + 'sounds/page_flip/*' )
+            if self.control != 'tracker':
+                self.mouseCursor = PyMouse( )
+                self.mousePosition = self.winWidth - 8 - self.xBorder, self.winHeight - 8 - self.yBorder
+                self.mouseCursor.move( *self.mousePosition )			
+
+            if self.switchSound.lower( ) != 'off' or self.pressSound.lower( ) != 'off':
+                mixer.init( )
+                self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
+                self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
+
+                self.oneSound = mixer.Sound( self.pathToAP + '/sounds/rows/1.ogg' )
+                self.twoSound = mixer.Sound( self.pathToAP + '/sounds/rows/2.ogg' )
+                self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
+                self.pusteSound = mixer.Sound( self.pathToAP + '/sounds/puste.ogg' )
+
+                self.pageFlipSounds = glob.glob( self.pathToAP + 'sounds/page_flip/*' )
             
-            mixer.init( ) #sound load too long
-            self.pageFlipSound = mixer.Sound( self.pageFlipSounds[ 1 ] )
-            self.lastPageFlipSound = mixer.Sound( self.pathToAP + 'sounds/page-flip-13.ogg' )
-            self.pageFlipSounds = [ mixer.Sound( self.pageFlipSound ) for self.pageFlipSound in self.pageFlipSounds ]
+                self.pageFlipSound = mixer.Sound( self.pageFlipSounds[ 1 ] )
+                self.lastPageFlipSound = mixer.Sound( self.pathToAP + 'sounds/page-flip-13.ogg' )
+                self.pageFlipSounds = [ mixer.Sound( self.pageFlipSound ) for self.pageFlipSound in self.pageFlipSounds ]
 
             self.SetBackgroundColour( 'black' )
 
 	#-------------------------------------------------------------------------	
         def initializeBitmaps(self):
 
-            dict = self.pathToAP + 'multimedia/symbols/*' 
+            dict = self.pathToAP + 'multimedia/youtube/*' 
             pages = sorted( [ item for item in glob.glob( dict ) if item[ item.rfind( '/' )+1: ].isdigit( ) ] )
             self.numberOfpages = len( pages )
 
@@ -197,6 +200,8 @@ class bliss_symbols( wx.Frame ):
                         self.numberOfRows.append( self.defaultNumberOfRows )     
 
                 symbols = glob.glob( page + '/*.jpg' ) + glob.glob( page + '/*.png' ) + glob.glob( page + '/*.JPG' ) + glob.glob( page + '/*jpeg' )
+                symbols = [item.decode('utf-8') for item in symbols]
+
                 symbolInfo = []
 
                 self.newHeight = 0.6*self.winHeight / self.numberOfRows[ -1 ]
@@ -255,13 +260,13 @@ class bliss_symbols( wx.Frame ):
                         try:
                             if i < len( self.blissBook[ item ] ):
                                 while j != self.blissBook[ item ][ i ][ 1 ]:
-                                    b = bt.GenButton( self, -1 )
+                                    b = bt.GenButton( self, -1, name = 'puste' )
                                     b.Bind( wx.EVT_LEFT_DOWN, self.onPress )
                                     b.SetBackgroundColour( self.backgroundColour )
                                     self.subSizers[ item ].Add( b, 0, wx.EXPAND | wx.ALIGN_CENTER )
                                     j += 1
 
-                                b = bt.GenBitmapButton( self , -1 , bitmap = self.blissBook[ item ][ i ][ 0 ] )
+                                b = bt.GenBitmapButton( self , -1 , bitmap = self.blissBook[ item ][ i ][ 0 ], name = self.blissBook[item][i][2] )
                                 b.Bind( wx.EVT_LEFT_DOWN, self.onPress )
                                 b.SetBackgroundColour( self.backgroundColour )
                                 self.subSizers[item].Add( b, 0, wx.EXPAND | wx.ALIGN_CENTER )
@@ -269,7 +274,7 @@ class bliss_symbols( wx.Frame ):
                                 j += 1
 
                             else:
-                                b = bt.GenButton( self, -1 )
+                                b = bt.GenButton( self, -1, name = 'puste' )
                                 b.Bind( wx.EVT_LEFT_DOWN, self.onPress )
                                 b.SetBackgroundColour( self.backgroundColour )
                                 self.subSizers[item].Add( b, 0, wx.EXPAND | wx.ALIGN_CENTER )
@@ -335,29 +340,43 @@ class bliss_symbols( wx.Frame ):
 	
 	#-------------------------------------------------------------------------
         def onPress(self, event):
+
+                if self.pressSound.lower( ) != 'off':
+                        self.pressingSound.play( )
             
                 if self.numberOfPresses == 0:
  
 			if self.flag == 'panel':
-                            
-                                if self.blissBook[ self.panelIteration ][ 0 ][ 2 ] == 'EXIT' and self.panelIteration == len( self.subSizers ) - 1:
-                                    self.onExit( )
+                            items = self.subSizers[ self.panelIteration ].GetChildren( )			
 
-                                else:
-                                    items = self.subSizers[ self.panelIteration ].GetChildren( )			
+                            for item in items:
+                                b = item.GetWindow( )
+                                b.SetBackgroundColour( self.scanningColour )
+                                b.SetFocus( )                            
+                            if self.blissBook[ self.panelIteration ][ 0 ][ 2 ] == 'EXIT' and self.panelIteration == len( self.subSizers ) - 1:
+                                if self.pressSound.lower( ) == "voice":
+                                    self.stoper.Stop( )
+                                    time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                    self.powrotSound.play()
+                                    time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                    self.stoper.Start( self.timeGap )
+                                self.onExit( )
 
-                                    for item in items:
-                                        b = item.GetWindow( )
-                                        b.SetBackgroundColour( self.scanningColour )
-                                        b.SetFocus( )
+                            else:
 
-                                    self.flag = 'row'
-                                    self.rowIteration = 0
+                                self.flag = 'row'
+                                self.rowIteration = 0
 			
 			elif self.flag == 'row':
 
                                 self.rowIteration -= 1
-                                
+
+                                if self.pressSound == "voice":
+                                    if (self.rowIteration == 0):
+                                        self.oneSound.play()
+                                    if (self.rowIteration == 1):
+                                        self.twoSound.play()
+
                                 buttonsToHighlight = range( ( self.rowIteration ) * self.numberOfColumns[ self.panelIteration ], ( self.rowIteration ) * self.numberOfColumns[ self.panelIteration ] + self.numberOfColumns[ self.panelIteration ] )
 			
 				for button in buttonsToHighlight:
@@ -375,46 +394,69 @@ class bliss_symbols( wx.Frame ):
 
                                 item = self.subSizers[ self.panelIteration ].GetItem( ( self.rowIteration ) * self.numberOfColumns[ self.panelIteration ] + self.columnIteration )
 				selectedButton = item.GetWindow( )
-				selectedButton.SetBackgroundColour( self.selectionColour )
-				selectedButton.SetFocus( )
                                 
                                 self.Update( )
+
+                                if self.pressSound == 'voice':
+                                    if selectedButton.GetName() == 'puste':
+                                        selectedButton.SetBackgroundColour( "red" )
+                                        selectedButton.SetFocus( )
+                                        self.Update( )
+                                        self.pusteSound.play()
+                                    else:
+                                        selectedButton.SetBackgroundColour( self.selectionColour )
+                                        selectedButton.SetFocus( )
+                                        cmd = "milena_say %s" % selectedButton.GetName()
+                                        subprocess.Popen(cmd , shell=True, stdin=subprocess.PIPE)
                                 
-                                for item in self.blissBook[ self.panelIteration ]:
+                                        for item in self.blissBook[ self.panelIteration ]:
                                     
-                                    if item[ 1 ] == self.rowIteration * self.numberOfColumns[ self.panelIteration ] + self.columnIteration + 1:
+                                            if item[ 1 ] == self.rowIteration * self.numberOfColumns[ self.panelIteration ] + self.columnIteration + 1:
 
-                                        self.bitmapSize = item[ 0 ].GetSize( )
+                                                self.bitmapSize = item[ 0 ].GetSize( )
 
-                                        if self.bitmapSize[ 1 ] > 0.7 * self.panelSize[ 1 ]:
-                                            image = wx.ImageFromBitmap( item[ 0 ] )
-                                            rescaleImage = image.Rescale( ( 0.7 * self.panelSize[ 1 ] / self.bitmapSize[ 1 ] ) * self.bitmapSize[ 0 ], 0.7 * self.panelSize[ 1 ], wx.IMAGE_QUALITY_HIGH )
-                                            rescaleItem = wx.BitmapFromImage( image )
+                                                if self.bitmapSize[ 1 ] > 0.7 * self.panelSize[ 1 ]:
+                                                    image = wx.ImageFromBitmap( item[ 0 ] )
+                                                    rescaleImage = image.Rescale( ( 0.7 * self.panelSize[ 1 ] / self.bitmapSize[ 1 ] ) * self.bitmapSize[ 0 ], 0.7 * self.panelSize[ 1 ], wx.IMAGE_QUALITY_HIGH )
+                                                    rescaleItem = wx.BitmapFromImage( image )
 
-                                            b = GenSymbolTextButton( self , -1 , bitmap = rescaleItem, label = item[ 2 ] )
+                                                    b = GenSymbolTextButton( self , -1 , bitmap = rescaleItem, label = item[ 2 ] )
 
-                                        else:
-                                            b = GenSymbolTextButton( self , -1 , bitmap = item[ 0 ], label = item[ 2 ] )
+                                                else:
+                                                    b = GenSymbolTextButton( self , -1 , bitmap = item[ 0 ], label = item[ 2 ] )
 
-                                        b.SetFont( wx.Font( 21, wx.FONTFAMILY_ROMAN, wx.FONTWEIGHT_NORMAL,  False ) )
-                                        b.SetBackgroundColour( self.backgroundColour )
-                                        
-                                        self.displaySizer.Add( b, 0, flag = wx.EXPAND | wx.BOTTOM | wx.TOP | wx.ALIGN_LEFT, border = 2 )
-                                        self.displaySizer.Layout( )
+                                                b.SetFont( wx.Font( 21, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,  False ) )
+                                                b.SetBackgroundColour( self.backgroundColour )
+                                                
+                                                self.displaySizer.Add( b, 0, flag = wx.EXPAND | wx.BOTTOM | wx.TOP | wx.ALIGN_LEFT, border = 2 )
+                                                self.displaySizer.Layout( )
 
-                                        unicodeLabel = item[ 2 ].decode( 'utf-8' )
-                                        self.lastTextLenght = len( unicodeLabel ) + 1
-                                        time.sleep( 0.5 )
-                                        os.system( 'milena_say %s' % item[ 2 ] )
-                                        self.numberOfSymbol += 1
+                                                unicodeLabel = item[ 2 ].encode('utf-8')
+                                                self.lastTextLenght = len( unicodeLabel ) + 1
+                                                os.system('minitube "%s" &' %unicodeLabel)
 
-                                selectedButton.SetBackgroundColour( self.backgroundColour )
+                                                time.sleep( 0.5 )
+                                                
+                                                self.numberOfSymbol += 1
+                                                os.system("sleep 1")
+                                                
+                                                self.stoper.Stop()
+                                                self.Hide()
+                                                self.menu = minitubePilot.pilot( self, id =1 )
+                                                
+                                                self.menu.Show()
+                                                
+                                                selectedButton.SetBackgroundColour( self.backgroundColour )
+                                                # selectedButton.SetFocus( )
+                                                # self.Update( )
+                                                # selectedButto.nSetBackgroundColour( self.backgroundColour )
 
-				self.flag = 'panel'
+                                self.flag = 'panel'
                                 self.panelIteration = 0
-				self.rowIteration = 0
-				self.columnIteration = 0
-				self.count = 0
+                                self.rowIteration = 0
+                                self.columnIteration = 0
+                                self.count = 0
+                                self.countRows = 0
                         
                         self.numberOfPresses += 1
 
@@ -431,11 +473,15 @@ class bliss_symbols( wx.Frame ):
                         if self.panelIteration == len( self.blissBook ):
                             self.panelIteration = 0
 
-                        if self.panelIteration == len( self.blissBook ) - 1:
-                            self.lastPageFlipSound.play( )
+                        if self.switchSound == "voice":
+                            if self.panelIteration == len( self.blissBook ) - 1:
+                                self.powrotSound.play( )
 
-                        else:
-                            self.pageFlipSounds[ self.panelIteration % len( self.pageFlipSounds ) ].play( )
+                            elif self.panelIteration == len( self.blissBook ) - 2:
+                                self.lastPageFlipSound.play( )
+
+                            else:
+                                self.pageFlipSounds[ self.panelIteration % len( self.pageFlipSounds ) ].play( )
 
                         for item in range( len( self.blissBook ) ):
                             if item != self.panelIteration:
@@ -480,7 +526,15 @@ class bliss_symbols( wx.Frame ):
 					b.SetBackgroundColour( self.scanningColour )
 					b.SetFocus( )
 				self.rowIteration += 1
-                                os.system( 'milena_say %i' % ( self.rowIteration ) )
+
+                                if self.switchSound == "voice":
+                                    if (self.rowIteration == 1):
+                                        self.oneSound.play()
+                                    if (self.rowIteration == 2):
+                                        self.twoSound.play()
+                                    # if (self.rowIteration == 2):
+                                    #     self.threeSound.play()
+                                # os.system( 'milena_say %i' % ( self.rowIteration ) )
 			
 		elif self.flag == 'columns': #flag = columns ie. switching between cells in the particular row
 
@@ -516,13 +570,22 @@ class bliss_symbols( wx.Frame ):
 				b.SetFocus( )
 
 				self.columnIteration += 1
-                                os.system( 'milena_say %i' % ( self.columnIteration ) )
+                                
+                                
+                                if self.switchSound.lower() == 'voice':
+                                    if b.Name == 'puste':
+                                        self.pusteSound.play()
+                                    else:
+                                        cmd = "milena_say %s" % b.Name
+                                        subprocess.Popen(cmd , shell=True, stdin=subprocess.PIPE)
 
+                                elif self.switchSound.lower() != 'off':
+                                    self.switchingSound.play()
 
 #=============================================================================
 if __name__ == '__main__':
 
 	app = wx.App(False)
-	frame = bliss_symbols( parent = None, id = -1 )
-        frame.Show( )
+	frame = youtube1( parent = None, id = -1 )
+        frame.Show( True )
 	app.MainLoop( )

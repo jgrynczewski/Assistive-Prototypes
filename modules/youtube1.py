@@ -172,7 +172,7 @@ class youtube1( wx.Frame ):
 	#-------------------------------------------------------------------------	
         def initializeBitmaps(self):
 
-            dict = self.pathToAP + 'multimedia/youtube/*' 
+            dict = self.pathToAP + 'multimedia/youtube2/*' 
             pages = sorted( [ item for item in glob.glob( dict ) if item[ item.rfind( '/' )+1: ].isdigit( ) ] )
             self.numberOfpages = len( pages )
 
@@ -403,6 +403,37 @@ class youtube1( wx.Frame ):
                                         selectedButton.SetFocus( )
                                         self.Update( )
                                         self.pusteSound.play()
+
+                                    elif selectedButton.GetName() == 'graj':
+                                        selectedButton.SetBackgroundColour( self.selectionColour )
+                                        selectedButton.SetFocus( )
+                                        cmd = "milena_say %s" % selectedButton.GetName()
+                                        subprocess.Popen(cmd , shell=True, stdin=subprocess.PIPE)
+                                
+                                        print dir(self.displaySizer)
+                                        words = self.displaySizer.GetChildren()
+                                        query = (" ".join([ word.GetWindow().GetLabel() for word in words ])).strip()
+
+                                        unicodeLabel = query.encode('utf-8')
+                                        self.lastTextLenght = len( unicodeLabel ) + 1
+                                        os.system('minitube "%s" &' %unicodeLabel)
+
+                                        time.sleep( 0.5 )
+
+                                        self.numberOfSymbol += 1
+                                        os.system("sleep 1")
+
+                                        self.stoper.Stop()
+                                        self.Hide()
+                                        self.menu = minitubePilot.pilot( self, id =1 )
+
+                                        self.menu.Show()
+
+                                        selectedButton.SetBackgroundColour( self.backgroundColour )
+                                        # selectedButton.SetFocus( )
+                                        # self.Update( )
+                                        # selectedButto.nSetBackgroundColour( self.backgroundColour )
+
                                     else:
                                         selectedButton.SetBackgroundColour( self.selectionColour )
                                         selectedButton.SetFocus( )
@@ -430,21 +461,6 @@ class youtube1( wx.Frame ):
                                                 
                                                 self.displaySizer.Add( b, 0, flag = wx.EXPAND | wx.BOTTOM | wx.TOP | wx.ALIGN_LEFT, border = 2 )
                                                 self.displaySizer.Layout( )
-
-                                                unicodeLabel = item[ 2 ].encode('utf-8')
-                                                self.lastTextLenght = len( unicodeLabel ) + 1
-                                                os.system('minitube "%s" &' %unicodeLabel)
-
-                                                time.sleep( 0.5 )
-                                                
-                                                self.numberOfSymbol += 1
-                                                os.system("sleep 1")
-                                                
-                                                self.stoper.Stop()
-                                                self.Hide()
-                                                self.menu = minitubePilot.pilot( self, id =1 )
-                                                
-                                                self.menu.Show()
                                                 
                                                 selectedButton.SetBackgroundColour( self.backgroundColour )
                                                 # selectedButton.SetFocus( )

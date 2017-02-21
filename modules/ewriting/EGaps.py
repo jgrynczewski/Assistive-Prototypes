@@ -357,12 +357,12 @@ class cwiczenia(wx.Frame):
 						self.stoper.Stop( )
                                                 
 						if (self.word + '.ogg') not in os.listdir( self.pathToAP + u"multimedia/ewriting/spelling/" ):        
-							command = 'sox -m '+ self.pathToAP + 'sounds/phone/' + list( self.word )[ 0 ].swapcase( ) + '.ogg'
+							command = 'sox -m '+ self.pathToAP + 'sounds/phone/' + list( self.WORD )[ 0 ] + '.ogg'
 							ile = 0
 
-							for l in list( self.word )[ 1: ]:
+							for l in list( self.WORD )[ 1: ]:
 								ile += 2
-								command += ' "|sox ' + self.pathToAP + 'sounds/phone/' + l.swapcase() + '.ogg' + ' -p pad ' + str( ile ) + '"'
+								command += ' "|sox ' + self.pathToAP + 'sounds/phone/' + l + '.ogg' + ' -p pad ' + str( ile ) + '"'
 
 							command += ' ' + self.pathToAP + 'multimedia/ewriting/spelling/' + self.word + '.ogg'
 							wykonaj = sp.Popen( shlex.split( command.encode("utf-8") ) )
@@ -442,12 +442,12 @@ class cwiczenia(wx.Frame):
 						self.stoper.Stop( )
 
 						if (self.word + ".ogg") not in os.listdir( self.pathToAP + u"multimedia/ewriting/spelling/" ):        
-							command = 'sox -m '+ self.pathToAP + 'sounds/phone/' + list( self.word )[ 0 ].swapcase( ) + '.ogg'
+							command = 'sox -m '+ self.pathToAP + 'sounds/phone/' + list( self.WORD )[ 0 ] + '.ogg'
 							ile = 0
 
-							for l in list( self.word )[ 1: ]:
+							for l in list( self.WORD )[ 1: ]:
                                                                 ile += 2
-                                                                command += ' "|sox ' + self.pathToAP + "sounds/phone/" + l.swapcase() + ".ogg" + ' -p pad ' + str( ile ) + '"'
+                                                                command += ' "|sox ' + self.pathToAP + "sounds/phone/" + l + ".ogg" + ' -p pad ' + str( ile ) + '"'
 
 							command += ' ' + self.pathToAP + 'multimedia/ewriting/spelling/' + self.word + '.ogg'
 							wykonaj = sp.Popen( shlex.split( command.encode("utf-8") ) )

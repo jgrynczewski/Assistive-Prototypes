@@ -158,6 +158,7 @@ class youtube1( wx.Frame ):
 
                 self.oneSound = mixer.Sound( self.pathToAP + '/sounds/rows/1.ogg' )
                 self.twoSound = mixer.Sound( self.pathToAP + '/sounds/rows/2.ogg' )
+                self.threeSound = mixer.Sound( self.pathToAP + '/sounds/rows/3.ogg' )
                 self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
                 self.pusteSound = mixer.Sound( self.pathToAP + '/sounds/puste.ogg' )
 
@@ -548,8 +549,8 @@ class youtube1( wx.Frame ):
                                         self.oneSound.play()
                                     if (self.rowIteration == 2):
                                         self.twoSound.play()
-                                    # if (self.rowIteration == 2):
-                                    #     self.threeSound.play()
+                                    if (self.rowIteration == 3):
+                                        self.threeSound.play()
                                 # os.system( 'milena_say %i' % ( self.rowIteration ) )
 			
 		elif self.flag == 'columns': #flag = columns ie. switching between cells in the particular row

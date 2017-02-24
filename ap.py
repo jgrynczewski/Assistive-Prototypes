@@ -503,6 +503,10 @@ class main_menu( wx.Frame ):
 
                                                     self.color = self.backgroundColour
                                                     self.Update( )
+
+                                                    os.system("Pobieranie aktualizacji przebiegło pomyślnie. Trwa ponowne uruchamianie komputera")
+                                                    time.sleep(5)
+                                                    os.popen("shutdown -r -t 0")
                                                     
                                             # self.stoper.Stop( )
                                             # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )

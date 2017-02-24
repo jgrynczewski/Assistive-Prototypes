@@ -546,9 +546,9 @@ class cwiczenia(wx.Frame):
 						b.SetFocus( )
 						b.Update( )
 					
-                                                self.stoper.Stop( )
-                                                time.sleep( ( self.selectionTime + self.timeGap )/1000. )
-                                                self.stoper.Start( self.timeGap )
+                                                # self.stoper.Stop( )
+                                                # time.sleep( ( self.selectionTime + self.timeGap )/1000. )
+                                                # self.stoper.Start( self.timeGap )
 		
                                                 if self.wyrazy_w_kolejnosci[ self.rowIteration-1 ] == self.WORD:
 							self.ownWord = self.WORD

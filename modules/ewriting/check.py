@@ -40,7 +40,6 @@ class check(wx.Frame):
 		self.parent = parent
 		self.initializeParameters( )
 		self.createGui( )
-		self.parent.stoper.Start( self.timeGap )
 
 	#-------------------------------------------------------------------------
 	def initializeParameters(self):

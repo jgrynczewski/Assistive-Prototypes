@@ -1,13 +1,13 @@
 timeGap=2500
 selectionTime=0
-backgroundColour=white
+backgroundColour=wx.NullColour
 textColour=black
 scanningColour=#0033FF
 selectionColour=#663300
 switchSound=voice
 pressSound=voice
-volumeLevel = 100
-control=switch
+volumeLevel=100
+control = eye
 xBorder=12
 yBorder=12
 spellerNumber=6

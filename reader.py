@@ -20,19 +20,36 @@ class reader():
     def __init__(self):
         self.parameters = []
 
-    #-------------------------------------------------------------------------    
-    def readParameters(self):
         with open( './.pathToAP' ,'r' ) as textFile:
             self.pathToAP = textFile.readline( )
+
+    #-------------------------------------------------------------------------    
+    def readParameters(self):
         
         with open( self.pathToAP + 'parameters', 'r' ) as parametersFile:
-            self.parameters = []
             for line in parametersFile:
                 self.parameters.append( "".join( line.split() ) )
     
     #-------------------------------------------------------------------------
     def getParameters(self):
+
+        if self.parameters == []:
+            self.readParameters()
+            
         return self.parameters
+
+    #-------------------------------------------------------------------------
+    def setParameter(self, param, value):
+
+        if self.parameters == []:
+            self.getParameters()
+
+        for idx, item in enumerate(self.parameters):
+            if item.startswith(str(param)):
+                self.parameters[idx] = "%s = %s" %(param, value)
+            
+        with open( self.pathToAP + 'parameters', 'w' ) as parametersFile:
+                parametersFile.write( "\n".join(self.parameters) )
 
     #-------------------------------------------------------------------------
     def saveVolume(self, value):

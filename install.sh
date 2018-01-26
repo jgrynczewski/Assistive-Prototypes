@@ -15,17 +15,17 @@
 #    You should have received a copy of the GNU General Public License
 #    along with AP.  If not, see <http://www.gnu.org/licenses/>.
 
-echo -e "\nThe Milena PPA repository will be add to your system and the following packages will be installed:\npython2.7 python-wxgtk2.8 python-alsaaudio python-pygame python-psutil python-xlib python-pip pyuserinput calibre smplayer milena xdotool wmctrl\n"
+echo -e "\nThe Milena PPA repository will be add to your system and the following packages will be installed:\npython2.7 python-wxgtk3.0 python-alsaaudio python-pygame python-psutil python-xlib python-pip python-zmq python-gobject python-tk calibre smplayer xdotool wmctrl\n"
 
 read -p "Do you want to continue? [Y/n]"
 
 if [ "$REPLY" == Y ] || [ "$REPLY" == y ]; then
 
 
-   sudo apt-get install python2.7 python-wxgtk2.8 python-alsaaudio python-pygame python-psutil python-xlib python-pip calibre smplayer milena xdotool wmctrl
+   sudo apt-get install python2.7 python-wxgtk3.0 python-alsaaudio python-pygame python-psutil python-xlib python-pip python-zmq python-gobject python-tk calibre smplayer xdotool wmctrl
 
    sudo pip install pyuserinput
-
+ 
     echo "Done."
 
     else

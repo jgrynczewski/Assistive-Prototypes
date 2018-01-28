@@ -29,27 +29,39 @@ from ewriting import eplatform
 import atgames
 
 #=============================================================================
-class exercise( wx.Frame ):
+class settings( wx.Frame ):
 	def __init__(self, parent, id):
 
 	    self.winWidth, self.winHeight = wx.DisplaySize( )
 	
             wx.Frame.__init__( self , parent , id, 'ATExercise' )
-            style = self.GetWindowStyle( )
-            self.SetWindowStyle( style | wx.STAY_ON_TOP )
-            self.parent = parent
+            # style = self.GetWindowStyle( )
+            # self.SetWindowStyle( style | wx.STAY_ON_TOP )
+            # self.Maximize( True )
+            # self.Centre( True )
+            # self.MakeModal( True )		
 
-            self.Maximize( True )
-            self.Centre( True )
-            self.MakeModal( True )		
-            	    	    
-            self.initializeParameters( )				
+            self.ShowFullScreen( True )
+            self.parent = parent
+            
+            self.initializeParameters( )
             self.initializeBitmaps( )
             self.createGui( )
+            self.createBindings( )
+            
+            self.initializeTimer( )
+            
+	#-------------------------------------------------------------------------
+	def reloadWindow(self): 
+                
+            self.mainSizer.DeleteWindows()
+            self.initializeParameters( )
+            self.createGui( )
+            self.Layout()
+            self.Update()
             self.createBindings( )						
-
-            self.initializeTimer( )					
-
+            
+            self.initializeTimer( )				
 	#-------------------------------------------------------------------------
 	def initializeParameters(self):
 
@@ -59,15 +71,10 @@ class exercise( wx.Frame ):
 		sys.path.append( self.pathToAP )
 		from reader import reader
 		
-		reader = reader()
-		reader.readParameters()
-		parameters = reader.getParameters()
+		self.reader = reader()
+	        self.parameters = self.reader.getParameters()
 
-		for item in parameters:
-			try:
-				setattr(self, item[:item.find('=')], int(item[item.find('=')+1:]))
-			except ValueError:
-				setattr(self, item[:item.find('=')], item[item.find('=')+1:])
+                self.unpackParameters(self.parameters)
 							
 		self.pressFlag = False
 
@@ -75,7 +82,7 @@ class exercise( wx.Frame ):
 		self.numberOfRows = 2,
 		
 		self.columnIteration = 0
-		self.rowIteration = 0						
+		self.rowIteration = 0	
 		self.panelIteration = 0
 		self.emptyColumnIteration = 0
 		self.emptyRowIteration = 0
@@ -86,35 +93,50 @@ class exercise( wx.Frame ):
 		
 		self.numberOfPresses = 1
 
-		if self.control != 'tracker':
+		if self.control not in ['tracker', 'eye']:
 			self.mouseCursor = PyMouse( )
 			self.mousePosition = self.winWidth - 8 - self.yBorder, self.winHeight - 8 - self.xBorder
 			self.mouseCursor.move( *self.mousePosition )			
 
                 mixer.init()
-                self.usypiamSound = mixer.Sound(self.path + '/sounds/usypiam.ogg')
-                self.clickSound = mixer.Sound(self.path + '/sounds/click.ogg')
 		if self.switchSound.lower( ) != 'off' or self.pressSound.lower( ) != 'off':
 				self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
 				self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
                                 
-                                self.graSound = mixer.Sound( self.pathToAP + '/sounds/gra.ogg' )
+                                self.glowaSound = mixer.Sound( self.pathToAP + '/sounds/glowa.ogg' )
                                 self.oneSound = mixer.Sound( self.pathToAP + '/sounds/rows/1.ogg' )
-                                self.pisanieSound = mixer.Sound( self.pathToAP + '/sounds/pisanie.ogg' )
+                                self.oczySound = mixer.Sound( self.pathToAP + '/sounds/oczy.ogg' )
                                 self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
                                 self.usypiamSound = mixer.Sound( self.pathToAP + '/sounds/usypiam.ogg' )
+                                self.clickSound = mixer.Sound(self.pathToAP + '/sounds/click.ogg')
 		
 		self.SetBackgroundColour( 'black' )
 
+	#-------------------------------------------------------------------------	
+        def unpackParameters(self, parameters):
+
+            for item in parameters:
+
+                name = item[:item.find('=')]
+                value = item[item.find('=')+1:]
+
+                if value.startswith('wx.'): #when using wxpython values
+		    setattr( self, name, eval(value) )
+                else: 
+		    try:
+			setattr( self, name, int(value) )
+		    except ValueError:
+			setattr( self, name, value )
+                        
 	#-------------------------------------------------------------------------	
         def initializeBitmaps(self):
 		
 		self.panels = { 1 : [ [], [] ] }
 		self.numberOfPanels = 1
 				
-		self.functionButtonPath = [ wx.BitmapFromImage( wx.ImageFromStream( open(self.pathToAP + 'icons/back.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream( open(self.pathToAP + 'icons/modules/games.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream(open(self.pathToAP + 'icons/modules/writing.png', 'rb' ) ) ) ]
+		self.functionButtonPath = [ wx.BitmapFromImage( wx.ImageFromStream( open(self.pathToAP + 'icons/back.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream( open(self.pathToAP + 'icons/modules/headtracking.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream(open(self.pathToAP + 'icons/modules/eyetracking.png', 'rb' ) ) ) ]
 
-		self.labels = [ 'yes', 'no' ]
+		self.labels = [ 'headtracking', 'eyetracking' ]
 		self.functionButtonName = [ 'back' ]
 
 		if self.numberOfPanels == 1:
@@ -130,7 +152,7 @@ class exercise( wx.Frame ):
                 
 		self.numberOfCells = self.numberOfRows[ 0 ] * self.numberOfColumns[ 0 ]
 
-		if self.control != 'tracker':
+		if self.control not in ['tracker', 'eye']:
 			event = eval('wx.EVT_LEFT_DOWN')
 		else:
 			event = eval('wx.EVT_BUTTON')
@@ -147,13 +169,27 @@ class exercise( wx.Frame ):
 				b = bt.GenBitmapButton( self, -1, bitmap = self.functionButtonPath[ index+1 ], name = self.labels[ index ] )
 				b.SetBackgroundColour( self.backgroundColour )
 				b.SetBezelWidth( 3 )
-				b.Bind( event, self.onPress )
+                                b.mode = 'pointing'
+                                if self.control == 'eye':
+                                        b.Bind( event, self.onKey )
+                                        b.Bind(wx.EVT_ENTER_WINDOW, self.onMouseOver)
+                                        b.Bind(wx.EVT_LEAVE_WINDOW, self.onMouseLeave)
+                                else:
+                                        b.Bind( event, self.onPress )
+
 				subSizer.Add( b, ( index / self.numberOfColumns[ 0 ], index % self.numberOfColumns[ 0 ] ), wx.DefaultSpan, wx.EXPAND )
 
 			b = bt.GenBitmapButton( self, -1, bitmap = self.functionButtonPath[ 0 ], name = self.functionButtonName[ 0 ] )
 			b.SetBackgroundColour( self.backgroundColour )
 			b.SetBezelWidth( 3 )
-			b.Bind( event, self.onPress )
+                        b.mode = 'pointing'
+                        if self.control == 'eye':
+                                b.Bind( event, self.onKey )
+                                b.Bind(wx.EVT_ENTER_WINDOW, self.onMouseOver)
+                                b.Bind(wx.EVT_LEAVE_WINDOW, self.onMouseLeave)
+                        else:
+                                b.Bind( event, self.onPress )
+
 			subSizer.Add( b, ( ( index + 1 ) / self.numberOfColumns[ 0 ], ( index + 1 ) % self.numberOfColumns[ 0 ] ), (1, 2), wx.EXPAND )
 				
 			for number in range( self.numberOfRows[ 0 ] ):
@@ -162,10 +198,9 @@ class exercise( wx.Frame ):
 				subSizer.AddGrowableCol( number )
 		
 			self.Layout( )
-
-			self. mainSizer.Add( subSizer, proportion = 1, flag = wx.EXPAND | wx.LEFT | wx. TOP | wx.BOTTOM | wx.RIGHT, border = self.xBorder)
+                        self.colour = b.GetBackgroundColour( )
+			self.mainSizer.Add( subSizer, proportion = 1, flag = wx.EXPAND | wx.LEFT | wx. TOP | wx.BOTTOM | wx.RIGHT, border = self.xBorder)
 			
-			self.SetSizer( self. mainSizer )
 			self.Center( True )
                         
 			if panel != 1:
@@ -178,7 +213,9 @@ class exercise( wx.Frame ):
 		self.stoper = wx.Timer( self )
 		self.Bind( wx.EVT_TIMER , self.timerUpdate , self.stoper )
 
-		if self.control != 'tracker':
+                if self.control == 'eye':
+                    self.stoper.Start( 50 )
+		elif self.control != 'tracker':
 			self.stoper.Start( self.timeGap )
 	
 	#-------------------------------------------------------------------------
@@ -239,9 +276,73 @@ class exercise( wx.Frame ):
 			self.parent.Show( True )
 			if self.control != 'tracker':
 				self.parent.stoper.Start( self.parent.timeGap )
-				
+				self.parent.reloadWindow()
+                        
 			self.Destroy( )
-	
+
+	#-------------------------------------------------------------------------
+        def onKey(self, event):
+            """
+            Check for left mouse click. If so, press active button of the parent frame.
+            """
+
+            items = self.subSizers[ 0 ].GetChildren( )
+
+            for item in items:
+                b_active = item.GetWindow( )
+                if b_active.mode == 'confirmation':
+                    b_active.SetBackgroundColour(wx.Colour(255,0,255, b_active.GetBackgroundColour().Alpha()))
+                    b_active.Refresh()
+                    b_active.Update()
+                    for button in items:
+                        b2 = button.GetWindow( )
+                        if b2!=b_active:
+                            b2.SetBackgroundColour(self.colour)
+                            b2.mode = 'pointing'
+                            b2.Update()
+                    time.sleep(2)
+
+                    if self.pressFlag == False:
+                            self.button = event.GetEventObject( )
+                            self.pressFlag = True
+                            
+                            self.label = b_active.GetName( ).encode( 'utf-8' )
+                            self.stoper.Stop()
+                            
+                    if self.label == 'headtracking':
+                            self.reader.setParameter('control', 'switch')
+                            self.parameters = self.reader.getParameters()
+                            self.reloadWindow()
+                            os.system("milena_say Ustawiono metodę obsługi komputera na ruchy głowy")
+                            
+		    elif self.label == 'eyetracking':
+                            self.reader.setParameter('control', 'eye')
+                            self.parameters = self.reader.getParameters()
+                            self.reloadWindow()
+                            os.system("milena_say Ustawiono metodę obsługi komputera na ruchy oczu i głowy")
+
+		    elif self.label == 'back':
+			    self.onExit( )
+
+	#-------------------------------------------------------------------------
+        def onMouseOver(self, event):
+            # mouseover changes colour of button
+
+            self.b = event.GetEventObject()
+            if self.b.mode == 'pointing':
+                self.b.SetBackgroundColour(wx.Colour(0,255,255, self.b.GetBackgroundColour().Alpha()))
+            event.Skip()
+
+        #-------------------------------------------------------------------------
+        def onMouseLeave(self, event):
+            # mouse not over button, back to original colour
+            # self.b = event.GetEventObject()
+
+            if self.b.mode == 'pointing':
+                self.b.SetBackgroundColour(self.colour)
+            event.Skip()
+
+                        
 	#-------------------------------------------------------------------------
         def onPress(self, event):
 
@@ -256,15 +357,17 @@ class exercise( wx.Frame ):
 				self.label = event.GetEventObject().GetName().encode( 'utf-8' )
 				self.stoper.Start( 0.15 * self.timeGap )
 
-			if self.label == 'yes':
-				self.stoper.Stop( )
-				atgames.games( self, id = -1 ).Show( True )
-				self.Hide( )
+			if self.label == 'headtracking':
+                                self.reader.setParameter('control', 'switch')
+                                self.parameters = self.reader.getParameters()
+                                self.reloadWindow()
+                                os.system("milena_say Ustawiono metodę obsługi komputera na ruchy głowy")
 
-			elif self.label == 'no':
-				self.stoper.Stop( )
-				eplatform.cwiczenia( self, id = -1 ).Show( True )
-				self.Hide( )
+			elif self.label == 'eyetracking':
+                                self.reader.setParameter('control', 'eye')
+                                self.parameters = self.reader.getParameters()
+                                self.reloadWindow()
+                                os.system("milena_say Ustawiono metodę obsługi komputera na ruchy oczu i głowy")
 
 			elif self.label == 'back':
 				self.onExit( )
@@ -345,34 +448,26 @@ class exercise( wx.Frame ):
 
 					self.Update( )
 
-					if self.position == 0:
+			                if self.position == 0:
                                                 if self.pressSound.lower() != 'off':
-                                                        self.graSound.play()
+                                                        self.glowaSound.play()
 
-                                                # self.stoper.Stop( )
-                                                # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                                # self.graSound.play( )
-                                                # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                                # self.stoper.Start( self.timeGap )
-
-						self.stoper.Stop( )
-						atgames.games( self, id = -1 ).Show( True )
-						self.Hide( )
-
-					elif self.position == 1:
+                                                self.reader.setParameter('control', 'switch')
+                                                self.reloadWindow()
+                                                # self.parameters = self.reader.getParameters()
+                                                os.system("milena_say Ustawiono metodę obsługi komputera na ruchy głowy")
+                                                
+                                
+			                elif self.position == 1:
                                                 if self.pressSound.lower() != 'off':
-                                                        self.pisanieSound.play()
+                                                        self.oczySound.play()
 
-                                                # self.stoper.Stop( )
-                                                # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                                # self.pisanieSound.play( )
-                                                # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                                # self.stoper.Start( self.timeGap )
-
-						self.stoper.Stop( )
-						eplatform.cwiczenia( self, id = -1 ).Show( True )
-						self.Hide( )
-
+                                                self.reader.setParameter('control', 'eye')
+                                                self.reloadWindow()
+                                                # self.parameters = self.reader.getParameters()
+                                                os.system("milena_say Ustawiono metodę obsługi komputera na ruchy oczu i głowy")
+                                                
+                                                
 					if self.numberOfPanels == 1:
 					    self.flag = 'row'
 					    self.panelIteration = 0
@@ -388,8 +483,9 @@ class exercise( wx.Frame ):
 					self.emptyColumnIteration = 0
 
 					selectedButton = item.GetWindow( )
-					selectedButton.SetBackgroundColour( self.backgroundColour )
-					selectedButton.SetFocus( )
+                                        if selectedButton != None:
+					        selectedButton.SetBackgroundColour( self.backgroundColour )
+					        selectedButton.SetFocus( )
 
 			else:
 				pass
@@ -399,7 +495,35 @@ class exercise( wx.Frame ):
 	#-------------------------------------------------------------------------
 	def timerUpdate(self , event):
 
-		if self.control == 'tracker':
+                if self.control == 'eye':
+                            print("AAAAAAAAAAAAAAAAAAAAAAAAAA")
+                            items = self.subSizers[ 0 ].GetChildren( )
+                            for item in items:
+                                b = item.GetWindow( )
+                                if b.GetBackgroundColour() != self.colour and b.mode != 'confirmation':
+                                    if (b.GetBackgroundColour().Blue() < 50):
+                                        self.clickSound.play( )
+                                        b.SetBackgroundColour(wx.Colour(0,255,0, b.GetBackgroundColour().Alpha()))
+                                        bSize = b.GetSize()
+                                        b.SetSize((bSize[0]*1.05, bSize[1]*1.05))
+                                        bPosition = b.GetPosition()
+                                        b.SetPosition((bPosition[0]-(bSize[0]*1.05-bSize[0])/2., bPosition[1]-(bSize[1]*1.05-bSize[1])/2.))
+                                        b.mode = 'confirmation'
+
+                                        for button in items:
+                                            b2 = button.GetWindow( )
+                                            if b2!=b and b2.mode == 'confirmation':
+                                                b2.SetBackgroundColour(self.colour)
+                                                b2.mode = 'pointing'
+                                                b2Size = b2.GetSize()
+                                                b2.SetSize((b2Size[0]*0.95, b2Size[1]*0.95))
+                                                b2Position = b2.GetPosition()
+                                                b2.SetPosition((b2Position[0]-(b2Size[0]*0.95-b2Size[0])/2., b2Position[1]-(b2Size[1]*0.95-b2Size[1])/2.))
+
+                                    else:
+                                        b.SetBackgroundColour(wx.Colour(b.GetBackgroundColour().Red(),b.GetBackgroundColour().Green()-1,b.GetBackgroundColour().Blue()-6, b.GetBackgroundColour().Alpha()))
+
+                elif self.control == 'tracker':
 
 			if self.button.GetBackgroundColour( ) == self.backgroundColour:
 				self.button.SetBackgroundColour( self.selectionColour )
@@ -411,7 +535,7 @@ class exercise( wx.Frame ):
 			self.pressFlag = False
 
 		else:
-
+                        print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
 			if self.control != 'tracker':
 				self.mouseCursor.move( *self.mousePosition )	
 
@@ -516,9 +640,9 @@ class exercise( wx.Frame ):
 
                                         if self.switchSound == "voice":
                                             if (self.columnIteration == 0):
-                                                self.graSound.play()
+                                                self.glowaSound.play()
                                             if (self.columnIteration == 1):
-                                                self.pisanieSound.play()
+                                                self.oczySound.play()
 
 					items = self.subSizers[ self.panelIteration ].GetChildren( )
 					for item in items:
@@ -547,6 +671,6 @@ class exercise( wx.Frame ):
 if __name__ == '__main__':
 
 	app = wx.App(False)
-	frame = exercise( parent = None, id = -1 )
+	frame = settings( parent = None, id = -1 )
         frame.Show( True )
 	app.MainLoop( )

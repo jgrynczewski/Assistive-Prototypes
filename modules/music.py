@@ -69,8 +69,8 @@ class music( wx.Frame ):
 		
 		self.pressFlag = False
 
-		self.numberOfRows = 3,
-		self.numberOfColumns = 5,
+		self.numberOfRows = 2,
+		self.numberOfColumns = 2,
 		
 		self.columnIteration = 0
 		self.rowIteration = 0						
@@ -182,9 +182,9 @@ class music( wx.Frame ):
 			self.numberOfPanels = 1
 			print "Błąd w strukturze plików."
 
-		self.functionButtonPath = [ wx.BitmapFromImage( wx.ImageFromStream( open( self.pathToAP + 'icons/volume down.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream( open( self.pathToAP + 'icons/volume up.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream( open( self.pathToAP + 'icons/show.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream( open( self.pathToAP + 'icons/delete.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream( open( self.pathToAP + 'icons/back.png', 'rb' ) ) ) ]
+		self.functionButtonPath = [ wx.BitmapFromImage( wx.ImageFromStream( open( self.pathToAP + 'icons/delete.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream( open( self.pathToAP + 'icons/back.png', 'rb' ) ) ) ]
 
-		self.functionButtonName = [ 'volume_down', 'volume_up', 'show', 'delete', 'back' ]
+		self.functionButtonName = [ 'delete', 'back' ]
 
 		if self.numberOfPanels == 1:
 			self.flag = 'row'
@@ -245,23 +245,23 @@ class music( wx.Frame ):
 			b.Bind( event, self.onPress )
 			subSizer.Add( b, ( ( index + index_2 + 2 ) / self.numberOfColumns[ 0 ], ( index + index_2 + 2 ) % self.numberOfColumns[ 0 ] ), wx.DefaultSpan, wx.EXPAND )
 
-			b = bt.GenBitmapButton( self, -1, bitmap = self.functionButtonPath[ 2 ], name = self.functionButtonName[ 2 ] )
-			b.SetBackgroundColour( self.backgroundColour )
-			b.SetBezelWidth( 3 )
-			b.Bind( event, self.onPress )
-			subSizer.Add( b, ( ( index + index_2 + 3 ) / self.numberOfColumns[ 0 ], ( index + index_2 + 3 ) % self.numberOfColumns[ 0 ] ), wx.DefaultSpan, wx.EXPAND )
+			# b = bt.GenBitmapButton( self, -1, bitmap = self.functionButtonPath[ 2 ], name = self.functionButtonName[ 2 ] )
+			# b.SetBackgroundColour( self.backgroundColour )
+			# b.SetBezelWidth( 3 )
+			# b.Bind( event, self.onPress )
+			# subSizer.Add( b, ( ( index + index_2 + 3 ) / self.numberOfColumns[ 0 ], ( index + index_2 + 3 ) % self.numberOfColumns[ 0 ] ), wx.DefaultSpan, wx.EXPAND )
 
-			b = bt.GenBitmapButton( self, -1, bitmap = self.functionButtonPath[ 3 ], name = self.functionButtonName[ 3 ] )
-			b.SetBackgroundColour( self.backgroundColour )
-			b.SetBezelWidth( 3 )
-			b.Bind( event, self.onPress )
-			subSizer.Add( b, ( ( index + index_2 + 4 ) / self.numberOfColumns[ 0 ], ( index + index_2 + 4 ) % self.numberOfColumns[ 0 ] ), wx.DefaultSpan, wx.EXPAND )
+			# b = bt.GenBitmapButton( self, -1, bitmap = self.functionButtonPath[ 3 ], name = self.functionButtonName[ 3 ] )
+			# b.SetBackgroundColour( self.backgroundColour )
+			# b.SetBezelWidth( 3 )
+			# b.Bind( event, self.onPress )
+			# subSizer.Add( b, ( ( index + index_2 + 4 ) / self.numberOfColumns[ 0 ], ( index + index_2 + 4 ) % self.numberOfColumns[ 0 ] ), wx.DefaultSpan, wx.EXPAND )
 
-			b = bt.GenBitmapButton( self, -1, bitmap = self.functionButtonPath[ 4 ], name = self.functionButtonName[ 4 ] )
-			b.SetBackgroundColour( self.backgroundColour )
-			b.SetBezelWidth( 3 )
-			b.Bind( event, self.onPress )
-			subSizer.Add( b, ( ( index + index_2 + 5 ) / self.numberOfColumns[ 0 ], ( index + index_2 + 5 ) % self.numberOfColumns[ 0 ] ), wx.DefaultSpan, wx.EXPAND )
+			# b = bt.GenBitmapButton( self, -1, bitmap = self.functionButtonPath[ 4 ], name = self.functionButtonName[ 4 ] )
+			# b.SetBackgroundColour( self.backgroundColour )
+			# b.SetBezelWidth( 3 )
+			# b.Bind( event, self.onPress )
+			# subSizer.Add( b, ( ( index + index_2 + 5 ) / self.numberOfColumns[ 0 ], ( index + index_2 + 5 ) % self.numberOfColumns[ 0 ] ), wx.DefaultSpan, wx.EXPAND )
 				
 			for number in range( self.numberOfRows[ 0 ] ):
 				subSizer.AddGrowableRow( number )

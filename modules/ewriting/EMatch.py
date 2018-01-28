@@ -148,10 +148,22 @@ class cwiczenia(wx.Frame):
 				time.sleep( 1 )
 				self.stoper.Stop( )
 
-                                unicodePath = self.pathToAP + u"multimedia/ewriting/voices/" + self.word + u".ogg"
-                                voice = open(unicodePath, 'rb')
-				mixer.music.load( voice )
-				mixer.music.play( )
+                                try:
+                                        unicodePath = self.pathToAP + u"multimedia/ewriting/voices/" + self.word + u".ogg"
+                                        voice = open(unicodePath, 'rb')
+				        mixer.music.load( voice )
+				        mixer.music.play( )
+
+                                except IOError:
+                                        try:
+                                                unicodePath = self.pathToAP + u"multimedia/ewriting/voices/" + self.word + u".mp3"
+                                                voice = open(unicodePath, 'rb')
+				                mixer.music.load( voice )
+				                mixer.music.play( )
+
+                                        except IOError:
+                                                print("Brak pliku %s.[mp3/ogg] w folderze voice" % self.word)
+                                                pass
 
 				time.sleep( 2 )
 				self.stoper.Start( self.timeGap )
@@ -170,15 +182,22 @@ class cwiczenia(wx.Frame):
 				self.stoper.Stop( )
 
                                 try:
-                                        unicodePath = self.pathToAP + u"multimedia/ewriting/voices/" + self.word + u".ogg"
+                                        unicodePath = self.pathToAP + u"multimedia/ewriting/voices/" + self.word + u".mp3"
                                         voice = open(unicodePath, 'rb')
-                                except:
-                                        unicodePath = self.pathToAP + u"multimedia/ewriting/voices/" + self.word.swapcase() + u".ogg"
-                                        voice = open(unicodePath, 'rb')
+				        mixer.music.load( voice )
+				        mixer.music.play( )
 
-				mixer.music.load( voice )
-				mixer.music.play( )
+                                except IOError:
+                                        try:
+                                                unicodePath = self.pathToAP + u"multimedia/ewriting/voices/" + self.word + u".ogg"
+                                                voice = open(unicodePath, 'rb')
+				                mixer.music.load( voice )
+				                mixer.music.play( )
 
+                                        except IOError:
+                                                print("Brak pliku %s.[mp3/ogg] w folderze voice" % self.word)
+                                                pass
+                                                                        
 				time.sleep( 2 )
 				self.stoper.Start( self.timeGap )
 				self.poczatek = False
@@ -366,9 +385,9 @@ class cwiczenia(wx.Frame):
                         self. mainSizer.Add( self.subSizerP, 1, wx.EXPAND | wx.TOP | wx.RIGHT | wx.LEFT, border = self.xBorder )
                         self. mainSizer.Add( self.subSizer0, 7, wx.EXPAND | wx.TOP | wx.BOTTOM | wx.LEFT | wx.RIGHT, border = self.xBorder )
                         self. mainSizer.Add( self.subSizer, 2, wx.EXPAND  | wx.BOTTOM | wx.LEFT | wx.RIGHT, border = self.xBorder)
-
+                        
                         self.SetSizer( self.mainSizer, deleteOld = True )
-
+                        
                 self.SetBackgroundColour( 'black' )
 		self.Layout( )
 		self.Refresh( )
@@ -376,14 +395,14 @@ class cwiczenia(wx.Frame):
 		self.MakeModal( True )
 		self.flaga = 0
 		self.poczatek = True
-
+                
 	#-------------------------------------------------------------------------
 	def createBindings(self):
 		self.Bind( wx.EVT_CLOSE, self.OnCloseWindow )
-	
+	        
 	#-------------------------------------------------------------------------
 	def OnCloseWindow(self, event):
-
+                
 		if self.control != 'tracker':
 			if True in [ 'debian' in item for item in os.uname( ) ]: #POSITION OF THE DIALOG WINDOW DEPENDS ON WINDOWS MANAGER NOT ON DESKTOP ENVIROMENT. THERE IS NO REASONABLE WAY TO CHECK IN PYTHON WHICH WINDOWS MANAGER IS CURRENTLY RUNNING, BESIDE IT IS POSSIBLE TO FEW WINDOWS MANAGER RUNNING AT THE SAME TIME. I DON'T SEE SOLUTION OF THIS ISSUE, EXCEPT OF CREATING OWN SIGNAL (AVR MICROCONTROLLERS).
 				if os.environ.get('KDE_FULL_SESSION'):
@@ -409,7 +428,7 @@ class cwiczenia(wx.Frame):
 			except TypeError:
 				if "smplayer" in [psutil.Process(i).name for i in psutil.pids( )]:
 					os.system( 'smplayer -send-action quit' )
-
+                                        
 			try:
 				self.parent.parent.parent.parent.Destroy()
 				self.parent.parent.parent.Destroy()
@@ -437,17 +456,17 @@ class cwiczenia(wx.Frame):
 
 						except AttributeError:
 							self.Destroy()
-
+                                                        
 		else:
 			event.Veto()
-
+                        
 			if self.control != 'tracker':
 				self.mousePosition = self.winWidth - 8 - self.xBorder, self.winHeight - 8 - self.yBorder
 				self.mouseCursor.move( *self.mousePosition )	
-
+                                
 	#-------------------------------------------------------------------------
 	def onExit(self):
-
+                
 		if __name__ == '__main__':
 			self.stoper.Stop( )
 			self.Destroy( )
@@ -461,13 +480,13 @@ class cwiczenia(wx.Frame):
 				self.parent.stoper.Start( self.parent.timeGap )
 				
 			self.Destroy( )
-
+                        
 	#-------------------------------------------------------------------------
 	def onPress(self, event):
-
+                
 		if self.pressSound.lower( ) != 'off':
 			self.pressingSound.play( )
-
+                        
 		if self.control == 'tracker':
 			if self.pressFlag == False:
 				self.button = event.GetEventObject( )
@@ -475,16 +494,29 @@ class cwiczenia(wx.Frame):
 				self.Update()
 				self.pressFlag = True
 				self.name = self.button.name
-
+                                
 				if self.name == 'speak':
 					self.stoper.Stop( )
 
-                                        unicodePath = self.pathToAP + u"multimedia/ewriting/voices/" + self.word + u".ogg"
-                                        voice = open(unicodePath, 'rb')
-                                        mixer.music.load( voice )
-                                        mixer.music.play( )
-					self.stoper4.Start( 2000 )
+                                        try:
+                                                unicodePath = self.pathToAP + u"multimedia/ewriting/voices/" + self.word + u".ogg"
+                                                voice = open(unicodePath, 'rb')
+				                mixer.music.load( voice )
+				                mixer.music.play( )
 
+                                        except IOError:
+                                                try:
+                                                        unicodePath = self.pathToAP + u"multimedia/ewriting/voices/" + self.word + u".mp3"
+                                                        voice = open(unicodePath, 'rb')
+				                        mixer.music.load( voice )
+				                        mixer.music.play( )
+
+                                                except IOError:
+                                                        print("Brak pliku %s.[mp3/ogg] w folderze voice" % self.word)
+                                                        pass
+
+					self.stoper4.Start( 2000 )
+                                        
 				elif self.name == 'literuj':
 					self.stoper.Stop( )
 
@@ -603,10 +635,24 @@ class cwiczenia(wx.Frame):
                                                 self.stoper.Start( self.timeGap )
 
 						self.stoper.Stop( )
-                                                unicodePath = self.pathToAP + u"multimedia/ewriting/voices/" + self.word + u".ogg"
-                                                voice = open(unicodePath, 'rb')
-                                                mixer.music.load( voice )
-						mixer.music.play( )
+
+                                                try:
+                                                        unicodePath = self.pathToAP + u"multimedia/ewriting/voices/" + self.word + u".ogg"
+                                                        voice = open(unicodePath, 'rb')
+				                        mixer.music.load( voice )
+				                        mixer.music.play( )
+
+                                                except IOError:
+                                                        try:
+                                                                unicodePath = self.pathToAP + u"multimedia/ewriting/voices/" + self.word + u".mp3"
+                                                                voice = open(unicodePath, 'rb')
+				                                mixer.music.load( voice )
+				                                mixer.music.play( )
+
+                                                        except IOError:
+                                                                print("Brak pliku %s.[mp3/ogg] w folderze voice" % self.word)
+                                                                pass
+
 						self.stoper4.Start( 2000 )
 
 					elif self.columnIteration == 2:

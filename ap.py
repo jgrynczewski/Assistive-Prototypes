@@ -36,15 +36,15 @@ if (psutil.__version__ < 2):
 class main_menu( wx.Frame ):
         def __init__(self, parent, id):
 
-                # context = zmq.Context()
+                # context = zmq.Context() #było używane przy pierwszych próbach obsługi eyetracker-a
                 # self.socket = context.socket(zmq.REQ)
                 # self.socket.connect("tcp://localhost:5556")
                 
                 self.winWidth, self.winHeight = wx.DisplaySize( )
 
                 wx.Frame.__init__( self , parent , id, 'AP MainMenu' )
-                style = self.GetWindowStyle( )
-                self.SetWindowStyle( style | wx.STAY_ON_TOP )
+                # style = self.GetWindowStyle( ) #Zakomentowane, w przeciwnym razie po wybraniu PISAKa nie będą widoczne jego plansze.
+                # self.SetWindowStyle( style | wx.STAY_ON_TOP )
 
                 self.Maximize( True )
                 self.Centre( True )

@@ -113,15 +113,19 @@ class cwiczenia(wx.Frame):
 	#-------------------------------------------------------------------------
 	def initializeTimer(self):
 
+                ### Stoper podstawowy
                 id1=wx.NewId( )
                 wx.RegisterId( id1 )
 		self.stoper = wx.Timer( self, id1 )
 		self.Bind( wx.EVT_TIMER, self.timerUpdate, self.stoper, id1 )
 
+                ### Stoper potrzebny na planszy z wynikami do regularnego ściągania kursora myszki w jedno miejsce.
                 self.id3=wx.NewId( )
                 wx.RegisterId( self.id3 )
                 self.stoper3 = wx.Timer( self, self.id3 )
+                self.Bind( wx.EVT_TIMER, self.cursorPositionUpdate, self.stoper3, self.id3 )
 
+                #Stoper pełniący funkcję time.sleep
                 self.id4=wx.NewId( )
                 wx.RegisterId( self.id4 )
                 self.stoper4=wx.Timer( self, self.id4 )
@@ -499,7 +503,6 @@ class cwiczenia(wx.Frame):
                                                 command += ' ' + self.pathToAP + 'multimedia/ewriting/spelling/' + self.word + '.ogg'
                                                 wykonaj = sp.Popen( shlex.split( command.encode("utf-8") ) )
 
-                                        time.sleep( 1.5 )
                                         unicodePath = self.pathToAP + u"multimedia/ewriting/spelling/" + self.word + u".ogg"
                                         voice = open(unicodePath, 'rb')
                                         do_literowania = mixer.Sound(voice)
@@ -524,7 +527,7 @@ class cwiczenia(wx.Frame):
 						self.ownWord = ''
 
 					self.stoper.Stop( )
-					self.check( )
+					self.checkFunc( )
 
 		else:
 			self.numberOfPresses += 1
@@ -546,9 +549,9 @@ class cwiczenia(wx.Frame):
 						b.SetFocus( )
 						b.Update( )
 					
-                                                # self.stoper.Stop( )
-                                                # time.sleep( ( self.selectionTime + self.timeGap )/1000. )
-                                                # self.stoper.Start( self.timeGap )
+                                                self.stoper.Stop( )
+                                                time.sleep( ( self.selectionTime + self.timeGap )/1000. )
+                                                self.stoper.Start( self.timeGap )
 		
                                                 if self.wyrazy_w_kolejnosci[ self.rowIteration-1 ] == self.WORD:
 							self.ownWord = self.WORD
@@ -557,7 +560,7 @@ class cwiczenia(wx.Frame):
 							self.ownWord=''
 
 						self.stoper.Stop( )
-						self.check( )
+						self.checkFunc( )
 					
 						self.rowIteration = 0
 						self.countRow = 0
@@ -583,26 +586,25 @@ class cwiczenia(wx.Frame):
                                                 b.SetBackgroundColour( self.selectionColour )
                                                 b.SetFocus( )
                                                 b.Update( )
-                                                
+
                                                 self.stoper.Stop( )
                                                 time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
                                                 self.powrotSound.play( )
                                                 time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
                                                 self.stoper.Start( self.timeGap )
-                                                                                                        
-						self.onExit( )
+
+                                                self.onExit( )
 
 					elif self.columnIteration == 1:
                                                 b = self.subSizer.GetChildren( )[0].GetWindow( )
                                                 b.SetBackgroundColour( self.selectionColour )
                                                 b.SetFocus( )
                                                 b.Update( )
-                                                
+
                                                 self.stoper.Stop( )
                                                 time.sleep( ( self.selectionTime )/1000. )
                                                 self.stoper.Start( self.timeGap )
 
-						self.stoper.Stop( )
                                                 unicodePath = self.pathToAP + u"multimedia/ewriting/voices/" + self.word + u".ogg"
                                                 voice = open(unicodePath, 'rb')
                                                 mixer.music.load( voice )
@@ -614,28 +616,27 @@ class cwiczenia(wx.Frame):
                                                 b.SetBackgroundColour( self.selectionColour )
                                                 b.SetFocus( )
                                                 b.Update( )
-                                                
+
                                                 self.stoper.Stop( )
                                                 time.sleep( ( self.selectionTime )/1000. )
                                                 self.stoper.Start( self.timeGap )
 
-						self.stoper.Stop( )
-
-						if (self.word + ".ogg") not in os.listdir( self.pathToAP + u"multimedia/ewriting/spelling/" ):        
-							command = 'sox -m '+ self.pathToAP + 'sounds/phone/' + list( self.WORD )[ 0 ] + '.ogg'
+                                                self.stoper.Stop( )
+                                                if (self.word + ".ogg") not in os.listdir( self.pathToAP + u"multimedia/ewriting/spelling/" ):        
+                                                        command = 'sox -m '+ self.pathToAP + 'sounds/phone/' + list( self.WORD )[ 0 ] + '.ogg'
 							ile = 0
 
-							for l in list( self.WORD )[ 1: ]:
-                                                                ile += 2
+                                                        for l in list( self.WORD )[ 1: ]:
+								ile += 2
                                                                 command += ' "|sox ' + self.pathToAP + "sounds/phone/" + l + ".ogg" + ' -p pad ' + str( ile ) + '"'
 
-							command += ' ' + self.pathToAP + 'multimedia/ewriting/spelling/' + self.word + '.ogg'
-							wykonaj = sp.Popen( shlex.split( command.encode("utf-8") ) )
+                                                        command += ' ' + self.pathToAP + 'multimedia/ewriting/spelling/' + self.word + '.ogg'
+                                                        wykonaj = sp.Popen( shlex.split( command.encode("utf-8") ) )
 
 						time.sleep( 1.5 )
                                                 unicodePath = self.pathToAP + u"multimedia/ewriting/spelling/" + self.word + u".ogg"
                                                 voice = open(unicodePath, 'rb')
-						do_literowania = mixer.Sound(voice)
+                                                do_literowania = mixer.Sound(voice)
 						do_literowania.play( )
 						self.stoper4.Start( ( do_literowania.get_length( ) + 0.5 ) * 1000 )
 
@@ -644,7 +645,7 @@ class cwiczenia(wx.Frame):
                                                 b.SetBackgroundColour( self.selectionColour )
                                                 b.SetFocus( )
                                                 b.Update( )
-                                                
+
                                                 self.stoper.Stop( )
                                                 time.sleep( ( self.selectionTime + self.timeGap )/1000. )
 
@@ -661,14 +662,26 @@ class cwiczenia(wx.Frame):
 
 	#-------------------------------------------------------------------------
         def pomocniczyStoper(self, event):
+                """ To jest funkcja bindowana do stopera4.
+                Wywołanie stoper4.start( długość interwału ) powoduje jednokrotne wykonaniu funkcji pomocniczyStoper.
+                Po wykonaniu kroku stoper4 jest zatrzymywany, a uruchomiony zostaje stoper.
+                """
+                
                 self.stoper4.Stop( )
                 self.stoper.Start( self.timeGap )
-        
+
 	#-------------------------------------------------------------------------
-	def check(self):
+        def cursorPositionUpdate(self, event):
+                """ Na planszy z wynikiem funkcja ustawia kursor myszy nad przyciskiem.
+                """
+                
+                self.mouseCursor.move( *self.mousePosition )
+
+	#-------------------------------------------------------------------------
+	def checkFunc(self):
 		
 		self.checkFlag = True
-                self.mainSizer.Clear( deleteWindows = True)
+                self.mainSizer.Clear( deleteWindows = True )
 		self.checkW = check.check( self )
 
 	#-------------------------------------------------------------------------
@@ -676,14 +689,9 @@ class cwiczenia(wx.Frame):
                 
 		self.czyBack = True
 
-                print "w back: powrot do parent"
-		del self.checkW
-                print "w back: usunal checkW"
                 self.mainSizer.Clear( deleteWindows = True )
-                print "w back: wyczyscil"
                 
 		self.createGui( )
-                print "w back: utworzyl GUI"
 		self.stoper.Start( self.timeGap )
 
 		

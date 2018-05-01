@@ -33,18 +33,17 @@ import numpy as np
 class check(wx.Frame):
 
 	def __init__(self, parent):
-                
+
 		self.winWidth, self.winHeight = wx.DisplaySize( )
                 
-                print "inicjacja check"
 		self.parent = parent
 		self.initializeParameters( )
 		self.createGui( )
+                self.parent.stoper3.Start( 1000 )
 
 	#-------------------------------------------------------------------------
 	def initializeParameters(self):
 
-                print "check: poczatek initializeParameters"
 		with open( './.pathToAP' ,'r' ) as textFile:
 			self.pathToAP = textFile.readline( )
 
@@ -70,12 +69,9 @@ class check(wx.Frame):
 		if self.pressSound.lower( ) != 'off':
 			self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
                         
-                print "check: koniec initializeParameters"
-                
 	#-------------------------------------------------------------------------
 	def createGui(self):
-
-	        print "check: pocztek createGui"
+	
                 self.subSizer = wx.GridSizer( 1, 1, self.xBorder, self.yBorder )
                 self.subSizer2 = wx.GridSizer( 1, 1, self.xBorder, self.yBorder )
 
@@ -156,12 +152,9 @@ class check(wx.Frame):
 
                 self.ileklik = 0
 
-                print "check: koniec createGUI"
-                
 	#------------------------------------------------------------------------
 	def reward(self, event):
 
-                print "check: poczatek reward"
                 self.parent.mainSizer.Clear( deleteWindows = True )
                 self.subSizer = wx.GridSizer( 1, 1, self.xBorder, self.yBorder)
 
@@ -177,16 +170,15 @@ class check(wx.Frame):
                 self.parent.Layout( )
 
                 path = self.pathToAP+'multimedia/ewriting/rewards/'
-                song = os.listdir( path )[ np.random.randint( 0, len( os.listdir( path ) ), 1 ) ]
-                mixer.music.stop( )
+                song = os.listdir( path )[ np.random.randint( 0, len(os.listdir( path )) ) ]
+                
+                # mixer.music.stop( )
                 mixer.music.load( path + song )
                 mixer.music.play( )
-                print "check: koniec reward"
                 
 	#-------------------------------------------------------------------------
         def OnExit(self, event):
 
-                print "check: poczatek onExit"
                 self.ileklik += 1
 
                 if self.ileklik == 1:
@@ -195,25 +187,13 @@ class check(wx.Frame):
                         self.parent.back( )
 		else:
                         event.Skip( )
-                print "check: koniec OnExit"
-                
+
 	#-------------------------------------------------------------------------
 	def zamknij(self, event):
 
-                print "check: poczatek zamknij"
 		if self.pressSound.lower( ) != 'off':
-                        print "zagraj pressingSound"
 			self.pressingSound.play( )
-                        print "nacisnal"
-                print "zmien flage"
+
+                self.parent.stoper3.Stop()
 		self.parent.checkFlag = False
-                print "zmienil flage"
-                print "wroc do rodzica"
 		self.parent.back( )
-                print "wrocil do rodzica"
-                
-                # if self.oklaski:
-                #         print "zagraj oklaski"
-                #         mixer.music.stop( )
-                #         print "zgral oklaski"
-                # print "check: koniec zamknij"

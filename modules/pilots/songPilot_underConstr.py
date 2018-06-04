@@ -30,12 +30,12 @@ import suspend
 
 #=============================================================================
 class pilot( wx.Frame ):
-       	def __init__(self, parent, id):
+	def __init__(self, parent, id):
 
 	    self.winWidth, self.winHeight = wx.DisplaySize( )
 
             self.initializeParameters( )
-            wx.Frame.__init__( self , parent , id, 'moviePilot', size = ( self.width, self.height ), pos = ( self.winWidth - self.width - self.xBorder*(self.numberOfColumns[0]-2), self.winHeight - self.height - self.xBorder*(self.numberOfRows[0]-6) ) )
+            wx.Frame.__init__( self , parent , id, 'moviePilot', size = ( self.width, self.height ), pos = ( self.winWidth - self.width - self.xBorder*(self.numberOfColumns[0]-2), self.winHeight - self.height - self.xBorder*(self.numberOfRows[0]+17) ) )
             self.SetBackgroundColour( 'black' )
 
             style = self.GetWindowStyle( )
@@ -53,21 +53,16 @@ class pilot( wx.Frame ):
 	#-------------------------------------------------------------------------
 	def initializeParameters(self):
 
-	    with open( '.pathToAP' ,'r' ) as textFile:
+	    with open( './.pathToAP' ,'r' ) as textFile:
 		    self.pathToAP = textFile.readline( )
 
 	    sys.path.append( self.pathToAP )
 	    from reader import reader
-	    
-	    reader = reader()
-	    reader.readParameters()
-	    parameters = reader.getParameters()
-	    
-	    for item in parameters:
-		    try:
-			    setattr(self, item[:item.find('=')], int(item[item.find('=')+1:]))
-		    except ValueError:
-			    setattr(self, item[:item.find('=')], item[item.find('=')+1:])
+	    	    
+            self.reader = reader()
+            self.reader.readParameters()
+            parameters = self.reader.getParameters()
+            self.unpackParameters(parameters)
 
 	    self.flag = 'row'
 	    self.pressFlag = False
@@ -77,7 +72,7 @@ class pilot( wx.Frame ):
             self.colIteration = 0
 
             self.numberOfColumns = 2,
-            self.numberOfRows = 7,
+            self.numberOfRows = 5,
 
 	    self.numberOfEmptyIteration = 0
             self.countRows = 0
@@ -90,25 +85,49 @@ class pilot( wx.Frame ):
 	    self.initCount = 0 #it's better to use another timer than conditions
 	    self.initCount2 = 0
 
-	    self.mouseCursor = PyMouse( )	    
+            self.volumeLevels = [0, 20, 40, 60, 80, 100, 120, 140, 160]
+            if self.volumeLevel not in self.volumeLevels:
+                raise("Wrong value of volumeLevel. Accepted values: 0, 20, 40, 60, 80, 100, 120, 140, 160")
+
 	    if self.control != 'tracker':	    
-		    self.mousePosition = self.winWidth - 8 - self.xBorder, self.winHeight - 48 - self.yBorder
+	            self.mouseCursor = PyMouse( )	    
+		    self.mousePosition = self.winWidth - 8 - self.xBorder, self.winHeight - 245 - self.yBorder
 		    self.mouseCursor.move( *self.mousePosition )
 
-	    if self.switchSound.lower( ) == 'on' or self.pressSound.lower( ) == 'on':
+	    if self.switchSound.lower( ) != 'off' or self.pressSound.lower( ) != 'off':
 		    mixer.init( )
-		    if self.switchSound.lower( ) == 'on':
-			    self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
-		    if self.pressSound.lower( ) == 'on':
-			    self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
-	    
+                    self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
+                    self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
+
+                    self.ciszejSound = mixer.Sound( self.pathToAP + '/sounds/ciszej.ogg' )
+                    self.glosniejSound = mixer.Sound( self.pathToAP + '/sounds/glosniej.ogg' )
+                    self.pelnyEkranSound = mixer.Sound( self.pathToAP + '/sounds/pełny_ekran.ogg' )
+                    self.zatrzymajGrajSound = mixer.Sound( self.pathToAP + '/sounds/zatrzymaj_graj.ogg' )
+
+                    self.wyjscieSound = mixer.Sound( self.pathToAP + '/sounds/wyjście.ogg' )
+                    self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
+                    self.usypiamSound = mixer.Sound( self.pathToAP + '/sounds/usypiam.ogg' )
+
+                    self.oneSound = mixer.Sound( self.pathToAP + '/sounds/rows/1.ogg' )
+                    self.twoSound = mixer.Sound( self.pathToAP + '/sounds/rows/2.ogg' )
+                    self.threeSound = mixer.Sound( self.pathToAP + '/sounds/rows/3.ogg' )
+	                    
 	    self.width = self.numberOfColumns[0] * 120
 	    self.height = self.numberOfRows[0] * 100
+
+        #-------------------------------------------------------------------------	
+        def unpackParameters(self, parameters):
+
+		for item in parameters:
+			try:
+				setattr(self, item[:item.find('=')], int(item[item.find('=')+1:]))
+			except ValueError:
+				setattr(self, item[:item.find('=')], item[item.find('=')+1:])
 
 	#-------------------------------------------------------------------------
         def initializeBitmaps(self):
 
-            buttonPaths = glob.glob( self.pathToAP + 'icons/pilots/moviePilot/*' ) #labelFiles
+            buttonPaths = glob.glob( self.pathToAP + 'icons/pilots/songPilot/*' ) #labelFiles
 
             self.buttons = { }
 
@@ -155,7 +174,7 @@ class pilot( wx.Frame ):
 
 				self.subSizer.Add( b, ( ( key - 1 ) / self.numberOfColumns[ 0 ], ( key - 1 ) % self.numberOfColumns[ 0 ] ), ( 1, 2 ), wx.EXPAND )
 
-			elif key == 6 or key == 7 or key == 8 or key == 9 or key == 10 or key == 11:
+			elif key == 6 or key == 7:
 				b = bt.GenBitmapButton( self, -1, name = value[ 0 ], bitmap = value[ 1 ] )
 				b.SetBackgroundColour( self.backgroundColour )
 				b.SetBezelWidth( 3 )
@@ -163,7 +182,7 @@ class pilot( wx.Frame ):
 
 				self.subSizer.Add( b, ( ( key ) / self.numberOfColumns[ 0 ], ( key ) % self.numberOfColumns[ 0 ] ), wx.DefaultSpan, wx.EXPAND )
 
-			elif key == 12:
+			elif key == 8:
 				b = bt.GenBitmapButton( self, -1, name = value[ 0 ], bitmap = value[ 1 ] )
 				b.SetBackgroundColour( self.backgroundColour )
 				b.SetBezelWidth( 3 )
@@ -243,7 +262,7 @@ class pilot( wx.Frame ):
 			event.Veto()
 
 			if self.control != 'tracker':											
-				self.mousePosition = self.winWidth - 8 - self.xBorder, self.winHeight - 8 - self.yBorder
+				self.mousePosition = self.winWidth - 8 - self.xBorder, self.winHeight - 245 - self.yBorder
 				self.mouseCursor.move( *self.mousePosition )	
 
 	#-------------------------------------------------------------------------
@@ -369,7 +388,7 @@ class pilot( wx.Frame ):
 						self.rowIteration = 0
 						os.system( 'wid=`xdotool search --onlyvisible --name SMPlayer` && xdotool windowfocus $wid && xdotool key --window $wid f &&wid=`xdotool search --onlyvisible --name moviePilot` && xdotool windowactivate $wid' )
 
-					elif self.rowIteration == 4 or self.rowIteration == 5 or self.rowIteration == 6:
+					elif self.rowIteration == 4:
 						buttonsToHighlight = range( ( self.rowIteration - 1 ) * self.numberOfColumns[ 0 ] - 1, ( self.rowIteration - 1 ) * self.numberOfColumns[ 0 ] + self.numberOfColumns[ 0 ] - 1 )
 						for button in buttonsToHighlight:
 							item = self.subSizer.GetItem( button )
@@ -379,7 +398,7 @@ class pilot( wx.Frame ):
 						self.flag = 'columns'
 						self.colIteration = 0
 
-					elif self.rowIteration == 7:
+					elif self.rowIteration == 5:
 
 						buttonsToHighlight = ( self.rowIteration - 1 ) * self.numberOfColumns[ 0 ] - 1,
 						for button in buttonsToHighlight:
@@ -398,7 +417,7 @@ class pilot( wx.Frame ):
 					if self.rowIteration == 1 or self.rowIteration == 2:
 						self.position = ( self.rowIteration - 1 ) * self.numberOfColumns[ 0 ] + self.colIteration
 
-					elif self.rowIteration == 4 or self.rowIteration == 5 or self.rowIteration == 6:
+					elif self.rowIteration == 4:
 						self.position = ( self.rowIteration - 1 ) * self.numberOfColumns[ 0 ] + self.colIteration - 1
 
 					item = self.subSizer.GetItem( self.position - 1 )
@@ -502,6 +521,7 @@ class pilot( wx.Frame ):
 				self.pressFlag = False
 
 		else:
+                        
 			if self.control != 'tracker':
 				self.mouseCursor.move( *self.mousePosition )	
 			
@@ -518,6 +538,11 @@ class pilot( wx.Frame ):
 
 						self.rowIteration = self.rowIteration % self.numberOfRows[ 0 ]
 
+                                                        if (self.rowIteration == 0):
+                                                                self.oneSound.play()
+                                                        if (self.rowIteration == 2):
+                                                                self.threeSound.play()
+
 						items = self.subSizer.GetChildren( )
 						for item in items:
 							b = item.GetWindow( )
@@ -528,13 +553,14 @@ class pilot( wx.Frame ):
 							scope = range( self.rowIteration * self.numberOfColumns[ 0 ], self.rowIteration * self.numberOfColumns[ 0 ] + self.numberOfColumns[ 0 ] )
 
 						elif self.rowIteration == 2:
-							scope = self.rowIteration * self.numberOfColumns[ 0 ],
+                                                        if self.pressSound == "voice":
+                                                                self.pelnyEkranSound.play()
+							scope = self.rowIteration * self.numberOfColumns[ 0 ] ,
 
-						elif self.rowIteration == 3 or self.rowIteration == 4 or self.rowIteration == 5:
+						elif self.rowIteration == 3:
 							scope = range( self.rowIteration * self.numberOfColumns[ 0 ] - 1, self.rowIteration * self.numberOfColumns[ 0 ] + self.numberOfColumns[ 0 ] - 1 )
-
-						elif self.rowIteration == 6:
-							scope = self.rowIteration * self.numberOfColumns[ 0 ] - 1,
+                                                elif self.rowIteration == 4:
+							scope = self.rowIteration * self.numberOfColumns[ 0 ]-1,
 
 						for i in scope:
 							item = self.subSizer.GetItem( i )
@@ -574,7 +600,7 @@ class pilot( wx.Frame ):
 						if self.rowIteration == 1 or self.rowIteration == 2:
 							item = self.subSizer.GetItem( ( self.rowIteration - 1 ) * self.numberOfColumns[ 0 ] + self.colIteration )
 
-						elif self.rowIteration == 4 or self.rowIteration == 5 or self.rowIteration == 6:
+						elif self.rowIteration == 4:
 							item = self.subSizer.GetItem( ( self.rowIteration - 1 ) * self.numberOfColumns[ 0 ] + self.colIteration - 1 )
 
 						b = item.GetWindow( )

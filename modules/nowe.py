@@ -27,7 +27,7 @@ from subprocess import Popen, PIPE, STDOUT
 from pymouse import PyMouse
 from pygame import mixer
 
-import youtube1, youtube2, youtube3
+import youtube1, youtube2, youtube3, song
 
 #=============================================================================
 class nowe( wx.Frame ):
@@ -75,7 +75,7 @@ class nowe( wx.Frame ):
 			except ValueError:
 				setattr(self, item[:item.find('=')], item[item.find('=')+1:])			
 
-                self.labels = 'YOUTUBE1 YOUTUBE2 YOUTUBE3 PUSTE PUSTE EXIT'.split( )
+                self.labels = 'YOUTUBE1 YOUTUBE2 YOUTUBE3 SONG PUSTE EXIT'.split( )
 
                 self.flag = 'row'
                 self.pressFlag = False
@@ -106,6 +106,7 @@ class nowe( wx.Frame ):
                         self.youtubeSlowaSound = mixer.Sound( self.pathToAP + '/sounds/youtube_slowa.ogg' )
                         self.youtubeSlowoSound = mixer.Sound( self.pathToAP + '/sounds/youtube_slowo.ogg' )
                         self.youtubeLiterySound = mixer.Sound( self.pathToAP + '/sounds/youtube_litery.ogg' )
+                        self.songSound = mixer.Sound( self.pathToAP + '/sounds/song.ogg' )
                         self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
                         self.pusteSound = mixer.Sound( self.pathToAP + '/sounds/puste.ogg' )
                         self.usypiamSound = mixer.Sound( self.pathToAP + '/sounds/usypiam.ogg' )
@@ -118,7 +119,7 @@ class nowe( wx.Frame ):
         #-------------------------------------------------------------------------        
         def initializeBitmaps(self):
             
-            labelFiles = [ self.pathToAP + item for item in [ 'icons/modules/youtube1.png', 'icons/modules/youtube2.png', 'icons/modules/youtube3.png', 'icons/modules/puste.png', 'icons/modules/puste.png', 'icons/back.png'] ]
+            labelFiles = [ self.pathToAP + item for item in [ 'icons/modules/youtube1.png', 'icons/modules/youtube2.png', 'icons/modules/youtube3.png', 'icons/modules/song.png', 'icons/modules/puste.png', 'icons/back.png'] ]
 
             self.labelbitmaps = { }
             for index in xrange( len(self.labels) ):
@@ -408,6 +409,21 @@ class nowe( wx.Frame ):
                                             youtube3.youtube3( self, id = -1 ).Show( True )
                                             self.Hide( )
 
+                                    if label == 'SONG':
+                                                
+                                        if self.pressSound.lower() == 'voice':
+                                            self.songSound.play()
+
+                                            # self.stoper.Stop( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # # self.muzykaSound.play( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # self.stoper.Start( self.timeGap )
+                                            
+                                            self.stoper.Stop( )
+                                            song.song( self, id = -1 ).Show( True )
+                                            self.Hide( )
+
                                         else:
                                             os.system("milena_say Brak połączenia z internetem. Proszę podłączyć komputer do sieci.")
 
@@ -520,6 +536,8 @@ class nowe( wx.Frame ):
                                                         self.youtubeSlowoSound.play()
                                                     if (b.Name == "YOUTUBE3"):
                                                         self.youtubeLiterySound.play()
+                                                    if (b.Name == "SONG"):
+                                                        self.songSound.play()
                                                     if (b.Name == "EXIT"):
                                                         self.powrotSound.play()
                                                     if (b.Name == "PUSTE"):

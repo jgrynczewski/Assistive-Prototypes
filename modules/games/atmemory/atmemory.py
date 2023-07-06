@@ -101,7 +101,7 @@ class memory_GUI( wx.Frame ):
 		
 		if self.control != 'tracker':
 			self.mouseCursor = PyMouse( )
-			self.mousePosition = self.winWidth - 8 - self.xBorder, self.winHeight - 8 - self.yBorder
+			self.mousePosition = self.winWidth - 30 - self.xBorder, self.winHeight - 30 - self.yBorder
 
 		if self.switchSound.lower( ) != 'off' or self.pressSound.lower( ) != 'off':
 			mixer.init( )
@@ -270,7 +270,7 @@ class memory_GUI( wx.Frame ):
 			event.Veto( )
 
 			if self.control != 'tracker':
-				self.mousePosition = self.winWidth - 8 - self.xBorder, self.winHeight - 8 - self.yBorder
+				self.mousePosition = self.winWidth - 30 - self.xBorder, self.winHeight - 30 - self.yBorder
 				self.mouseCursor.move( *self.mousePosition )	
 
 	#----------------------------------------------------------------------------

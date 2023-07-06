@@ -103,7 +103,7 @@ class sweeper_GUI( wx.Frame ):
 
 		if self.control != 'tracker':
 			self.mouseCursor = PyMouse( )
-			self.mousePosition = self.winWidth - 10 - self.xBorder, self.winHeight - 12 - self.yBorder
+			self.mousePosition = self.winWidth - 40 - self.xBorder, self.winHeight - 40 - self.yBorder
 			self.mouseCursor.move( *self.mousePosition )
 
 		if self.switchSound.lower( ) != 'off' or self.pressSound.lower( ) != 'off':
@@ -289,7 +289,7 @@ class sweeper_GUI( wx.Frame ):
 			event.Veto( )
 
 			if self.control != 'tracker':
-				self.mousePosition = self.winWidth - 10 - self.xBorder, self.winHeight - 12 - self.yBorder
+				self.mousePosition = self.winWidth - 40 - self.xBorder, self.winHeight - 40 - self.yBorder
 				self.mouseCursor.move( *self.mousePosition )	
 
 	#-------------------------------------------------------------------------

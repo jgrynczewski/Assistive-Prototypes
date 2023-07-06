@@ -410,7 +410,8 @@ class pilot( wx.Frame ):
                                                                                 self.volumeLevel = self.volumeLevels[idx-1]
                                                                                 break
 
-                                                        os.system("pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo %d%%" % self.volumeLevel)
+                                                        # os.system("pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo %d%%" % self.volumeLevel)
+                                                        os.system("pactl set-sink-volume 0 -20%")
                                                         self.reader.saveVolume(self.volumeLevel)
                                                         time.sleep( 1.5 )
 
@@ -438,7 +439,8 @@ class pilot( wx.Frame ):
                                                                                 self.volumeLevel = self.volumeLevels[idx+1]
                                                                                 break
                                                                                 
-                                                        os.system("pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo %d%%" % self.volumeLevel)
+                                                        # os.system("pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo %d%%" % self.volumeLevel)
+                                                        os.system("pactl set-sink-volume 0 +20%")
                                                         self.reader.saveVolume(self.volumeLevel)
                                                         
                                                         time.sleep( 1.5 )

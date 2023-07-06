@@ -190,7 +190,8 @@ class speller( wx.Frame ):
 
 		self.buttonsBoardWidth  = self.winWidth - self.thicknessOfExternalBorder * 2 - self.thicknessOfInternalBorder * ( self.numberOfColumns[ 0 ] - 1 )
 		self.buttonsBoardHeight = ( self.winHeight - 20 ) - self.textFieldHeight - self.thicknessOfExternalBorder * 3 - self.thicknessOfInternalBorder * ( self.numberOfRows[ 0 ] - 1 ) # -20 because of the Unity upper bar
-		
+
+		self.textFontSize = 96  # z jakiegoś powodu 100 (z pliku parameters) tu nie działa więc zahardcodowuje 96
 		self.textField = wx.TextCtrl( self.parent, style = wx.TE_CENTRE | wx.TE_RICH2, size = ( self.textFieldWidth, self.textFieldHeight ) )
 		self.textField.SetFont( wx.Font(  self.textFontSize, eval( self.textFont ), wx.NORMAL, wx.NORMAL ) )
 		self.parent.mainSizer.Add( self.textField, flag = wx.EXPAND | wx.TOP | wx.BOTTOM, border = self.xBorder )

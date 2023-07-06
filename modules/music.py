@@ -24,7 +24,7 @@ import subprocess
 import wx, alsaaudio, psutil
 import wx.lib.buttons as bt
 
-import glib
+from gi.repository import GLib as glib
 from pymouse import PyMouse
 from pygame import mixer
 
@@ -509,7 +509,8 @@ class music( wx.Frame ):
                                                                                         self.volumeLevel = self.volumeLevels[idx-1]
                                                                                         break
 
-                                                                os.system("pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo %d%%" % self.volumeLevel)
+                                                                # os.system("pactl set-sink-volume alsa_output.pci-0000_00_1f.3.analog-stereo %d%%" % self.volumeLevel)
+                                                                os.system("pactl set-sink-volume 0 -20%")
                                                                 self.reader.saveVolume(self.volumeLevel)
                                                                 time.sleep( 1.5 )
 
@@ -542,7 +543,8 @@ class music( wx.Frame ):
                                                                                         self.volumeLevel = self.volumeLevels[idx+1]
                                                                                         break
                                                                                         
-                                                                os.system("pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo %d%%" % self.volumeLevel)
+                                                                # os.system("pactl set-sink-volume alsa_output.pci-0000_00_1f.3.analog-stereo %d%%" % self.volumeLevel)
+                                                                os.system("pactl set-sink-volume 0 +20%")
                                                                 self.reader.saveVolume(self.volumeLevel)
 
                                                                 time.sleep( 1.5 )

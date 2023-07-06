@@ -1,0 +1,37 @@
+AP jest na python2, trzeba doinstalować
+w ubuntu20_04 nie ma pip dla python2.7, więc trzeba tak:
+https://stackoverflow.com/questions/64296359/how-can-i-install-pip-for-python2-7-in-ubuntu-20-04
+
+tutaj ładnie opisane
+https://linuxhint.com/install-python-pip-ubuntu-22-04/
+
+curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py # Fetch get-pip.py for python 2.7
+sudo python2 get-pip.py
+pip --version
+
+sudo apt-get install python-wxgtk3.0
+pip2 install psutil
+sudo apt-get install python-alsaaudio
+sudo apt-get install python-zmq
+sudo pip install pyuserinput
+sudo apt-get install python-pygame
+
+sudo apt-get install python2.7-gi
+# a nie sudo pip install glib
+# i zamienić wszystkie import glib
+# na from gi.repository import GLib as glib
+# zrobiłem to już na gałęzi user/radek/master
+
+Dalej trzeba zakomentować w glib
+linijki korzystsające z PyQt (nie mam pojęcia dlaczego
+glib potrzebuje qt), bo konflikty nie pozwalają
+na zainstalowanie PyQt5
+
+iccp known incorrect srgb profile
+
+rozwiązanie:
+https://stackoverflow.com/a/22747902
+problem jest z samymi obrazkami trzeba coś tam
+zrobić z ich profilami (czym kolwiek są)
+działa:
+mogrify *.png

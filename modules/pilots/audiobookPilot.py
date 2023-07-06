@@ -35,51 +35,51 @@ class pilot(wx.Frame):
 	    self.winWidth, self.winHeight = wx.DisplaySize( )
 
             self.initializeParameters( )
-            wx.Frame.__init__( self , parent , id, 'audiobookPilot', size = ( self.width, self.height ), pos = ( self.winWidth - self.width - self.xBorder*(self.numberOfColumns[0]-2)+10, self.winHeight - self.height - self.xBorder*(self.numberOfRows[0]-5) + 10) ) 
+            wx.Frame.__init__( self , parent , id, 'audiobookPilot', size = ( self.width, self.height ), pos = ( self.winWidth - self.width - self.xBorder*(self.numberOfColumns[0]-2)+10, self.winHeight - self.height - self.xBorder*(self.numberOfRows[0]-5) + 10) )
             self.SetBackgroundColour( 'black' )
-	    
+
             style = self.GetWindowStyle( )
             self.SetWindowStyle( style | wx.STAY_ON_TOP )
 	    self.parent = parent
-            
-	    self.MakeModal( True )		
-	    
-            self.initializeBitmaps( )
-            self.createGui( )								
-            self.createBindings( )						
 
-            self.initializeTimer( )					
+	    self.MakeModal( True )
+
+            self.initializeBitmaps( )
+            self.createGui( )
+            self.createBindings( )
+
+            self.initializeTimer( )
 
 	#-------------------------------------------------------------------------
 	def initializeParameters(self):
 
             with open( './.pathToAP' ,'r' ) as textFile:
                 self.pathToAP = textFile.readline( )
-                
+
 	    sys.path.append( self.pathToAP )
 	    from reader import reader
-	    
+
             self.reader = reader()
             self.reader.readParameters()
             parameters = self.reader.getParameters()
             self.unpackParameters(parameters)
-                        
+
             self.flag = 'row'
 	    self.pressFlag = False
             self.pressedStopFlag = False
 
             self.numberOfColumns = 2,
             self.numberOfRows = 6,
-	    
+
             self.colIteration = 0
             self.panelIteration = 0
-            self.rowIteration = 0						
-            
+            self.rowIteration = 0
+
 	    self.numberOfEmptyIteration = 0
             self.countRows = 0
             self.countColumns = 0
-            self.countMaxRows = 2									
-            self.countMaxColumns = 2									
+            self.countMaxRows = 2
+            self.countMaxColumns = 2
             self.numberOfPresses = 1
 
             self.volumeLevels = [0, 20, 40, 60, 80, 100, 120, 140, 160]
@@ -89,7 +89,7 @@ class pilot(wx.Frame):
 	    if self.control != 'tracker':
 		    self.mouseCursor = PyMouse( )
 		    self.mousePosition = self.winWidth - 8 - self.xBorder, self.winHeight - 8 - self.yBorder
-		    self.mouseCursor.move( *self.mousePosition )	
+		    self.mouseCursor.move( *self.mousePosition )
 
 	    if self.switchSound.lower( ) != 'off' or self.pressSound.lower( ) != 'off':
 		    mixer.init( )
@@ -118,11 +118,11 @@ class pilot(wx.Frame):
                     self.fourSound = mixer.Sound( self.pathToAP + '/sounds/rows/4.ogg' )
                     self.fiveSound = mixer.Sound( self.pathToAP + '/sounds/rows/5.ogg' )
                     self.sixSound = mixer.Sound( self.pathToAP + '/sounds/rows/6.ogg' )
-            
+
 	    self.width = self.numberOfColumns[0] * 120
 	    self.height = self.numberOfRows[0] * 100
 
-        #-------------------------------------------------------------------------	
+        #-------------------------------------------------------------------------
         def unpackParameters(self, parameters):
 
 		for item in parameters:
@@ -131,11 +131,11 @@ class pilot(wx.Frame):
 			except ValueError:
 				setattr(self, item[:item.find('=')], item[item.find('=')+1:])
 
-	#-------------------------------------------------------------------------	
+	#-------------------------------------------------------------------------
         def initializeBitmaps(self):
 
             buttonPaths = glob.glob( self.pathToAP + 'icons/pilots/audiobookPilot/*' ) #labelFiles
-            
+
             self.buttons = { }
 
             for buttonPath in buttonPaths:
@@ -147,7 +147,7 @@ class pilot(wx.Frame):
                     buttonPosition = int( buttonLabel.split( '_' )[ 0 ] )
                     buttonName = buttonLabel[ buttonLabel.find( '_' )+1: ]
                     self.buttons[ buttonPosition ] = [ buttonName, buttonBitmap ]
-                    
+
                 except ValueError:
                     print 'Symbol %s ma nieprawidłową nazwę.' % ( buttonLabel )
                     pass
@@ -163,22 +163,22 @@ class pilot(wx.Frame):
 			event = eval('wx.EVT_LEFT_DOWN')
 		else:
 			event = eval('wx.EVT_BUTTON')
-		
+
 		for key, value in self.buttons.items( ):
 				b = bt.GenBitmapButton( self, -1, name = value[ 0 ], bitmap = value[ 1 ] )
 				b.SetBackgroundColour( self.backgroundColour )
 				b.SetBezelWidth( 3 )
 				b.Bind( event, self.onPress )
-				
-				self.subSizer.Add( b, ( ( key - 1 ) / self.numberOfColumns[ 0 ], ( key - 1 ) % self.numberOfColumns[ 0 ] ), wx.DefaultSpan, wx.EXPAND )			
+
+				self.subSizer.Add( b, ( ( key - 1 ) / self.numberOfColumns[ 0 ], ( key - 1 ) % self.numberOfColumns[ 0 ] ), wx.DefaultSpan, wx.EXPAND )
                 for number in range( self.numberOfRows[ 0 ] ):
                     self.subSizer.AddGrowableRow( number )
                 for number in range( self.numberOfColumns[ 0 ] ):
                     self.subSizer.AddGrowableCol( number )
-		
+
 		self. mainSizer.Add( self.subSizer, proportion = 1, flag = wx.EXPAND | wx.LEFT | wx.BOTTOM | wx.TOP | wx.RIGHT, border = self.xBorder )
 		self.SetSizer( self. mainSizer )
-                    
+
 	#-------------------------------------------------------------------------
 	def initializeTimer(self):
 		self.stoper = wx.Timer( self )
@@ -186,7 +186,7 @@ class pilot(wx.Frame):
 
 		if self.control != 'tracker':
 			self.stoper.Start( self.timeGap )
-	
+
 	#-------------------------------------------------------------------------
 	def createBindings(self):
 		self.Bind( wx.EVT_CLOSE , self.OnCloseWindow )
@@ -204,14 +204,14 @@ class pilot(wx.Frame):
 					self.mousePosition = self.winWidth/1.06, self.winHeight/1.47
 			else:
 				self.mousePosition = self.winWidth/1.12, self.winHeight/1.45
-			
+
 		self.mouseCursor.move( *self.mousePosition )
 
 		dial = wx.MessageDialog(self, 'Czy napewno chcesz wyjść z programu?', 'Wyjście',
 					wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION | wx.STAY_ON_TOP)
-            
+
 		ret = dial.ShowModal()
-		
+
 		if ret == wx.ID_YES:
 			try:
 				if "smplayer" in [psutil.Process(i).name() for i in psutil.pids( )]:
@@ -233,7 +233,7 @@ class pilot(wx.Frame):
 					self.Destroy()
 
 				except AttributeError:
-					try:		
+					try:
 						self.parent.Destroy()
 						self.Destroy()
 
@@ -243,9 +243,9 @@ class pilot(wx.Frame):
 		else:
 			event.Veto()
 
-			if self.control != 'tracker':				
+			if self.control != 'tracker':
 				self.mousePosition = self.winWidth - 8 - self.xBorder, self.winHeight - 8 - self.yBorder
-				self.mouseCursor.move( *self.mousePosition )	
+				self.mouseCursor.move( *self.mousePosition )
 
 	#-------------------------------------------------------------------------
 	def onExit(self):
@@ -264,7 +264,7 @@ class pilot(wx.Frame):
 			self.parent.stoper.Start( self.parent.timeGap )
 
 		self.Destroy( )
-	
+
         #-------------------------------------------------------------------------
         def onPress(self, event):
 
@@ -276,12 +276,12 @@ class pilot(wx.Frame):
 				self.button = event.GetEventObject()
 				self.button.SetBackgroundColour( self.selectionColour )
 				self.pressFlag = True
-				self.label = event.GetEventObject().GetName().encode( 'utf-8' )			
+				self.label = event.GetEventObject().GetName().encode( 'utf-8' )
 				self.stoper.Start( 0.15 * self.timeGap )
 
 				if self.label == 'volume down':
 					try:
-						recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ] 
+						recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ]
 						alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( recentVolume - 15, 0 )
 						time.sleep(1.5)
 
@@ -294,7 +294,7 @@ class pilot(wx.Frame):
 
 				elif self.label == 'volume up':
 					try:
-						recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ] 
+						recentVolume = alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).getvolume( )[ 0 ]
 						alsaaudio.Mixer( control = 'Master', cardindex = self.card_index ).setvolume( recentVolume + 15, 0 )
 						time.sleep( 1.5 )
 
@@ -307,7 +307,7 @@ class pilot(wx.Frame):
 
 				elif self.label == 'play pause':
 					if self.pressedStopFlag == True:
-						os.system( 'smplayer -send-action play' ) 
+						os.system( 'smplayer -send-action play' )
 						self.pressedStopFlag = False
 
 					else:
@@ -374,9 +374,9 @@ class pilot(wx.Frame):
 						b.SetFocus( )
 
 					self.flag = 'columns'
-					self.colIteration = 0                                
+					self.colIteration = 0
 
-				elif self.flag == 'columns':                                                                
+				elif self.flag == 'columns':
 
 					self.position = ( self.rowIteration - 1 ) * self.numberOfColumns[ 0 ] + self.colIteration
 
@@ -395,8 +395,8 @@ class pilot(wx.Frame):
                                                         self.reader.readParameters()
                                                         parameters = self.reader.getParameters()
                                                         self.unpackParameters(parameters)
-                                                        
-                                                        if self.volumeLevel == 0: 
+
+                                                        if self.volumeLevel == 0:
                                                                 raise alsaaudio.ALSAAudioError
                                                         else:
                                                                 for idx, item in enumerate(self.volumeLevels):
@@ -404,7 +404,8 @@ class pilot(wx.Frame):
                                                                                 self.volumeLevel = self.volumeLevels[idx-1]
                                                                                 break
 
-                                                        os.system("pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo %d%%" % self.volumeLevel)
+                                                        # os.system("pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo %d%%" % self.volumeLevel)
+                                                        os.system("pactl set-sink-volume 0 -20%")
                                                         self.reader.saveVolume(self.volumeLevel)
                                                         time.sleep( 1.5 )
 
@@ -423,18 +424,19 @@ class pilot(wx.Frame):
                                                         self.reader.readParameters()
                                                         parameters = self.reader.getParameters()
                                                         self.unpackParameters(parameters)
-                                                
-                                                        if self.volumeLevel == 160: 
+
+                                                        if self.volumeLevel == 160:
                                                                 raise alsaaudio.ALSAAudioError
                                                         else:
                                                                 for idx, item in enumerate(self.volumeLevels):
                                                                         if self.volumeLevel == item:
                                                                                 self.volumeLevel = self.volumeLevels[idx+1]
                                                                                 break
-                                                                                
-                                                        os.system("pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo %d%%" % self.volumeLevel)
+
+                                                        # os.system("pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo %d%%" % self.volumeLevel)
+                                                        os.system("pactl set-sink-volume 0 +20%")
                                                         self.reader.saveVolume(self.volumeLevel)
-                                                        
+
                                                         time.sleep( 1.5 )
 
 						except alsaaudio.ALSAAudioError:
@@ -448,7 +450,7 @@ class pilot(wx.Frame):
 						if self.pressedStopFlag == True:
                                                         if self.pressSound == 'voice':
                                                                 self.zatrzymajGrajSound.play()
-							os.system( 'smplayer -send-action play' ) 
+							os.system( 'smplayer -send-action play' )
 							self.pressedStopFlag = False
 
 						else:
@@ -525,16 +527,16 @@ class pilot(wx.Frame):
 
 			if self.button.GetBackgroundColour( ) == self.backgroundColour:
 				self.button.SetBackgroundColour( self.selectionColour )
-				
+
 			else:
-				self.button.SetBackgroundColour( self.backgroundColour )	
+				self.button.SetBackgroundColour( self.backgroundColour )
 
 			self.stoper.Stop( )
 			self.pressFlag = False
 
 		else:
 			if self.control != 'tracker':
-				self.mouseCursor.move( *self.mousePosition )	
+				self.mouseCursor.move( *self.mousePosition )
 
 			self.numberOfPresses = 0
 
@@ -545,7 +547,7 @@ class pilot(wx.Frame):
 
 				if self.flag == 'row': #flag == row ie. switching between rows
 
-						self.numberOfEmptyIteration += 1. / self.numberOfRows[ 0 ]        
+						self.numberOfEmptyIteration += 1. / self.numberOfRows[ 0 ]
 
 						self.rowIteration = self.rowIteration % self.numberOfRows[ 0 ]
 
@@ -612,7 +614,7 @@ class pilot(wx.Frame):
 						b.SetBackgroundColour( self.scanningColour )
 						b.SetFocus( )
                                                 logo = b.Name
-                                                
+
                                                 if self.switchSound.lower() == 'voice':
                                                         if logo == 'volume down':
                                                                 self.ciszejSound.play()
@@ -638,7 +640,7 @@ class pilot(wx.Frame):
                                                                 self.powrotSound.play()
                                                         elif logo == 'cancel':
                                                                 self.wyjscieSound.play()
-                                                                
+
                                                 self.colIteration += 1
 
 			else:
@@ -649,7 +651,7 @@ class pilot(wx.Frame):
 				self.Hide( )
 				suspend.suspend( self, id = 2 ).Show( True )
 
-				items = self.subSizer.GetChildren( )			
+				items = self.subSizer.GetChildren( )
 				for item in items:
 					b = item.GetWindow( )
 					b.SetBackgroundColour( self.backgroundColour )

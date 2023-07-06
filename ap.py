@@ -82,8 +82,9 @@ class main_menu( wx.Frame ):
                 
                 self.unpackParameters(parameters)
                 
-                self.labels = 'PISAK EXERCISES RADIO MUSIC AUDIOBOOK NOWE AKTUALIZACJE PUSTE PUSTE'.split( )
-                
+                # self.labels = 'PISAK EXERCISES RADIO MUSIC AUDIOBOOK NOWE AKTUALIZACJE PUSTE PUSTE'.split( )
+                self.labels = 'PISAK EXERCISES RADIO MUSIC AUDIOBOOK PUSTE PUSTE PUSTE PUSTE'.split( )
+
                 self.flag = 'row'
                 self.pressFlag = False
                 
@@ -100,7 +101,7 @@ class main_menu( wx.Frame ):
                 if self.volumeLevel == 0:
                     self.volumeLevel = 100
 
-                    os.system("pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo %d%%" % self.volumeLevel)
+                    # os.system("pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo %d%%" % self.volumeLevel)
                     self.reader.saveVolume(self.volumeLevel)
                     
                 else:
@@ -108,7 +109,7 @@ class main_menu( wx.Frame ):
                     
                     if self.volumeLevel not in self.volumeLevels:
                         raise("Wrong value of volumeLevel. Accepted values: 0, 20, 40, 60, 80, 100, 120, 140, 160")
-                    os.system("pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo %d%%" % self.volumeLevel)
+                    # os.system("pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo %d%%" % self.volumeLevel)
 
                 self.numberOfPresses = 1
                 self.mouseCursor = PyMouse( )
@@ -155,7 +156,8 @@ class main_menu( wx.Frame ):
         #-------------------------------------------------------------------------        
         def initializeBitmaps(self):
             
-            labelFiles = [ self.path + item for item in [ 'icons/modules/pisak.png', 'icons/modules/exercises.png', 'icons/modules/radio.png', 'icons/modules/music.png', 'icons/modules/audiobook.png', 'icons/modules/nowe.png', 'icons/modules/aktualizacja.png', 'icons/modules/puste.png', 'icons/modules/puste.png'] ]
+            # labelFiles = [ self.path + item for item in [ 'icons/modules/pisak.png', 'icons/modules/exercises.png', 'icons/modules/radio.png', 'icons/modules/music.png', 'icons/modules/audiobook.png', 'icons/modules/nowe.png', 'icons/modules/aktualizacja.png', 'icons/modules/puste.png', 'icons/modules/puste.png'] ]
+            labelFiles = [ self.path + item for item in [ 'icons/modules/pisak.png', 'icons/modules/exercises.png', 'icons/modules/radio.png', 'icons/modules/music.png', 'icons/modules/audiobook.png', 'icons/modules/puste.png', 'icons/modules/puste.png', 'icons/modules/puste.png', 'icons/modules/puste.png'] ]
 
             self.labelbitmaps = { }
             for index in xrange( len(self.labels) ):

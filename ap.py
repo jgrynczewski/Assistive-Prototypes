@@ -82,7 +82,7 @@ class main_menu( wx.Frame ):
                 
                 self.unpackParameters(parameters)
                 
-                self.labels = 'PISAK EXERCISES RADIO MUSIC AUDIOBOOK NOWE AKTUALIZACJE PUSTE PUSTE'.split( )
+                self.labels = 'PISAK EXERCISES RADIO MUSIC AUDIOBOOK NOWE AKTUALIZACJE TV PUSTE'.split( )
                 
                 self.flag = 'row'
                 self.pressFlag = False
@@ -139,6 +139,7 @@ class main_menu( wx.Frame ):
                     self.radioSound = mixer.Sound( self.path + '/sounds/radio.ogg' )
                     self.aktualizujSound = mixer.Sound( self.path + '/sounds/aktualizuj.ogg' )
                     self.pisakSound = mixer.Sound( self.path + '/sounds/pisak.ogg' )
+                    self.tvSound = mixer.Sound( self.path + '/sounds/telewizja.ogg' )
                     self.pusteSound = mixer.Sound( self.path + '/sounds/puste.ogg' )
                     self.audiobookSound = mixer.Sound( self.path + '/sounds/książki_czytane.ogg')
 
@@ -155,7 +156,7 @@ class main_menu( wx.Frame ):
         #-------------------------------------------------------------------------        
         def initializeBitmaps(self):
             
-            labelFiles = [ self.path + item for item in [ 'icons/modules/pisak.png', 'icons/modules/exercises.png', 'icons/modules/radio.png', 'icons/modules/music.png', 'icons/modules/audiobook.png', 'icons/modules/nowe.png', 'icons/modules/aktualizacja.png', 'icons/modules/puste.png', 'icons/modules/puste.png'] ]
+            labelFiles = [ self.path + item for item in [ 'icons/modules/pisak.png', 'icons/modules/exercises.png', 'icons/modules/radio.png', 'icons/modules/music.png', 'icons/modules/audiobook.png', 'icons/modules/nowe.png', 'icons/modules/aktualizacja.png', 'icons/modules/tv.png', 'icons/modules/puste.png'] ]
 
             self.labelbitmaps = { }
             for index in xrange( len(self.labels) ):
@@ -363,6 +364,12 @@ class main_menu( wx.Frame ):
 
                         nowe.nowe( parent = self, id = -1).Show( True )
                         self.Hide( )
+
+                    elif self.label == 'TV':
+                        if self.pressSound.lower() == 'voice':
+                            self.tvSound.play()
+                        exercise.exercise(self, id=-1).Show(True)
+                        self.Hide()
 
                     elif (self.label == 'PUSTE'):
                         if self.pressSound.lower() == 'voice':
@@ -590,6 +597,20 @@ class main_menu( wx.Frame ):
                                             nowe.nowe( self, id = -1 ).Show( True )
                                             self.Hide( )
 
+                                    elif label == 'TV':
+                                            if self.pressSound.lower() == 'voice':
+                                                self.tvSound.play()
+
+                                            # self.stoper.Stop( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # self.zadanieSound.play( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # self.stoper.Start( self.timeGap )
+
+                                            self.stoper.Stop( )
+                                            exercise.exercise( self, id = -1 ).Show( True )
+                                            self.Hide( )
+
                                     elif (label == 'PUSTE'):
                                             if self.pressSound.lower() == 'voice':
                                                 self.pusteSound.play()
@@ -701,6 +722,8 @@ class main_menu( wx.Frame ):
                                                         self.noweSound.play()
                                                     if (b.Name == "AKTUALIZACJE"):
                                                         self.aktualizujSound.play()
+                                                    if (b.Name == "TV"):
+                                                        self.tvSound.play()
                                                     if (b.Name == "PUSTE"):
                                                         self.pusteSound.play()
 

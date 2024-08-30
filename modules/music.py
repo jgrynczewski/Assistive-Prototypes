@@ -24,7 +24,7 @@ import subprocess
 import wx, alsaaudio, psutil
 import wx.lib.buttons as bt
 
-import glib
+from gi.repository import GLib as glib
 from pymouse import PyMouse
 from pygame import mixer
 

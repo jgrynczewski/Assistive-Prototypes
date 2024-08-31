@@ -17,8 +17,9 @@
 # along with AP. If not, see <http://www.gnu.org/licenses/>.
 
 import wxversion
+# wxversion.select( '2.8' )
 
-import wx, glob, os, sys, time, psutil, alsaaudio, urllib2, zmq
+import wx, glob, os, sys, time, psutil, urllib2, zmq
 import wx.lib.buttons as bt
 import subprocess as sp
 from subprocess import Popen, PIPE, STDOUT
@@ -26,25 +27,23 @@ from subprocess import Popen, PIPE, STDOUT
 from pymouse import PyMouse
 from pygame import mixer
 
-from modules import radio, music, audiobook, nowe
-from modules import exercise, tv
-
-if (psutil.__version__ < 2):
-    print("\nFor properly close PISAK you need newer version of psutil. \nType: sudo pip2 install 'psutil==2.2.1' --upgrade\n")
+import youtube1, youtube2, youtube3
 
 #=============================================================================
-class main_menu( wx.Frame ):
+class TV( wx.Frame ):
         def __init__(self, parent, id):
 
-                # context = zmq.Context() #było używane przy pierwszych próbach obsługi eyetracker-a
+                # context = zmq.Context()
                 # self.socket = context.socket(zmq.REQ)
                 # self.socket.connect("tcp://localhost:5556")
                 
                 self.winWidth, self.winHeight = wx.DisplaySize( )
 
-                wx.Frame.__init__( self , parent , id, 'AP MainMenu' )
-                # style = self.GetWindowStyle( ) #Zakomentowane, w przeciwnym razie po wybraniu PISAKa nie będą widoczne jego plansze.
-                # self.SetWindowStyle( style | wx.STAY_ON_TOP )
+                wx.Frame.__init__( self , parent , id, 'AP News' )
+                style = self.GetWindowStyle( )
+                self.SetWindowStyle( style | wx.STAY_ON_TOP )
+                
+                self.parent = parent
 
                 self.Maximize( True )
                 self.Centre( True )
@@ -60,103 +59,78 @@ class main_menu( wx.Frame ):
         #-------------------------------------------------------------------------        
         def initializeParameters(self):
 
-                cmd = 'pwd'
-                p = sp.Popen( cmd, shell = True, stdin = sp.PIPE, stdout = sp.PIPE, stderr = sp.STDOUT, close_fds = True )
-                self.path = p.stdout.read( )[ :-1 ] + '/'
-                self.home = self.path[:self.path[:-1].rfind("/")] + '/' 
-                self.configurationPath = self.home+"Assistive-Prototypes/"
-                
-                files = [ '.pathToAP', './modules/.pathToAP', './modules/pilots/.pathToAP', './modules/others/.pathToAP', 'modules/ewriting/.pathToAP', 'modules/games/atmemory/.pathToAP', 'modules/games/atsweeper/.pathToAP' ]
+		with open( './.pathToAP' ,'r' ) as textFile:
+			self.pathToAP = textFile.readline( )
 
-                for item in files:
-                        with open(item, 'w') as textFile:
-                                textFile.write( self.path ) 
+		sys.path.append( self.pathToAP )
+		from reader import reader
 
-                                sys.path.append( self.path )
+		reader = reader()
+		reader.readParameters()
+		parameters = reader.getParameters()
 
-                from reader import reader
-                
-		self.reader = reader()
-		self.reader.readParameters()
-		parameters = self.reader.getParameters()
-                
-                self.unpackParameters(parameters)
-                
-                self.labels = 'PISAK EXERCISES RADIO MUSIC AUDIOBOOK NOWE AKTUALIZACJE TV PUSTE'.split( )
-                
+		for item in parameters:
+			try:
+				setattr(self, item[:item.find('=')], int(item[item.find('=')+1:]))
+			except ValueError:
+				setattr(self, item[:item.find('=')], item[item.find('=')+1:])
+
+                self.labels = 'CHANNEL_UP VOLUME_UP VOLUME_UP5 CHANNEL_DOWN VOLUME_DOWN VOLUME_DOWN5 PUSTE PUSTE EXIT'.split( )
+
                 self.flag = 'row'
                 self.pressFlag = False
-                
+
                 self.numberOfRows = [ 3 ]
                 self.numberOfColumns = [ 3 ]
                 self.maxRows = [ 3 * item for item in self.numberOfRows ]
                 self.maxColumns = [ 2 * item for item in self.numberOfColumns ]
-                
+
                 self.rowIteration = 0
                 self.colIteration = 0
                 self.countRows = 0
                 self.countColumns = 0
-                
-                if self.volumeLevel == 0:
-                    self.volumeLevel = 100
-
-                    os.system("pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo %d%%" % self.volumeLevel)
-                    self.reader.saveVolume(self.volumeLevel)
-                    
-                else:
-                    self.volumeLevels = [0, 20, 40, 60, 80, 100, 120, 140, 160]
-                    
-                    if self.volumeLevel not in self.volumeLevels:
-                        raise("Wrong value of volumeLevel. Accepted values: 0, 20, 40, 60, 80, 100, 120, 140, 160")
-                    os.system("pactl set-sink-volume alsa_output.pci-0000_00_1b.0.analog-stereo %d%%" % self.volumeLevel)
 
                 self.numberOfPresses = 1
                 self.mouseCursor = PyMouse( )
                 
                 if self.control != 'tracker':
-                        self.mouseCursor = PyMouse( )
+                        self.mouseCursor= PyMouse( )
                         self.mousePosition = self.winWidth - 4 - self.xBorder, self.winHeight - 4 - self.yBorder
                         self.mouseCursor.move( *self.mousePosition )
-                                                        
-                # if self.switchSound.lower( ) != 'off' or self.pressSound.lower( ) != 'off':
+
                 mixer.init( )
-                self.usypiamSound = mixer.Sound(self.path + '/sounds/usypiam.ogg')
-                
-                # if self.switchSound.lower( ) == 'on':
-                self.switchingSound = mixer.Sound( self.path + '/sounds/switchSound.ogg' )
-                #if self.pressSound.lower( ) == 'on':
-                self.pressingSound = mixer.Sound( self.path + '/sounds/pressSound.ogg' )
-                
+                self.switchingSound = mixer.Sound( self.pathToAP + '/sounds/switchSound.ogg' )
+                self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
+                                                        
                 if self.switchSound.lower( ) == 'voice' or self.pressSound.lower( ) == 'voice':
-                    self.oneSound = mixer.Sound(self.path + '/sounds/rows/1.ogg')
-                    self.twoSound = mixer.Sound(self.path + '/sounds/rows/2.ogg')
-                    self.threeSound = mixer.Sound(self.path + '/sounds/rows/3.ogg')
-                    
-                    self.noweSound = mixer.Sound(self.path + '/sounds/nowe.ogg')
-                    self.zadanieSound = mixer.Sound( self.path + '/sounds/zadanie.ogg' )
-                    self.muzykaSound = mixer.Sound( self.path + '/sounds/muzyka.ogg' )
-                    self.filmSound = mixer.Sound( self.path + '/sounds/film.ogg' )
-                    self.radioSound = mixer.Sound( self.path + '/sounds/radio.ogg' )
-                    self.aktualizujSound = mixer.Sound( self.path + '/sounds/aktualizuj.ogg' )
-                    self.pisakSound = mixer.Sound( self.path + '/sounds/pisak.ogg' )
-                    self.tvSound = mixer.Sound( self.path + '/sounds/telewizja.ogg' )
-                    self.pusteSound = mixer.Sound( self.path + '/sounds/puste.ogg' )
-                    self.audiobookSound = mixer.Sound( self.path + '/sounds/książki_czytane.ogg')
+                        self.youtubeSlowaSound = mixer.Sound( self.pathToAP + '/sounds/youtube_slowa.ogg' )
+                        self.youtubeSlowoSound = mixer.Sound( self.pathToAP + '/sounds/youtube_slowo.ogg' )
+                        self.youtubeLiterySound = mixer.Sound( self.pathToAP + '/sounds/youtube_litery.ogg' )
+                        self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
+                        self.pusteSound = mixer.Sound( self.pathToAP + '/sounds/puste.ogg' )
+                        self.usypiamSound = mixer.Sound( self.pathToAP + '/sounds/usypiam.ogg' )
+                        self.oneSound = mixer.Sound( self.pathToAP + '/sounds/rows/1.ogg' )
+                        self.twoSound = mixer.Sound( self.pathToAP + '/sounds/rows/2.ogg' )
+                        self.threeSound = mixer.Sound( self.pathToAP + '/sounds/rows/3.ogg' )
 
                 self.SetBackgroundColour( 'black' )
-
-	#-------------------------------------------------------------------------	
-        def unpackParameters(self, parameters):
-		for item in parameters:
-			try:
-				setattr(self, item[:item.find('=')], int(item[item.find('=')+1:]))
-			except ValueError:
-				setattr(self, item[:item.find('=')], item[item.find('=')+1:])			
 
         #-------------------------------------------------------------------------        
         def initializeBitmaps(self):
             
-            labelFiles = [ self.path + item for item in [ 'icons/modules/pisak.png', 'icons/modules/exercises.png', 'icons/modules/radio.png', 'icons/modules/music.png', 'icons/modules/audiobook.png', 'icons/modules/nowe.png', 'icons/modules/aktualizacja.png', 'icons/modules/tv.png', 'icons/modules/puste.png'] ]
+            labelFiles = [
+                self.pathToAP + item for item in [
+                    'icons/tv/channel_up.png',
+                    'icons/tv/volume_up.png',
+                    'icons/tv/volume_up5.png',
+                    'icons/tv/channel_down.png',
+                    'icons/tv/volume_down.png',
+                    'icons/tv/volume_down5.png',
+                    'icons/modules/puste.png',
+                    'icons/modules/puste.png',
+                    'icons/back.png'
+                ]
+            ]
 
             self.labelbitmaps = { }
             for index in xrange( len(self.labels) ):
@@ -164,15 +138,6 @@ class main_menu( wx.Frame ):
 
         #-------------------------------------------------------------------------
         def createGui(self):
-
-                cmd = "cd " + self.home + "Assistive-Prototypes && git pull --dry-run | grep -q -v 'Already up-to-date.' && changed=1"
-                p = Popen( cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True )
-                self.output = p.stdout.read( )
-
-                if self.output[:5]!="fatal" and len(self.output)!=0:
-                        self.color = "green"
-                else:
-                        self.color = self.backgroundColour
                         
                 self.vbox = wx.BoxSizer( wx.VERTICAL )
                 self.sizer = wx.GridSizer( self.numberOfRows[ 0 ], self.numberOfColumns[ 0 ], self.xBorder, self.yBorder )
@@ -184,8 +149,6 @@ class main_menu( wx.Frame ):
                         
                 for i in self.labels:
                         b = bt.GenBitmapButton( self , -1, bitmap = self.labelbitmaps[ i ], name = i )
-                        if i=="AKTUALIZACJE":
-                                b.SetBackgroundColour( self.color )
                         b.Bind( event, self.onPress )
                         b.Bind(wx.EVT_KEY_DOWN, self.onKeyPress)
                         
@@ -242,6 +205,20 @@ class main_menu( wx.Frame ):
                                         self.mousePosition = self.winWidth - 4 - self.xBorder, self.winHeight - 4 - self.yBorder
                                         self.mouseCursor.move( *self.mousePosition )        
 
+	#-------------------------------------------------------------------------
+	def onExit(self):
+		if __name__ == '__main__':
+			self.stoper.Stop( )
+			self.Destroy( )
+		else:
+			self.stoper.Stop( )
+			self.MakeModal( False )
+			self.parent.Show( True )
+			if self.control != 'tracker':			
+				self.parent.stoper.Start( self.parent.timeGap )
+
+			self.Destroy( )
+		
         #-------------------------------------------------------------------------
         def onKeyPress( self, event ):
                 keycode = event.GetKeyCode()
@@ -252,7 +229,7 @@ class main_menu( wx.Frame ):
 
                         # self.socket.send("Error")
                         os.system("milena_say Zbieranie sygnału")
- 
+
                 event.Skip()
 
         #-------------------------------------------------------------------------
@@ -260,9 +237,6 @@ class main_menu( wx.Frame ):
                 
                 if self.pressSound.lower( ) != 'off':
                         self.pressingSound.play( )
-                # if self.pressSound.lower( ) == 'voice':
-                #         os.system("milena_say Wybrałeś")
-                # self.pressingSound.play( )
                 
                 if self.control == 'tracker':
                     if self.pressFlag == False:
@@ -272,37 +246,29 @@ class main_menu( wx.Frame ):
                             self.Update()
                             self.label = event.GetEventObject( ).GetName( ).encode( 'utf-8' )
                             self.stoper.Start( 0.15 * self.timeGap )
-
-                    if self.label == 'PISAK':
-                            if self.pressSound.lower() == 'voice':
-                                self.pisakSound.play()
+                            
+                    if self.label == 'CHANNEL_UP':
                             self.stoper.Stop( )
                             time.sleep( 1 )
-                            self.Hide( )
-                            self.Update( )
-                            
+
                             self.mousePosition = self.winWidth - self.xBorder/2., self.winHeight - self.yBorder/2.
-                            self.mouseCursor.move( *self.mousePosition )        
-                            
-                            os.system("pisak")
+                            self.mouseCursor.move( *self.mousePosition )
+
+                            os.system("milena_say Następny kanał")
+                            os.system("python3 controllers/tv/base.py channel_up")
                                             
                             self.mousePosition = self.winWidth - 100 - self.xBorder, self.winHeight - 100 - self.yBorder
                             self.mouseCursor.move( *self.mousePosition )        
 
-                            self.Show()
                             self.SetFocus()
                             
                             self.stoper.Start( 0.15 * self.timeGap )
  
                     elif self.label == 'EXERCISES':
-                            if self.pressSound.lower() == 'voice':
-                                self.zadanieSound.play()
                             exercise.exercise( self, id = -1 ).Show( True )
                             self.Hide( )
 
                     elif self.label == 'AKTUALIZACJE':
-                            if self.pressSound.lower() == 'voice':
-                                self.aktualizujSound.play()
 
                             # cmd = "cd " + self.home + ".pisak && git pull --dry-run | grep -q -v 'Already up-to-date.' && changed=1"
                             # p = Popen( cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True )
@@ -328,29 +294,18 @@ class main_menu( wx.Frame ):
                             pass
 
                     elif self.label == 'MUSIC':
-
-                            if self.pressSound.lower() == 'voice':
-                                self.muzykaSound.play()
-
                             music.music( self, id = -1 ).Show( True )
                             self.Hide( )
 
                     elif self.label == 'AUDIOBOOK':
-                            if self.pressSound.lower() == 'voice':
-                                self.audiobookSound.play()
                             audiobook.audiobook( self, id = -1 ).Show( True )
                             self.Hide( )
 
                     elif self.label == 'MOVIES':
-                            if self.pressSound.lower() == 'voice':
-                                self.filmSound.play()
                             movie.movie( self, id = -1 ).Show( True )
                             self.Hide( )
 
                     elif self.label == 'RADIO':
-                            if self.pressSound.lower() == 'voice':
-                                self.radioSound.play()
-
                             if self.internet_on():
                                     radio.radio( parent = self, id = -1 ).Show( True )
                                     self.Hide( )
@@ -358,23 +313,11 @@ class main_menu( wx.Frame ):
                                     os.system("milena_say Brak połączenia z internetem. Proszę podłączyć komputer do sieci.")
                             
 
-                    elif (self.label == 'NOWE'):
-                        if self.pressSound.lower() == 'voice':
-                            self.noweSound.play()
-
-                        nowe.nowe( parent = self, id = -1).Show( True )
+                    elif (self.label == 'NEW'):
+                        youtube.youtube( self, id = -1).Show( True )
                         self.Hide( )
 
-                    elif self.label == 'TV':
-                        if self.pressSound.lower() == 'voice':
-                            self.tvSound.play()
-                        tv.TV(self, id=-1).Show(True)
-                        self.Hide()
-
-                    elif (self.label == 'PUSTE'):
-                        if self.pressSound.lower() == 'voice':
-                            self.pusteSound.play()
-
+                    elif (self.label == 'PUSTE' | self.label == 'PUSTE'):
                         pass
                 else:        
                         self.numberOfPresses += 1
@@ -389,14 +332,13 @@ class main_menu( wx.Frame ):
                                     self.countRows = 0
 
                             elif self.flag == 'row':
-
                                     if self.pressSound == "voice":
                                         if (self.rowIteration == 1):
-                                            self.oneSound.play()
+                                                self.oneSound.play()
                                         if (self.rowIteration == 2):
-                                            self.twoSound.play()
+                                                self.twoSound.play()
                                         if (self.rowIteration == 3):
-                                            self.threeSound.play()
+                                                self.threeSound.play()
 
                                     buttonsToHighlight = range( ( self.rowIteration - 1 ) * self.numberOfColumns[ 0 ], ( self.rowIteration - 1 ) * self.numberOfColumns[ 0 ] + self.numberOfColumns[ 0 ] )
                                     for button in buttonsToHighlight:
@@ -426,195 +368,128 @@ class main_menu( wx.Frame ):
                                     
                                     label = self.labels[ self.position ]                            
                                     
-                                    if label == 'PISAK':
-                                            if self.pressSound.lower() == 'voice':
-                                                self.pisakSound.play()
+                                    if label == 'CHANNEL_UP':
+                                        if self.internet_on():
 
-                                            # self.stoper.Stop( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # self.pisakSound.play( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # self.stoper.Start( self.timeGap )
-                                            
+                                            if self.pressSound.lower() == 'voice':
+                                                os.system("milena_say Następny kanał")
+
+                                            os.system("python3 controllers/tv/base.py channel_up")
+
                                             self.stoper.Stop()
-                                            self.Hide()
-                                            self.Update()
+                                            time.sleep((self.selectionTime + self.timeGap)/(1000.*2))
+                                            self.stoper.Start(self.timeGap)
 
-                                            self.mousePosition = self.winWidth - self.xBorder/2., self.winHeight - self.yBorder/2.
-                                            self.mouseCursor.move( *self.mousePosition )        
+                                        else:
+                                            os.system("milena_say Brak połączenia z internetem. Proszę podłączyć komputer do sieci.")
 
-                                            os.system("pisak")
-                        
-                                            self.mousePosition = self.winWidth - 4 - self.xBorder, self.winHeight - 30 - self.yBorder
-                                            self.mouseCursor.move( *self.mousePosition )        
+                                    elif label == 'CHANNEL_DOWN':
+                                        if self.internet_on():
 
-                                            self.Show()
-                                            self.SetFocus()
-                                            self.stoper.Start( self.timeGap )
+                                            if self.pressSound.lower() == 'voice':
+                                                os.system("milena_say Poprzedni kanał")
+
+                                            os.system("python3 controllers/tv/base.py channel_down")
+
+                                            self.stoper.Stop()
+                                            time.sleep((self.selectionTime + self.timeGap) / (1000. * 2))
+                                            self.stoper.Start(self.timeGap)
+
+                                        else:
+                                            os.system(
+                                                "milena_say Brak połączenia z internetem. Proszę podłączyć komputer do sieci.")
+
+                                    elif label == 'VOLUME_UP':
+                                        if self.internet_on():
+
+                                            if self.pressSound.lower() == 'voice':
+                                                os.system("milena_say Głośniej")
+
+                                            os.system("python3 controllers/tv/base.py volume_up")
+
+                                            self.stoper.Stop()
+                                            time.sleep((self.selectionTime + self.timeGap) / (1000. * 2))
+                                            self.stoper.Start(self.timeGap)
+
+                                        else:
+                                            os.system(
+                                                "milena_say Brak połączenia z internetem. Proszę podłączyć komputer do sieci.")
+
+                                    elif label == 'VOLUME_DOWN':
+                                        if self.internet_on():
+
+                                            if self.pressSound.lower() == 'voice':
+                                                os.system("milena_say Ciszej")
+
+                                            os.system("python3 controllers/tv/base.py volume_down")
+
+                                            self.stoper.Stop()
+                                            time.sleep((self.selectionTime + self.timeGap) / (1000. * 2))
+                                            self.stoper.Start(self.timeGap)
+
+                                        else:
+                                            os.system(
+                                                "milena_say Brak połączenia z internetem. Proszę podłączyć komputer do sieci.")
+
+                                    elif label == 'VOLUME_UP5':
+                                        if self.internet_on():
+
+                                            if self.pressSound.lower() == 'voice':
+                                                os.system("milena_say Znacznie głośniej")
+
+                                            os.system("python3 controllers/tv/base.py volume_up5")
+
+                                            self.stoper.Stop()
+                                            time.sleep((self.selectionTime + self.timeGap) / (1000. * 2))
+                                            self.stoper.Start(self.timeGap)
+
+                                        else:
+                                            os.system(
+                                                "milena_say Brak połączenia z internetem. Proszę podłączyć komputer do sieci.")
+
+                                    elif label == 'VOLUME_DOWN5':
+                                        if self.internet_on():
+
+                                            if self.pressSound.lower() == 'voice':
+                                                os.system("milena_say Znacznie ciszej")
+
+                                            os.system("python3 controllers/tv/base.py volume_down5")
+
+                                            self.stoper.Stop()
+                                            time.sleep((self.selectionTime + self.timeGap) / 1000.)
+                                            self.stoper.Start(self.timeGap)
+
+                                        else:
+                                            os.system(
+                                                "milena_say Brak połączenia z internetem. Proszę podłączyć komputer do sieci.")
+
+                                    elif label == 'YOUTUBE3':
+                                        if self.internet_on():
+                                                
+                                            if self.pressSound.lower() == 'voice':
+                                                self.youtubeLiterySound.play()
+
+                                            # self.stoper.Stop( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # # self.muzykaSound.play( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # self.stoper.Start( self.timeGap )
                                             
-                                    elif label == 'EXERCISES':
-                                            if self.pressSound.lower() == 'voice':
-                                                self.zadanieSound.play()
-
-                                            # self.stoper.Stop( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # self.zadanieSound.play( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # self.stoper.Start( self.timeGap )
-
                                             self.stoper.Stop( )
-                                            exercise.exercise( self, id = -1 ).Show( True )
+                                            youtube3.youtube3( self, id = -1 ).Show( True )
                                             self.Hide( )
 
-                                    elif label == 'AKTUALIZACJE':
-                                            if self.pressSound.lower() == 'voice':
-                                                self.aktualizujSound.play()
+                                        else:
+                                            os.system("milena_say Brak połączenia z internetem. Proszę podłączyć komputer do sieci.")
 
-                                            if self.output[:5] == "fatal":
-                                                    os.system("milena_say Brak połączenia z repozytorium zewnętrznym. Prawdopodbnie nie jesteś połączony z internetem.")
-                                            elif len(self.output) == 0:
-                                                    os.system("milena_say Brak aktualizacji")
-                                            else:
-                                                    os.system("cd " + self.home + "Assistive-Prototypes && git pull")
-                                                    os.system("milena_say Zaktualizowano pisaka")
-                                                    
-                                                    with open(self.path + "read", 'a+') as f:
-                                                            readMessages = f.read()
-                                                            readMessages = readMessages.replace("\n", " ")
+                                    elif label == 'EXIT':
+                                        if self.pressSound.lower() == 'voice':
+                                                self.powrotSound.play()
+                                        self.onExit()
 
-                                                    messages = []
-                                                    for item in os.listdir( self.configurationPath+"messages/"):
-                                                        if ("message" in item) and (item not in readMessages):
-                                                                with open(self.configurationPath+"messages/"+item, 'r') as f:
-                                                                        messages.append( f.read().replace("\n", " ") )
-                                                                with open(self.path + "read", 'a+') as f:
-                                                                        f.write(item+'\n')
-
-                                                    lenght = len(messages)
-                                                    
-                                                    if lenght == 0:
-                                                        os.system("milena_say Nie masz żadnych wiadomości.")
-                                                    if lenght == 1:
-                                                        os.system("milena_say Masz jedną wiadomość.")
-                                                        os. system("milena_say %s" % messages[0])
-                                                    else:
-                                                        os.system("milena_say Masz %i wiadomości" % lenght)
-                                                                    
-                                                    for (i, j) in enumerate(messages, start=1):
-                                                        os.system("milena_say Wiadomość numer %i." % i)
-                                                        os.system("milena_say %s" % j)
-                                                                    
-                                                    cmd = "cd " + self.home + "Assistive-Prototypes && git pull --dry-run | grep -q -v 'Already up-to-date.' && changed=1"
-                                                    p = Popen( cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True )
-                                                    self.output = p.stdout.read( )
-
-                                                    self.color = self.backgroundColour
-                                                    self.Update( )
-
-                                                    os.system("Pobieranie aktualizacji przebiegło pomyślnie. Trwa ponowne uruchamianie komputera")
-                                                    time.sleep(5)
-                                                    os.popen("shutdown -r -t 0")
-                                                    
-                                            # self.stoper.Stop( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # self.blogSound.play( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000*2) )
-                                            # self.stoper.Start( self.timeGap )
-                                            
-                                            # self.stoper.Stop( )
-                                            # blog.blog( parent = self, id = -1 ).Show( True )
-                                            # self.Hide( )
-
-                                    elif label == 'MUSIC':
-                                            if self.pressSound.lower() == 'voice':
-                                                self.muzykaSound.play()
-
-                                            # self.stoper.Stop( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # self.muzykaSound.play( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # self.stoper.Start( self.timeGap )
-
-                                            self.stoper.Stop( )
-                                            music.music( self, id = -1 ).Show( True )
-                                            self.Hide( )
-
-                                    elif label == 'AUDIOBOOK':
-                                            if self.pressSound.lower() == 'voice':
-                                                self.audiobookSound.play()
-
-                                            # self.stoper.Stop( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # self.stoper.Start( self.timeGap )
-
-                                            self.stoper.Stop( )
-                                            audiobook.audiobook( self, id = -1 ).Show( True )
-                                            self.Hide( )
-
-                                    elif label == 'MOVIES':
-                                            if self.pressSound.lower() == 'voice':
-                                                self.flimSound.play()
-
-                                            # self.stoper.Stop( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # self.filmSound.play( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # self.stoper.Start( self.timeGap )
-
-                                            self.stoper.Stop( )
-                                            movie.movie( self, id = -1 ).Show( True )
-                                            self.Hide( )
-
-                                    elif label == 'RADIO':
-                                            if self.pressSound.lower() == 'voice':
-                                                self.radioSound.play()
-
-                                            # self.stoper.Stop( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # self.radioSound.play( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # self.stoper.Start( self.timeGap )
-
-                                            if self.internet_on():
-                                                    self.stoper.Stop( )
-                                                    radio.radio( parent = self, id = -1 ).Show( True )
-                                                    self.Hide( )
-                                            else:
-                                                    os.system("milena_say Brak połączenia z internetem. Proszę podłączyć komputer do sieci.")
-
-                                    elif label == 'NOWE':
-                                            if self.pressSound.lower() == 'voice':
-                                                self.noweSound.play()
-
-                                            # self.stoper.Stop( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # # self.filmSound.play( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # self.stoper.Start( self.timeGap )
-
-                                            self.stoper.Stop( )
-                                            nowe.nowe( self, id = -1 ).Show( True )
-                                            self.Hide( )
-
-                                    elif label == 'TV':
-                                            if self.pressSound.lower() == 'voice':
-                                                self.tvSound.play()
-
-                                            # self.stoper.Stop( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # self.zadanieSound.play( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # self.stoper.Start( self.timeGap )
-
-                                            self.stoper.Stop( )
-                                            tv.TV( self, id = -1 ).Show( True )
-                                            self.Hide( )
-
-                                    elif (label == 'PUSTE'):
-                                            if self.pressSound.lower() == 'voice':
+                                    elif label == 'PUSTE':
+                                        if self.pressSound.lower() == 'voice':
                                                 self.pusteSound.play()
-                                            pass
 
                                     self.flag = 'row'
                                     self.rowIteration = 0
@@ -650,9 +525,9 @@ class main_menu( wx.Frame ):
                         elif self.countRows < self.maxRows[ 0 ]:
 
                                 if self.flag == 'row':
-                                    
+
                                         self.rowIteration = self.rowIteration % self.numberOfRows[ 0 ]
-                                        
+
                                         if self.switchSound == "voice":
                                             if (self.rowIteration == 0):
                                                 self.oneSound.play()
@@ -707,27 +582,25 @@ class main_menu( wx.Frame ):
                                                 b.SetBackgroundColour( self.scanningColour )
                                                 b.SetFocus( )
 
+                                                self.Update( )
+
                                                 if self.switchSound == "voice":
-                                                    if (b.Name == "PISAK"):
-                                                        self.pisakSound.play()
-                                                    if (b.Name == "EXERCISES"):
-                                                        self.zadanieSound.play()
-                                                    if (b.Name == "RADIO"):
-                                                        self.radioSound.play()
-                                                    if (b.Name == "MUSIC"):
-                                                        self.muzykaSound.play()
-                                                    if (b.Name == "AUDIOBOOK"):
-                                                        self.audiobookSound.play()
-                                                    if (b.Name == "NOWE"):
-                                                        self.noweSound.play()
-                                                    if (b.Name == "AKTUALIZACJE"):
-                                                        self.aktualizujSound.play()
-                                                    if (b.Name == "TV"):
-                                                        self.tvSound.play()
+                                                    if (b.Name == "CHANNEL_UP"):
+                                                        os.system("milena_say Następny kanał")
+                                                    if (b.Name == "CHANNEL_DOWN"):
+                                                        os.system("milena_say Poprzedni kanał")
+                                                    if (b.Name == "VOLUME_UP"):
+                                                        os.system("milena_say Głośniej")
+                                                    if (b.Name == "VOLUME_DOWN"):
+                                                        os.system("milena_say Ciszej")
+                                                    if (b.Name == "VOLUME_UP5"):
+                                                        os.system("milena_say Znacznie głośniej")
+                                                    if (b.Name == "VOLUME_DOWN5"):
+                                                        os.system("milena_say Znacznie ciszej")
+                                                    if (b.Name == "EXIT"):
+                                                        self.powrotSound.play()
                                                     if (b.Name == "PUSTE"):
                                                         self.pusteSound.play()
-
-                                                self.Update( )
 
                                                 self.colIteration += 1
                                                 self.countColumns += 1
@@ -737,7 +610,7 @@ class main_menu( wx.Frame ):
 
                         elif self.countRows == self.maxRows[ 0 ]:
                                 if self.switchSound == "voice":
-                                    self.usypiamSound.play()
+                                        self.usypiamSound.play()
                                 self.flag = 'rest'
                                 self.countRows += 1
 
@@ -769,6 +642,6 @@ class main_menu( wx.Frame ):
 if __name__ == '__main__':
 
         app = wx.App(False)
-        frame = main_menu( parent = None, id = -1 )
+        frame = nowe( parent = None, id = -1 )
         frame.Show( True )
         app.MainLoop( )

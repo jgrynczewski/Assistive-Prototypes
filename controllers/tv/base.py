@@ -51,7 +51,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Control your television.")
     parser.add_argument(
         'operation',
-        choices=['channel_up', 'channel_down', 'volume_up', 'volume_down', 'volume_up3', 'volume_down3'],
+        choices=['channel_up', 'channel_down', 'volume_up', 'volume_down', 'volume_up5', 'volume_down5'],
         help="The operation to perform on the TV: channel_up, channel_down, "
              "volume_up, volume_down, volume_up3, volume_down3"
     )

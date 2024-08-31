@@ -3,6 +3,7 @@ import time
 import argparse
 
 # pip3 install samsungtvws[async,encrypted]
+# https://pypi.org/project/samsungtvws/
 from samsungtvws import SamsungTVWS
 
 IP = "192.168.100.121"

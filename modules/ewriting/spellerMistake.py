@@ -17,7 +17,7 @@
 # along with EPlatform. If not, see <http://www.gnu.org/licenses/>.
 
 import wxversion
-wxversion.select( '2.8' )
+# wxversion.select( '2.8' )
 
 import glob, os, time, sys
 import wx

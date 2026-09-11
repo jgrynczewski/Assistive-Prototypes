@@ -27,7 +27,7 @@ from pymouse import PyMouse
 from pygame import mixer
 
 from modules import radio, music, audiobook, nowe
-from modules import exercise
+from modules import exercise, tv, new_games
 
 if (psutil.__version__ < 2):
     print("\nFor properly close PISAK you need newer version of psutil. \nType: sudo pip2 install 'psutil==2.2.1' --upgrade\n")
@@ -75,15 +75,19 @@ class main_menu( wx.Frame ):
                                 sys.path.append( self.path )
 
                 from reader import reader
-                
-		self.reader = reader()
-		self.reader.readParameters()
-		parameters = self.reader.getParameters()
+
+                self.reader = reader()
+                self.reader.readParameters()
+                parameters = self.reader.getParameters()
                 
                 self.unpackParameters(parameters)
                 
                 # self.labels = 'PISAK EXERCISES RADIO MUSIC AUDIOBOOK NOWE AKTUALIZACJE PUSTE PUSTE'.split( )
-                self.labels = 'PISAK EXERCISES RADIO MUSIC AUDIOBOOK PUSTE PUSTE PUSTE PUSTE'.split( )
+                # self.labels = 'PISAK EXERCISES RADIO MUSIC AUDIOBOOK TV SKOCZEK PUSTE PUSTE'.split( )
+                ########## UNIPRESS
+                # self.labels = 'PISAK EXERCISES RADIO MUSIC AUDIOBOOK TV SKOCZEK GAMES PUSTE'.split( )
+                # self.labels = 'PISAK EXERCISES RADIO MUSIC AUDIOBOOK TV SKOCZEK GAMES GAMES2'.split( )
+                self.labels = 'PISAK PISAK2 EXERCISES RADIO MUSIC AUDIOBOOK TV GAMES PUSTE'.split( )
 
                 self.flag = 'row'
                 self.pressFlag = False
@@ -140,24 +144,45 @@ class main_menu( wx.Frame ):
                     self.radioSound = mixer.Sound( self.path + '/sounds/radio.ogg' )
                     self.aktualizujSound = mixer.Sound( self.path + '/sounds/aktualizuj.ogg' )
                     self.pisakSound = mixer.Sound( self.path + '/sounds/pisak.ogg' )
+                    self.pisak2Sound = mixer.Sound( self.path + '/sounds/pisak2.ogg' )
+                    self.tvSound = mixer.Sound( self.path + '/sounds/telewizja.ogg' )
                     self.pusteSound = mixer.Sound( self.path + '/sounds/puste.ogg' )
                     self.audiobookSound = mixer.Sound( self.path + '/sounds/książki_czytane.ogg')
+                    self.skoczekSound = mixer.Sound( self.path + '/sounds/skoczek.ogg')
+                    ########## UNIPRESS
+                    self.gamesSound = mixer.Sound( self.path + '/sounds/gra.ogg')
 
                 self.SetBackgroundColour( 'black' )
 
-	#-------------------------------------------------------------------------	
+	    #-------------------------------------------------------------------------
         def unpackParameters(self, parameters):
-		for item in parameters:
-			try:
-				setattr(self, item[:item.find('=')], int(item[item.find('=')+1:]))
-			except ValueError:
-				setattr(self, item[:item.find('=')], item[item.find('=')+1:])			
+            for item in parameters:
+                try:
+                    setattr(self, item[:item.find('=')], int(item[item.find('=')+1:]))
+                except ValueError:
+                    setattr(self, item[:item.find('=')], item[item.find('=')+1:])
 
         #-------------------------------------------------------------------------        
         def initializeBitmaps(self):
             
             # labelFiles = [ self.path + item for item in [ 'icons/modules/pisak.png', 'icons/modules/exercises.png', 'icons/modules/radio.png', 'icons/modules/music.png', 'icons/modules/audiobook.png', 'icons/modules/nowe.png', 'icons/modules/aktualizacja.png', 'icons/modules/puste.png', 'icons/modules/puste.png'] ]
-            labelFiles = [ self.path + item for item in [ 'icons/modules/pisak.png', 'icons/modules/exercises.png', 'icons/modules/radio.png', 'icons/modules/music.png', 'icons/modules/audiobook.png', 'icons/modules/puste.png', 'icons/modules/puste.png', 'icons/modules/puste.png', 'icons/modules/puste.png'] ]
+            labelFiles = [
+                self.path + item for item in [
+                    'icons/modules/pisak.png',
+                    'icons/modules/pisak2.png',
+                    'icons/modules/exercises.png',
+                    'icons/modules/radio.png',
+                    'icons/modules/music.png',
+                    'icons/modules/audiobook.png',
+                    'icons/modules/tv.png',
+                    # 'icons/modules/skoczek.png',
+                    ########## UNIPRESS
+                    'icons/modules/games2.png',
+                    # 'icons/modules/games3.png',
+                    # 'icons/modules/puste.png',
+                    'icons/modules/puste.png'
+                ]
+            ]
 
             self.labelbitmaps = { }
             for index in xrange( len(self.labels) ):
@@ -189,59 +214,60 @@ class main_menu( wx.Frame ):
                                 b.SetBackgroundColour( self.color )
                         b.Bind( event, self.onPress )
                         b.Bind(wx.EVT_KEY_DOWN, self.onKeyPress)
-                        
-			self.sizer.Add( b, 0, wx.EXPAND )
-		self.vbox.Add( self.sizer, proportion=2, flag=wx.EXPAND | wx.TOP | wx.BOTTOM | wx.LEFT | wx.RIGHT, border=self.xBorder )
-		self.SetSizer( self.vbox )
+
+                        self.sizer.Add( b, 0, wx.EXPAND )
+
+                self.vbox.Add( self.sizer, proportion=2, flag=wx.EXPAND | wx.TOP | wx.BOTTOM | wx.LEFT | wx.RIGHT, border=self.xBorder )
+                self.SetSizer( self.vbox )
 
         #-------------------------------------------------------------------------
-	def initializeTimer(self):
-		self.stoper = wx.Timer( self )
-		self.Bind( wx.EVT_TIMER , self.timerUpdate , self.stoper )
+        def initializeTimer(self):
+            self.stoper = wx.Timer( self )
+            self.Bind( wx.EVT_TIMER , self.timerUpdate , self.stoper )
 
-		if self.control != 'tracker':
-			self.stoper.Start( self.timeGap )
+            if self.control != 'tracker':
+                self.stoper.Start( self.timeGap )
 
-	#-------------------------------------------------------------------------
-	def createBindings(self):
-		self.Bind( wx.EVT_CLOSE , self.OnCloseWindow )
-		
-	#-------------------------------------------------------------------------
-	def OnCloseWindow(self , event):
-		
-		if self.control != 'tracker':
-			if True in [ 'debian' in item for item in os.uname( ) ]: #POSITION OF THE DIALOG WINDOW DEPENDS ON WINDOWS MANAGER NOT ON DESKTOP ENVIROMENT. THERE IS NO REASONABLE WAY TO CHECK IN PYTHON WHICH WINDOWS MANAGER IS CURRENTLY RUNNING, BESIDE IT IS POSSIBLE TO FEW WINDOWS MANAGER RUNNING AT THE SAME TIME. I DON'T SEE SOLUTION OF THIS ISSUE, EXCEPT OF CREATING OWN SIGNAL (AVR MICROCONTROLLERS).
-				if os.environ.get('KDE_FULL_SESSION'):
-					self.mousePosition = self.winWidth/1.7, self.winHeight/1.7
-				# elif ___: #for gnome-debian
-				# 	self.mousePosition = self.winWidth/6.5, self.winHeight/6.
-				else:
-					self.mousePosition = self.winWidth/1.8, self.winHeight/1.7
-			else:
-				self.mousePosition = self.winWidth/1.9, self.winHeight/1.68
-			
-                        self.mouseCursor.move( *self.mousePosition )
+        #-------------------------------------------------------------------------
+        def createBindings(self):
+            self.Bind( wx.EVT_CLOSE , self.OnCloseWindow )
 
-                dial = wx.MessageDialog(self, 'Czy napewno chcesz wyjść z programu?', 'Wyjście',
-                                        wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION | wx.STAY_ON_TOP )
+        #-------------------------------------------------------------------------
+        def OnCloseWindow(self , event):
 
-                ret = dial.ShowModal( )
-                
-                if ret == wx.ID_YES:
-                        try:
-                                if "smplayer" in [psutil.Process( i ).name() for i in psutil.pids( )]:
-                                        os.system( 'smplayer -send-action quit' )
-                        except TypeError:
-                                if "smplayer" in [psutil.Process( i ).name for i in psutil.pids( )]:
-                                        os.system( 'smplayer -send-action quit' )
-                                        
-                        self.Destroy( )
+            if self.control != 'tracker':
+                if True in [ 'debian' in item for item in os.uname( ) ]: #POSITION OF THE DIALOG WINDOW DEPENDS ON WINDOWS MANAGER NOT ON DESKTOP ENVIROMENT. THERE IS NO REASONABLE WAY TO CHECK IN PYTHON WHICH WINDOWS MANAGER IS CURRENTLY RUNNING, BESIDE IT IS POSSIBLE TO FEW WINDOWS MANAGER RUNNING AT THE SAME TIME. I DON'T SEE SOLUTION OF THIS ISSUE, EXCEPT OF CREATING OWN SIGNAL (AVR MICROCONTROLLERS).
+                    if os.environ.get('KDE_FULL_SESSION'):
+                        self.mousePosition = self.winWidth/1.7, self.winHeight/1.7
+                    # elif ___: #for gnome-debian
+                    # 	self.mousePosition = self.winWidth/6.5, self.winHeight/6.
+                    else:
+                        self.mousePosition = self.winWidth/1.8, self.winHeight/1.7
                 else:
-                        event.Veto( )
+                    self.mousePosition = self.winWidth/1.9, self.winHeight/1.68
 
-                        if self.control != 'tracker':
-                                        self.mousePosition = self.winWidth - 4 - self.xBorder, self.winHeight - 4 - self.yBorder
-                                        self.mouseCursor.move( *self.mousePosition )        
+                    self.mouseCursor.move( *self.mousePosition )
+
+                    dial = wx.MessageDialog(self, 'Czy napewno chcesz wyjść z programu?', 'Wyjście',
+                                            wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION | wx.STAY_ON_TOP )
+
+                    ret = dial.ShowModal( )
+
+                    if ret == wx.ID_YES:
+                            try:
+                                    if "smplayer" in [psutil.Process( i ).name() for i in psutil.pids( )]:
+                                            os.system( 'smplayer -send-action quit' )
+                            except TypeError:
+                                    if "smplayer" in [psutil.Process( i ).name for i in psutil.pids( )]:
+                                            os.system( 'smplayer -send-action quit' )
+
+                            self.Destroy( )
+                    else:
+                            event.Veto( )
+
+                            if self.control != 'tracker':
+                                            self.mousePosition = self.winWidth - 4 - self.xBorder, self.winHeight - 4 - self.yBorder
+                                            self.mouseCursor.move( *self.mousePosition )
 
         #-------------------------------------------------------------------------
         def onKeyPress( self, event ):
@@ -275,26 +301,48 @@ class main_menu( wx.Frame ):
                             self.stoper.Start( 0.15 * self.timeGap )
 
                     if self.label == 'PISAK':
-                            if self.pressSound.lower() == 'voice':
-                                self.pisakSound.play()
-                            self.stoper.Stop( )
-                            time.sleep( 1 )
-                            self.Hide( )
-                            self.Update( )
-                            
-                            self.mousePosition = self.winWidth - self.xBorder/2., self.winHeight - self.yBorder/2.
-                            self.mouseCursor.move( *self.mousePosition )        
-                            
-                            os.system("pisak")
-                                            
-                            self.mousePosition = self.winWidth - 100 - self.xBorder, self.winHeight - 100 - self.yBorder
-                            self.mouseCursor.move( *self.mousePosition )        
+                        if self.pressSound.lower() == 'voice':
+                            self.pisakSound.play()
+                        self.stoper.Stop()
+                        time.sleep(1)
+                        self.Hide()
+                        self.Update()
 
-                            self.Show()
-                            self.SetFocus()
-                            
-                            self.stoper.Start( 0.15 * self.timeGap )
- 
+                        self.mousePosition = self.winWidth - self.xBorder / 2., self.winHeight - self.yBorder / 2.
+                        self.mouseCursor.move(*self.mousePosition)
+
+                        os.system("pisak")
+
+                        self.mousePosition = self.winWidth - 100 - self.xBorder, self.winHeight - 100 - self.yBorder
+                        self.mouseCursor.move(*self.mousePosition)
+
+                        self.Show()
+                        self.SetFocus()
+
+                        self.stoper.Start(0.15 * self.timeGap)
+
+
+                    if self.label == 'PISAK2':
+                        if self.pressSound.lower() == 'voice':
+                            self.pisak2Sound.play()
+                        self.stoper.Stop()
+                        time.sleep(1)
+                        self.Hide()
+                        self.Update()
+
+                        self.mousePosition = self.winWidth - self.xBorder / 2., self.winHeight - self.yBorder / 2.
+                        self.mouseCursor.move(*self.mousePosition)
+
+                        os.system("bash /home/radoslaw/pisak2/run_pisak2.sh")
+
+                        self.mousePosition = self.winWidth - 100 - self.xBorder, self.winHeight - 100 - self.yBorder
+                        self.mouseCursor.move(*self.mousePosition)
+
+                        self.Show()
+                        self.SetFocus()
+
+                        self.stoper.Start(0.15 * self.timeGap)
+
                     elif self.label == 'EXERCISES':
                             if self.pressSound.lower() == 'voice':
                                 self.zadanieSound.play()
@@ -365,6 +413,12 @@ class main_menu( wx.Frame ):
 
                         nowe.nowe( parent = self, id = -1).Show( True )
                         self.Hide( )
+
+                    elif self.label == 'TV':
+                        if self.pressSound.lower() == 'voice':
+                            self.tvSound.play()
+                        tv.TV(self, id=-1).Show(True)
+                        self.Hide()
 
                     elif (self.label == 'PUSTE'):
                         if self.pressSound.lower() == 'voice':
@@ -446,7 +500,33 @@ class main_menu( wx.Frame ):
                                             self.Show()
                                             self.SetFocus()
                                             self.stoper.Start( self.timeGap )
-                                            
+
+                                    if label == 'PISAK2':
+                                            if self.pressSound.lower() == 'voice':
+                                                self.pisak2Sound.play()
+
+                                            # self.stoper.Stop( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # self.pisakSound.play( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # self.stoper.Start( self.timeGap )
+
+                                            self.stoper.Stop()
+                                            self.Hide()
+                                            self.Update()
+
+                                            self.mousePosition = self.winWidth - self.xBorder / 2., self.winHeight - self.yBorder / 2.
+                                            self.mouseCursor.move(*self.mousePosition)
+
+                                            os.system("bash /home/radoslaw/pisak2/run_pisak2.sh")
+
+                                            self.mousePosition = self.winWidth - 4 - self.xBorder, self.winHeight - 30 - self.yBorder
+                                            self.mouseCursor.move(*self.mousePosition)
+
+                                            self.Show()
+                                            self.SetFocus()
+                                            self.stoper.Start(self.timeGap)
+
                                     elif label == 'EXERCISES':
                                             if self.pressSound.lower() == 'voice':
                                                 self.zadanieSound.play()
@@ -592,6 +672,107 @@ class main_menu( wx.Frame ):
                                             nowe.nowe( self, id = -1 ).Show( True )
                                             self.Hide( )
 
+                                    # elif label == 'TV':
+                                    #         if self.pressSound.lower() == 'voice':
+                                    #             self.tvSound.play()
+                                    #
+                                    #         # self.stoper.Stop( )
+                                    #         # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                    #         # self.zadanieSound.play( )
+                                    #         # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                    #         # self.stoper.Start( self.timeGap )
+                                    #
+                                    #         self.stoper.Stop( )
+                                    #         tv.TV( self, id = -1 ).Show( True )
+                                    #         self.Hide( )
+
+                                    elif label == 'SKOCZEK':
+                                        if self.pressSound.lower() == 'voice':
+                                            self.skoczekSound.play()
+
+                                        # self.stoper.Stop( )
+                                        # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                        # self.pisakSound.play( )
+                                        # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                        # self.stoper.Start( self.timeGap )
+
+                                        self.stoper.Stop()
+                                        self.Hide()
+                                        self.Update()
+
+                                        self.mousePosition = self.winWidth - self.xBorder / 2., self.winHeight - self.yBorder / 2.
+                                        self.mouseCursor.move(*self.mousePosition)
+
+                                        os.system('bash -c "source ~/at_games/venv/bin/activate && cd ~/at_games/jumper/ && python main.py"')
+
+                                        self.mousePosition = self.winWidth - 4 - self.xBorder, self.winHeight - 30 - self.yBorder
+                                        self.mouseCursor.move(*self.mousePosition)
+
+                                        self.Show()
+                                        self.SetFocus()
+                                        self.stoper.Start(self.timeGap)
+
+                                    ######### UNIPRESS
+                                    # elif label == 'GAMES':
+                                    #     if self.pressSound.lower() == 'voice':
+                                    #         self.gamesSound.play()
+                                    #
+                                    #     self.stoper.Stop()
+                                    #     self.Hide()
+                                    #     self.Update()
+                                    #
+                                    #     self.mousePosition = self.winWidth - 4 - self.xBorder, self.winHeight - 30 - self.yBorder
+                                    #     # self.mousePosition = self.winWidth - self.xBorder / 2., self.winHeight - self.yBorder / 2.
+                                    #     self.mouseCursor.move(*self.mousePosition)
+                                    #
+                                    #     # os.system('bash -c "source ~/at_games/venv/bin/activate && cd ~/at_games/jumper/ && python main.py"')
+                                    #     os.system('bash -c "python3 unipress_client.py"')
+                                    #
+                                    #     self.mousePosition = self.winWidth - 4 - self.xBorder, self.winHeight - 30 - self.yBorder
+                                    #     self.mouseCursor.move(*self.mousePosition)
+                                    #
+                                    #     self.Show()
+                                    #     self.SetFocus()
+                                    #     self.stoper.Start(self.timeGap)
+
+                                    elif label == 'GAMES':
+                                            if self.pressSound.lower() == 'voice':
+                                                self.skoczekSound.play()
+
+                                            # self.stoper.Stop( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # self.zadanieSound.play( )
+                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
+                                            # self.stoper.Start( self.timeGap )
+
+                                            self.stoper.Stop( )
+                                            new_games.games( self, id = -1 ).Show( True )
+                                            self.Hide( )
+
+
+
+                                    elif label == 'GAMES2':
+                                        if self.pressSound.lower() == 'voice':
+                                            self.gamesSound.play()
+
+                                        self.stoper.Stop()
+                                        self.Hide()
+                                        self.Update()
+
+                                        self.mousePosition = self.winWidth - 4 - self.xBorder, self.winHeight - 30 - self.yBorder
+                                        # self.mousePosition = self.winWidth - self.xBorder / 2., self.winHeight - self.yBorder / 2.
+                                        self.mouseCursor.move(*self.mousePosition)
+
+                                        # os.system('bash -c "source ~/at_games/venv/bin/activate && cd ~/at_games/jumper/ && python main.py"')
+                                        os.system('bash -c "python3 unipress_client2.py"')
+
+                                        self.mousePosition = self.winWidth - 4 - self.xBorder, self.winHeight - 30 - self.yBorder
+                                        self.mouseCursor.move(*self.mousePosition)
+
+                                        self.Show()
+                                        self.SetFocus()
+                                        self.stoper.Start(self.timeGap)
+
                                     elif (label == 'PUSTE'):
                                             if self.pressSound.lower() == 'voice':
                                                 self.pusteSound.play()
@@ -691,6 +872,8 @@ class main_menu( wx.Frame ):
                                                 if self.switchSound == "voice":
                                                     if (b.Name == "PISAK"):
                                                         self.pisakSound.play()
+                                                    if (b.Name == "PISAK2"):
+                                                        self.pisak2Sound.play()
                                                     if (b.Name == "EXERCISES"):
                                                         self.zadanieSound.play()
                                                     if (b.Name == "RADIO"):
@@ -703,6 +886,10 @@ class main_menu( wx.Frame ):
                                                         self.noweSound.play()
                                                     if (b.Name == "AKTUALIZACJE"):
                                                         self.aktualizujSound.play()
+                                                    if (b.Name == "TV"):
+                                                        self.tvSound.play()
+                                                    if (b.Name == "GAMES"):
+                                                        self.skoczekSound.play()
                                                     if (b.Name == "PUSTE"):
                                                         self.pusteSound.play()
 

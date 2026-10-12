@@ -28,6 +28,7 @@ from pygame import mixer
 
 from modules import radio, music, audiobook, nowe
 from modules import exercise, tv, new_games
+from modules import wicero
 
 if (psutil.__version__ < 2):
     print("\nFor properly close PISAK you need newer version of psutil. \nType: sudo pip2 install 'psutil==2.2.1' --upgrade\n")
@@ -228,6 +229,9 @@ class main_menu( wx.Frame ):
 
             if self.control != 'tracker':
                 self.stoper.Start( self.timeGap )
+
+            # Wicero: ogloszenia o nowych filmach w tle (nic nie robi bez .wicero_token)
+            self.wiceroNotifier = wicero.Notifier( )
 
         #-------------------------------------------------------------------------
         def createBindings(self):

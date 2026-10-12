@@ -1,6 +1,7 @@
 # files
 *.py[cod]
 .path*
+.wicero_token
 *.*~
 .m3u
 parameters 

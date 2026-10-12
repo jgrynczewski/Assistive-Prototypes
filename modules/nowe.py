@@ -30,7 +30,7 @@ from pygame import mixer
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import iot_client
-from modules import iot, at_youtube, youtube_menu
+from modules import iot, at_youtube, youtube_menu, wicero
 
 #=============================================================================
 class nowe( wx.Frame ):
@@ -78,7 +78,7 @@ class nowe( wx.Frame ):
 			except ValueError:
 				setattr(self, item[:item.find('=')], item[item.find('=')+1:])			
 
-                self.labels = 'IOT YOUTUBE PUSTE PUSTE PUSTE EXIT'.split( )
+                self.labels = 'IOT YOUTUBE WICERO PUSTE PUSTE EXIT'.split( )
 
                 self.flag = 'row'
                 self.pressFlag = False
@@ -120,7 +120,7 @@ class nowe( wx.Frame ):
         #-------------------------------------------------------------------------        
         def initializeBitmaps(self):
             
-            labelFiles = [ self.pathToAP + item for item in [ 'icons/modules/iot.png', 'icons/modules/youtube1.png', 'icons/modules/puste.png', 'icons/modules/puste.png', 'icons/modules/puste.png', 'icons/back.png'] ]
+            labelFiles = [ self.pathToAP + item for item in [ 'icons/modules/iot.png', 'icons/modules/youtube1.png', 'icons/modules/wicero.png', 'icons/modules/puste.png', 'icons/modules/puste.png', 'icons/back.png'] ]
 
             self.labelbitmaps = { }
             for index in xrange( len(self.labels) ):
@@ -374,6 +374,11 @@ class nowe( wx.Frame ):
                                         youtube_menu.youtube_menu( self, id = -1 ).Show( True )
                                         self.Hide( )
 
+                                    elif label == 'WICERO':
+                                        self.stoper.Stop( )
+                                        # Pobiera nadawcow w tle, potem chowa nowe i pokazuje plansze
+                                        wicero.open_wicero( self )
+
                                     elif label == 'EXIT':
                                         if self.pressSound.lower() == 'voice':
                                                 self.powrotSound.play()
@@ -481,6 +486,8 @@ class nowe( wx.Frame ):
                                                         self.iotSound.play()
                                                     if (b.Name == "YOUTUBE"):
                                                         self.youtubeSound.play()
+                                                    if (b.Name == "WICERO"):
+                                                        wicero.say( u'Wicero' )
                                                     if (b.Name == "EXIT"):
                                                         self.powrotSound.play()
                                                     if (b.Name == "PUSTE"):

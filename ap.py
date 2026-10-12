@@ -87,7 +87,8 @@ class main_menu( wx.Frame ):
                 ########## UNIPRESS
                 # self.labels = 'PISAK EXERCISES RADIO MUSIC AUDIOBOOK TV SKOCZEK GAMES PUSTE'.split( )
                 # self.labels = 'PISAK EXERCISES RADIO MUSIC AUDIOBOOK TV SKOCZEK GAMES GAMES2'.split( )
-                self.labels = 'PISAK PISAK2 EXERCISES RADIO MUSIC AUDIOBOOK TV GAMES PUSTE'.split( )
+                # self.labels = 'PISAK PISAK2 EXERCISES RADIO MUSIC AUDIOBOOK TV GAMES PUSTE'.split( )
+                self.labels = 'PISAK PISAK2 EXERCISES RADIO MUSIC AUDIOBOOK TV GAMES NOWE'.split( )
 
                 self.flag = 'row'
                 self.pressFlag = False
@@ -180,7 +181,7 @@ class main_menu( wx.Frame ):
                     'icons/modules/games2.png',
                     # 'icons/modules/games3.png',
                     # 'icons/modules/puste.png',
-                    'icons/modules/puste.png'
+                    'icons/modules/nowe.png'
                 ]
             ]
 
@@ -777,6 +778,7 @@ class main_menu( wx.Frame ):
                                             if self.pressSound.lower() == 'voice':
                                                 self.pusteSound.play()
                                             pass
+
 
                                     self.flag = 'row'
                                     self.rowIteration = 0

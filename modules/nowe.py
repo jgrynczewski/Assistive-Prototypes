@@ -27,7 +27,10 @@ from subprocess import Popen, PIPE, STDOUT
 from pymouse import PyMouse
 from pygame import mixer
 
-import youtube1, youtube2, youtube3, song
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import iot_client
+from modules import iot, at_youtube, youtube_menu
 
 #=============================================================================
 class nowe( wx.Frame ):
@@ -75,7 +78,7 @@ class nowe( wx.Frame ):
 			except ValueError:
 				setattr(self, item[:item.find('=')], item[item.find('=')+1:])			
 
-                self.labels = 'YOUTUBE1 YOUTUBE2 YOUTUBE3 SONG PUSTE EXIT'.split( )
+                self.labels = 'IOT YOUTUBE PUSTE PUSTE PUSTE EXIT'.split( )
 
                 self.flag = 'row'
                 self.pressFlag = False
@@ -103,10 +106,8 @@ class nowe( wx.Frame ):
                 self.pressingSound = mixer.Sound( self.pathToAP + '/sounds/pressSound.ogg' )
                                                         
                 if self.switchSound.lower( ) == 'voice' or self.pressSound.lower( ) == 'voice':
-                        self.youtubeSlowaSound = mixer.Sound( self.pathToAP + '/sounds/youtube_slowa.ogg' )
-                        self.youtubeSlowoSound = mixer.Sound( self.pathToAP + '/sounds/youtube_slowo.ogg' )
-                        self.youtubeLiterySound = mixer.Sound( self.pathToAP + '/sounds/youtube_litery.ogg' )
-                        self.songSound = mixer.Sound( self.pathToAP + '/sounds/song.ogg' )
+                        self.iotSound = mixer.Sound( self.pathToAP + '/sounds/internet_rzeczy.ogg' )
+                        self.youtubeSound = mixer.Sound( self.pathToAP + '/sounds/youtube/youtube.ogg' )
                         self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
                         self.pusteSound = mixer.Sound( self.pathToAP + '/sounds/puste.ogg' )
                         self.usypiamSound = mixer.Sound( self.pathToAP + '/sounds/usypiam.ogg' )
@@ -119,7 +120,7 @@ class nowe( wx.Frame ):
         #-------------------------------------------------------------------------        
         def initializeBitmaps(self):
             
-            labelFiles = [ self.pathToAP + item for item in [ 'icons/modules/youtube1.png', 'icons/modules/youtube2.png', 'icons/modules/youtube3.png', 'icons/modules/song.png', 'icons/modules/puste.png', 'icons/back.png'] ]
+            labelFiles = [ self.pathToAP + item for item in [ 'icons/modules/iot.png', 'icons/modules/youtube1.png', 'icons/modules/puste.png', 'icons/modules/puste.png', 'icons/modules/puste.png', 'icons/back.png'] ]
 
             self.labelbitmaps = { }
             for index in xrange( len(self.labels) ):
@@ -359,73 +360,19 @@ class nowe( wx.Frame ):
                                     
                                     label = self.labels[ self.position ]                            
                                     
-                                    if label == 'YOUTUBE1':
-                                        if self.internet_on():
-
-                                            if self.pressSound.lower() == 'voice':
-                                                self.youtubeSlowaSound.play()
-
-                                            # self.stoper.Stop( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # # self.muzykaSound.play( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # self.stoper.Start( self.timeGap )
-                                        
-                                            self.stoper.Stop( )
-                                            youtube1.youtube1( self, id = -1 ).Show( True )
-                                            self.Hide( )
-                                        else:
-                                            os.system("milena_say Brak połączenia z internetem. Proszę podłączyć komputer do sieci.")
-
-                                    elif label == 'YOUTUBE2':
-                                        if self.internet_on():
-
-                                            if self.pressSound.lower() == 'voice':
-                                                self.youtubeSlowoSound.play()
-
-                                            # self.stoper.Stop( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # # self.muzykaSound.play( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # self.stoper.Start( self.timeGap )
-                                            
-                                            self.stoper.Stop( )
-                                            youtube2.youtube2( self, id = -1 ).Show( True )
-                                            self.Hide( )
-
-                                    elif label == 'YOUTUBE3':
-                                        if self.internet_on():
-                                                
-                                            if self.pressSound.lower() == 'voice':
-                                                self.youtubeLiterySound.play()
-
-                                            # self.stoper.Stop( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # # self.muzykaSound.play( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # self.stoper.Start( self.timeGap )
-                                            
-                                            self.stoper.Stop( )
-                                            youtube3.youtube3( self, id = -1 ).Show( True )
-                                            self.Hide( )
-
-                                    if label == 'SONG':
-                                                
+                                    if label == 'IOT':
                                         if self.pressSound.lower() == 'voice':
-                                            self.songSound.play()
+                                            self.iotSound.play()
+                                        self.stoper.Stop( )
+                                        iot.iot( self, id = -1 ).Show( True )
+                                        self.Hide( )
 
-                                            # self.stoper.Stop( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # # self.muzykaSound.play( )
-                                            # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
-                                            # self.stoper.Start( self.timeGap )
-                                            
-                                            self.stoper.Stop( )
-                                            song.song( self, id = -1 ).Show( True )
-                                            self.Hide( )
-
-                                        else:
-                                            os.system("milena_say Brak połączenia z internetem. Proszę podłączyć komputer do sieci.")
+                                    elif label == 'YOUTUBE':
+                                        if self.pressSound.lower() == 'voice':
+                                            self.youtubeSound.play()
+                                        self.stoper.Stop( )
+                                        youtube_menu.youtube_menu( self, id = -1 ).Show( True )
+                                        self.Hide( )
 
                                     elif label == 'EXIT':
                                         if self.pressSound.lower() == 'voice':
@@ -530,14 +477,10 @@ class nowe( wx.Frame ):
                                                 self.Update( )
 
                                                 if self.switchSound == "voice":
-                                                    if (b.Name == "YOUTUBE1"):
-                                                        self.youtubeSlowaSound.play()
-                                                    if (b.Name == "YOUTUBE2"):
-                                                        self.youtubeSlowoSound.play()
-                                                    if (b.Name == "YOUTUBE3"):
-                                                        self.youtubeLiterySound.play()
-                                                    if (b.Name == "SONG"):
-                                                        self.songSound.play()
+                                                    if (b.Name == "IOT"):
+                                                        self.iotSound.play()
+                                                    if (b.Name == "YOUTUBE"):
+                                                        self.youtubeSound.play()
                                                     if (b.Name == "EXIT"):
                                                         self.powrotSound.play()
                                                     if (b.Name == "PUSTE"):

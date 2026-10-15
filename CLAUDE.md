@@ -3,7 +3,7 @@
 Aplikacja dla osób komunikujących się jednym przełącznikiem lub eyetrackerem (interfejs skanujący, komunikaty głosowe). Działa na komputerach użytkowników: **Ubuntu 20.04 bez aktualizacji systemu, Python 2.7, wxPython 2.8**. Kod musi działać w Pythonie 2.7 - bez f-stringów, `print` jako instrukcja lub `from __future__ import print_function`, `unicode` vs `str`.
 
 ## Bieżące zadanie: moduł Wicero
-Odbiór filmów YouTube przesyłanych przez bliskich w systemie Wicero. **Zacznij od `WICERO_PLAN.md`** (stan, kontrakt API, testy T1-T12, ryzyka), decyzja: `docs/adr/0001-modul-wicero.md`. Backend jest gotowy w chmurze; kod w AP czeka na pierwsze uruchomienie i poprawki na tym komputerze.
+Odbiór filmów YouTube przesyłanych przez bliskich w systemie Wicero. **Zacznij od `WICERO_PLAN.md`** (stan, kontrakt API, testy T1-T13, ryzyka), decyzja: `docs/adr/0001-modul-wicero.md`. Backend jest gotowy w chmurze; kod w AP czeka na pierwsze uruchomienie i poprawki na tym komputerze.
 
 ## Zasady
 - **Terminologia:** nigdy nie używaj słów "opiekun" ani "niepełnosprawny" (kod, UI, komunikaty, dokumentacja). Osoba korzystająca z AP to **kontakt**, osoba wysyłająca materiały - **nadawca**.

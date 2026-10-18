@@ -166,9 +166,10 @@ Testowy kontakt ma jednego nadawcę: **"jan kowalski"** (displayName, małe lite
 
 ## Poprawki 2026-10-18 - testy do powtórzenia
 
-Serwer wdrożony z repo `wicero` (`firebase deploy --only functions`); AP: `git pull`. Przed testami zamknij AP i sprawdź `ps aux | grep ap.py` - nie powinien zostać żaden proces.
+Serwer wdrożony 2026-10-18 (repo `wicero`, commit `d6063d9`; sprawdzone `test_wicero_api.py`: kolejność i teksty po nowemu) - R1-R3 działają od razu. AP (R4, R5): `git pull`. Przed testami zamknij AP i sprawdź `ps aux | grep ap.py` - nie powinien zostać żaden proces.
 
 - [ ] **R1 - tekst przed filmem:** film z komentarzem → czytane "Tytuł. Komentarz"; bez komentarza → sam tytuł; nigdzie "jan kowalski przysyła film".
+  - **Do oceny przy R1:** tytuły z YouTube mają hashtagi, nazwy kanałów i emoji ("... #heroes3 #games #gaming #shorts", "@BEZRETUSZU-polska", "❤️🐶 #usa"). Posłuchać, jak syntezator je czyta. Jeśli przeszkadza - poprawka po stronie serwera (`contact_api.intro_text`: usuwać `#słowa`, `@nazwy` i emoji z tekstu do czytania; tytuł na ekranie bez zmian).
 - [ ] **R2 - kolejność:** nadawca wysyła nowy film → po wejściu w FILMY jest **pierwszy**. Film otwarty (ekran przed filmem), ale nieobejrzany do 85% (np. długi CLANNAD) → przy kolejnym wejściu **nie** jest już na początku, tylko wśród reszty (od najnowszego).
 - [ ] **R3 - jeden komunikat na nadawcę:** jak T13, ale gdy u nadawcy były wcześniej ogłoszone nieotwarte filmy → tylko "X przysyła N nowych filmów.", bez "Czekają nowe filmy. X: ...".
 - [ ] **R4 - cisza w Wicero:** wejść w WICERO (dowolna plansza, ekran przed filmem, film) → nadawca wysyła film → **brak** ogłoszenia, dopóki kontakt jest w Wicero. Po wyjściu z planszy nadawców → ogłoszenie w ciągu ~1 min. Wariant: nadawca wysyła film na kilka sekund przed wejściem w WICERO → ogłoszenie nie pada w środku modułu, tylko po wyjściu (`pending`).

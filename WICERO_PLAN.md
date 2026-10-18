@@ -209,6 +209,10 @@ Warianty do rozważenia:
 
 Decyzja wymaga posłuchania jak Piper czyta każdy wariant z prawdziwym tekstem.
 
+**→ Decyzja 2026-10-19: tylko zapowiedź komentarza** - "Tytuł. Komentarz: treść." (`contact_api.intro_text`, repo `wicero`). Bez imienia nadawcy (wymagałoby odmiany - imiona są dowolne, teksty używają tylko mianownika; kontakt właśnie wybrał nadawcę). Bez wielokropka (pauza zależy od syntezatora). Sam komentarz bez tytułu - czytany bez etykiety. Sprawdzić: R9.
+
+- [ ] **R9 - tytuł i komentarz:** film z komentarzem → "Tytuł. Komentarz: treść." - obie części wyraźnie rozdzielone; film bez komentarza → sam tytuł. Serwer: `firebase deploy --only functions`; AP bez zmian.
+
 ## Do zrobienia później
 - Nagrania `.ogg` dla WICERO / FILMY / POWTÓRZ / START (teraz `milena_say`).
 - Stronicowanie planszy nadawców (> 5).

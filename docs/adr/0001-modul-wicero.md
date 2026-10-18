@@ -68,7 +68,7 @@ nowe.py:  IOT  YOUTUBE  WICERO  PUSTE  PUSTE  EXIT
                           │
                           ▼
           Ekran pośredni filmu: tytuł, komentarz, miniatura
-              milena_say: "<tytuł>. <komentarz>" (bez imienia - kontakt właśnie wybrał nadawcę;
+              milena_say: "<tytuł>. Komentarz: <komentarz>" (bez imienia - kontakt właśnie wybrał nadawcę;
                           bez #hashtagów, @kanałów i emoji)
               przyciski (jeden wiersz, skanowanie od razu po przyciskach):
                 POWTÓRZ (czyta jeszcze raz)  START  NASTĘPNY  POPRZEDNI  POWRÓT

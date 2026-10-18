@@ -77,7 +77,9 @@ SendersBoard.onSelect -> TypesBoard(sender)            (typy z odpowiedzi sender
 TypesBoard.onSelect   -> get_messages() w wątku -> IntroScreen(items)
 IntroScreen.showCurrent: tytuł/komentarz/miniatura, mark_opened (jeśli isNew),
                          _sayThenScan: milena czyta 'say' (wątek, wait) -> dopiero potem skanowanie
-  POWTORZ -> czyta ponownie;  START -> WiceroPlayer(item);  POWROT -> TypesBoard
+  (columnsOnly: jeden wiersz, skanowanie od razu po przyciskach, po 2 przejściach uśpienie)
+  POWTORZ -> czyta ponownie;  START -> WiceroPlayer(item);  NASTEPNY / POPRZEDNI -> moveBy(+1 / -1)
+  POWROT -> TypesBoard
 WiceroPlayer: timer 1 s, przy 85% mark_viewed (raz)
   NASTEPNY / koniec filmu -> _leave(+1): _onExit() + CallAfter(IntroScreen.moveBy(+1))
   POPRZEDNI -> _leave(-1);  EXIT pilota -> zwykłe _onExit() -> IntroScreen
@@ -172,15 +174,28 @@ Serwer wdrożony 2026-10-18 (repo `wicero`, commit `d6063d9`; sprawdzone `test_w
 
 - [x] **R1 - tekst przed filmem:** film z komentarzem → czytane "Tytuł. Komentarz"; bez komentarza → sam tytuł; nigdzie "jan kowalski przysyła film".
   - **Do oceny przy R1:** tytuły z YouTube mają hashtagi, nazwy kanałów i emoji ("... #heroes3 #games #gaming #shorts", "@BEZRETUSZU-polska", "❤️🐶 #usa"). Posłuchać, jak syntezator je czyta. Jeśli przeszkadza - poprawka po stronie serwera (`contact_api.intro_text`: usuwać `#słowa`, `@nazwy` i emoji z tekstu do czytania; tytuł na ekranie bez zmian).
+    **→ Decyzja: usuwamy.** Zrobione po stronie serwera (`contact_api.spoken`, repo `wicero`) - usuwane `#słowa`, `@nazwy` i emoji, także z komentarza; tytuł na ekranie bez zmian. Sprawdzić: R8.
   - **UX 1 - przyciski nawigacji w IntroScreen:** dodać NASTĘPNY i POPRZEDNI, żeby przejść do kolejnego/poprzedniego filmu bez uruchamiania aktualnego. Obecne 3 przyciski (POWTÓRZ, START, POWRÓT) → 5; proponowany układ 2×3: [POPRZEDNI | START | NASTĘPNY] / [POWTÓRZ | PUSTE | POWRÓT]. Zmiana tylko w `IntroScreen.__init__` i `onSelect` - bez wpływu na logikę kolejkowania.
+    **→ Zrobione (decyzja: jeden wiersz, kolejność POWTÓRZ / START / NASTĘPNY / POPRZEDNI / POWRÓT** - układ 2×3 wykluczał UX 3). NASTĘPNY na ostatnim filmie → "To już wszystkie filmy." i powrót (jak w odtwarzaczu); POPRZEDNI na pierwszym → ten sam film od nowa. Uwaga: przeskoczony nowy film jest już "otwarty", więc przy kolejnym wejściu nie jest na początku listy. Sprawdzić: R6.
   - **UX 2 - ikony przycisków IntroScreen:** START → ikona play (jak w odtwarzaczu); POWTÓRZ → ikona powtórz (jeśli jest w zasobach AP). Sprawdzić `icons/pilots/`.
+    **→ Zrobione:** POWTÓRZ `musicPilot/10_repeat.png` (`minitubePilot/10_undo.png` to strzałka jak POWRÓT - myliłaby się), START `minitubePilot/12_play.png`, NASTĘPNY / POPRZEDNI `minitubePilot/4_next.png` / `3_previous.png`. Przy skanowaniu głosowym czytane nazwy.
   - **UX 3 - skanowanie IntroScreen:** jeden wiersz, więc skanowanie od całego wiersza jest zbędne. Powinno startować bezpośrednio od kolumn (jak pilot odtwarzacza), ale automatycznie (nie na klik - film jeszcze nie gra). Zmiana w `IntroScreen` lub nowy wzorzec skanowania.
+    **→ Zrobione:** `Board.columnsOnly` (w `IntroScreen` = True) - po przeczytaniu tekstu skanowanie od razu po przyciskach; po dwóch przejściach uśpienie, naciśnięcie budzi od pierwszego przycisku. Pozostałe plansze bez zmian. Sprawdzić: R6.
 - [x] **R2 - kolejność:** nadawca wysyła nowy film → po wejściu w FILMY jest **pierwszy**. Film otwarty (ekran przed filmem), ale nieobejrzany do 85% (np. długi CLANNAD) → przy kolejnym wejściu **nie** jest już na początku, tylko wśród reszty (od najnowszego).
 - [x] **R3 - jeden komunikat na nadawcę:** jak T13, ale gdy u nadawcy były wcześniej ogłoszone nieotwarte filmy → tylko "X przysyła N nowych filmów.", bez "Czekają nowe filmy. X: ...".
 - [~] **R4 - cisza w Wicero:** wejść w WICERO (dowolna plansza, ekran przed filmem, film) → nadawca wysyła film → **brak** ogłoszenia, dopóki kontakt jest w Wicero. Po wyjściu z planszy nadawców → ogłoszenie w ciągu ~1 min. Wariant: nadawca wysyła film na kilka sekund przed wejściem w WICERO → ogłoszenie nie pada w środku modułu, tylko po wyjściu (`pending`).
   - **Wniosek z `ps aux` (2026-10-18):** AP przy normalnym zamknięciu sprząta po sobie (nowo otwarty PID znika po zamknięciu). Stare procesy w logu R4 to pozostałości z poprzednich sesji testowych (otwarte terminale). W produkcji (autostart, wyłączanie komputera) nigdy nie będą dwa procesy AP jednocześnie. Plik-based `ACTIVE_FILE` rozwiązałby krawędziowy przypadek - ale nie jest krytyczny. Osobna naprawa: zombie `[milena_say]` (patrz niżej).
   - **BUG 3 - zombie milena_say:** `say(wait=False)` tworzy subprocess ale nigdy nie woła `p.wait()`. Skończony proces basha czeka jako zombie do zamknięcia ap.py. Naprawa w `say()`: dodać wątek daemon `threading.Thread(target=p.wait)` dla `wait=False`. Trzy linijki.
+    **→ Zrobione.** (Python 2.7 i tak sprząta zakończone procesy przy następnym `Popen`, więc zombie się nie mnożyły - to porządek, nie wyciek.) Sprawdzić: R7.
 - [x] **R5 - jeden Notifier:** uruchomić AP dwa razy (dwa terminale) → w `wicero.log` zapytania `contact_notifications` tylko z jednego PID, co ~60 s; w logu drugiego procesu "Notifier wylaczony - oglasza juz inny proces AP (PID ...)". Jeśli w normalnym użyciu (jedno AP) ten wpis się pojawia - został proces po poprzednim uruchomieniu: `ps aux | grep ap.py`, ustalić, przy jakim zamknięciu AP zostaje.
+
+## Poprawki 2026-10-18 (2) - testy do powtórzenia
+
+Serwer (R8): do wdrożenia z repo `wicero` (`firebase deploy --only functions`). AP (R6, R7): `git pull`. Jak poprzednio: przed testami zamknąć AP i sprawdzić `ps aux | grep ap.py`.
+
+- [ ] **R6 - ekran przed filmem:** jeden wiersz z ikonami POWTÓRZ / START / NASTĘPNY / POPRZEDNI / POWRÓT. Po przeczytaniu tekstu skanowanie od razu po przyciskach (bez podświetlania całego wiersza). Po dwóch przejściach bez wyboru - uśpienie; naciśnięcie budzi od POWTÓRZ. NASTĘPNY → następny film (tekst, miniatura); na ostatnim → "To już wszystkie filmy." i powrót do FILMY. POPRZEDNI na pierwszym → ten sam film od nowa. Naciśnięcie zaraz po przeczytaniu tekstu, zanim coś się podświetli - nic się nie dzieje (bez błędu).
+- [ ] **R7 - R4 przy jednym AP:** jeden proces AP (`ps aux | grep ap.py` - jedna linia) → scenariusz R4 razem z wariantem `pending`. Przy okazji: po kilku komunikatach `ps aux | grep milena` - brak `<defunct>`.
+- [ ] **R8 - tekst bez hashtagów:** film z tytułem z `#...`, `@...` i emoji → czytany sam tytuł, bez nich; na ekranie tytuł oryginalny. Tytuł złożony z samych hashtagów → czytany komentarz albo "Film".
 
 ## Do zrobienia później
 - Nagrania `.ogg` dla WICERO / FILMY / POWTÓRZ / START (teraz `milena_say`).

@@ -68,8 +68,10 @@ nowe.py:  IOT  YOUTUBE  WICERO  PUSTE  PUSTE  EXIT
                           │
                           ▼
           Ekran pośredni filmu: tytuł, komentarz, miniatura
-              milena_say: "<tytuł>. <komentarz>" (bez imienia - kontakt właśnie wybrał nadawcę)
-              przyciski: POWTÓRZ (czyta jeszcze raz)  START  POWRÓT
+              milena_say: "<tytuł>. <komentarz>" (bez imienia - kontakt właśnie wybrał nadawcę;
+                          bez #hashtagów, @kanałów i emoji)
+              przyciski (jeden wiersz, skanowanie od razu po przyciskach):
+                POWTÓRZ (czyta jeszcze raz)  START  NASTĘPNY  POPRZEDNI  POWRÓT
                           │ START
                           ▼
           WiceroPlayer (podklasa PlayerFrame) - pilot jak w youtube2

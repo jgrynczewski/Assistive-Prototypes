@@ -4,7 +4,8 @@
 
 Nawigacja:
     nowe.py [WICERO] -> SendersBoard (nadawcy) -> TypesBoard (FILMY)
-        -> IntroScreen (komentarz, POWTORZ / START / POWROT) -> WiceroPlayer
+        -> IntroScreen (komentarz, POWTORZ / START / NASTEPNY / POPRZEDNI / POWROT)
+        -> WiceroPlayer
 
 Cala logika (kolejnosc filmow, teksty do przeczytania, przypomnienia) jest
 w Cloud Functions Wicero - tutaj tylko wyswietlanie i sterowanie.
@@ -59,6 +60,10 @@ def say(text, wait=False):
         p = subprocess.Popen(['milena_say'] + words, stdin=subprocess.PIPE)
         if wait:
             p.wait()
+        else:  # bez wait() skonczony proces zostaje jako zombie (R4, BUG 3)
+            t = threading.Thread(target=p.wait)
+            t.daemon = True
+            t.start()
     except OSError as e:
         _log.error('milena_say: %r', e)
 
@@ -120,7 +125,12 @@ class Board(wx.Frame):
       text   - napis na przycisku (imie nadawcy) albo
       bitmap - sciezka ikony wzgledem katalogu AP
       speech - co przeczytac przy skanowaniu (milena_say); None = brak
+
+    columnsOnly - jeden wiersz: skanowanie od razu po przyciskach, bez
+      zaznaczania calego wiersza; po dwoch przejsciach - uspienie (IntroScreen)
     """
+
+    columnsOnly = False
 
     def __init__(self, parent, buttons, rows=2, columns=3):
         self.winWidth, self.winHeight = wx.DisplaySize()
@@ -163,7 +173,6 @@ class Board(wx.Frame):
 
         self.labels = [b['key'] for b in self.buttons]
 
-        self.flag = 'row'
         self.pressFlag = False
 
         self.numberOfRows = [rows]
@@ -171,10 +180,7 @@ class Board(wx.Frame):
         self.maxRows = [3 * item for item in self.numberOfRows]
         self.maxColumns = [2 * item for item in self.numberOfColumns]
 
-        self.rowIteration = 0
-        self.colIteration = 0
-        self.countRows = 0
-        self.countColumns = 0
+        self.resetScanning()
 
         self.numberOfPresses = 1
 
@@ -260,6 +266,19 @@ class Board(wx.Frame):
         self.Destroy()
 
     #-------------------------------------------------------------------------
+    def resetScanning(self):
+        """Skanowanie od poczatku: od wierszy, a przy columnsOnly od przyciskow."""
+        if self.columnsOnly:
+            self.flag = 'columns'
+            self.rowIteration = 1
+        else:
+            self.flag = 'row'
+            self.rowIteration = 0
+        self.colIteration = 0
+        self.countRows = 0
+        self.countColumns = 0
+
+    #-------------------------------------------------------------------------
     def onSelect(self, key):
         """Wybrano przycisk (poza POWROT / PUSTE) - do nadpisania."""
         pass
@@ -310,10 +329,7 @@ class Board(wx.Frame):
             if self.numberOfPresses == 1:
 
                 if self.flag == 'rest':
-                    self.flag = 'row'
-                    self.rowIteration = 0
-                    self.colIteration = 0
-                    self.countRows = 0
+                    self.resetScanning()
 
                 elif self.flag == 'row':
                     if self.pressSound == 'voice':
@@ -342,6 +358,10 @@ class Board(wx.Frame):
                     self.flag = 'columns'
                     self.colIteration = 0
 
+                elif self.flag == 'columns' and self.colIteration == 0:
+                    # Nic jeszcze nie podswietlone (columnsOnly: zaraz po przeczytaniu tekstu)
+                    pass
+
                 elif self.flag == 'columns':
 
                     self.position = (self.rowIteration - 1) * self.numberOfColumns[0] + self.colIteration - 1
@@ -354,11 +374,7 @@ class Board(wx.Frame):
 
                     label = self.labels[self.position]
 
-                    self.flag = 'row'
-                    self.rowIteration = 0
-                    self.colIteration = 0
-                    self.countColumns = 0
-                    self.countRows = 0
+                    self.resetScanning()
 
                     # Po zresetowaniu stanu - _select moze zamknac okno
                     self._select(label)
@@ -420,7 +436,9 @@ class Board(wx.Frame):
                     self.countRows += 1
 
                 elif self.flag == 'columns':
-                    if self.countColumns == self.maxColumns[0]:
+                    if self.countColumns == self.maxColumns[0] and self.columnsOnly:
+                        self._sleep()
+                    elif self.countColumns == self.maxColumns[0]:
                         self.flag = 'row'
                         self.rowIteration = 0
                         self.colIteration = 0
@@ -453,19 +471,24 @@ class Board(wx.Frame):
                     self.switchingSound.play()
 
             elif self.countRows == self.maxRows[0]:
-                if self.switchSound == 'voice':
-                    self.usypiamSound.play()
-                self.flag = 'rest'
+                self._sleep()
                 self.countRows += 1
-
-                items = self.sizer.GetChildren()
-                for item in items:
-                    b = item.GetWindow()
-                    b.SetBackgroundColour(self.backgroundColour)
-                    b.SetFocus()
 
             else:
                 pass
+
+    #-------------------------------------------------------------------------
+    def _sleep(self):
+        """Uspienie skanowania - budzi je nacisniecie (onPress, flag 'rest')."""
+        if self.switchSound == 'voice':
+            self.usypiamSound.play()
+        self.flag = 'rest'
+
+        items = self.sizer.GetChildren()
+        for item in items:
+            b = item.GetWindow()
+            b.SetBackgroundColour(self.backgroundColour)
+            b.SetFocus()
 
 
 def _fill(buttons, total):
@@ -537,17 +560,22 @@ class TypesBoard(Board):
 #=============================================================================
 class IntroScreen(Board):
     """Ekran przed filmem: miniatura, tytul, komentarz; milena czyta 'say'.
-    Przyciski: POWTORZ / START / POWROT."""
+    Przyciski (jeden wiersz, skanowanie od razu po przyciskach - R6):
+    POWTORZ / START / NASTEPNY / POPRZEDNI / POWROT."""
+
+    columnsOnly = True
 
     def __init__(self, parent, items):
         self.items = items
         self.index = 0
         buttons = [
-            {'key': 'POWTORZ', 'text': u'POWTÓRZ', 'speech': u'Powtórz'},
-            {'key': 'START', 'text': u'START', 'speech': u'Start'},
+            {'key': 'POWTORZ', 'bitmap': 'icons/pilots/musicPilot/10_repeat.png', 'speech': u'Powtórz'},
+            {'key': 'START', 'bitmap': 'icons/pilots/minitubePilot/12_play.png', 'speech': u'Start'},
+            {'key': 'NASTEPNY', 'bitmap': 'icons/pilots/minitubePilot/4_next.png', 'speech': u'Następny'},
+            {'key': 'POPRZEDNI', 'bitmap': 'icons/pilots/minitubePilot/3_previous.png', 'speech': u'Poprzedni'},
             {'key': 'POWROT', 'bitmap': 'icons/back.png'},
         ]
-        Board.__init__(self, parent, buttons, rows=1, columns=3)
+        Board.__init__(self, parent, buttons, rows=1, columns=5)
         self.showCurrent()
 
     def createTop(self, vbox):
@@ -608,11 +636,7 @@ class IntroScreen(Board):
     def _startScanning(self):
         if not self:  # okno zamkniete w trakcie czytania
             return
-        self.flag = 'row'
-        self.rowIteration = 0
-        self.colIteration = 0
-        self.countRows = 0
-        self.countColumns = 0
+        self.resetScanning()
         _resume(self)
 
     def _loadThumbnail(self, item):
@@ -648,9 +672,13 @@ class IntroScreen(Board):
             self.stoper.Stop()
             WiceroPlayer(self, self.current()).Show(True)
             self.Hide()
+        elif key == 'NASTEPNY':
+            self.moveBy(1)
+        elif key == 'POPRZEDNI':
+            self.moveBy(-1)
 
     def moveBy(self, step):
-        """Wywolywane przez WiceroPlayer po NASTEPNY / POPRZEDNI / koncu filmu."""
+        """NASTEPNY / POPRZEDNI - tutaj albo w WiceroPlayer; koniec filmu."""
         if not self:
             return
         index = self.index + step

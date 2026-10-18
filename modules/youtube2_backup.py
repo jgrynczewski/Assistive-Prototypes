@@ -1,4 +1,4 @@
-    dod3#!/bin/env python2.7
+#!/bin/env python2.7
 # -*- coding: utf-8 -*-
 
 # This file is part of AP - Assistive Prototypes.

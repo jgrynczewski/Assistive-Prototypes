@@ -129,24 +129,32 @@ Testowy kontakt ma jednego nadawcę: **"jan kowalski"** (displayName, małe lite
 1. `git pull` na gałęzi `user/radek/master`.
 2. Token: panel admina Wicero → kontakt → token → zapisać do `.wicero_token` w katalogu AP.
 3. W Wicero: kontakt musi mieć **zaakceptowane** połączenie z kontem nadawcy, a nadawca wysłać mu 1-2 filmy **po 2026-10-12** (starsze nie mają pól `openedAt` / `announcedAt` - nie będą ogłaszane ani liczone jako nowe).
-4. `milena_say` i `yt-dlp` - te same co dla YouTube (`AT_YOUTUBE_PLAN.md`).
+4. `milena_say` i `yt-dlp` - te same co dla YouTube (`AT_YOUTUBE_PLAN.md`). Zamiana milena_say na Piper TTS (lepszy głos): `SYNTEZATOR.md`.
 
 ## Testy (do przejścia po kolei)
 
 - [ ] **T1 - API z Pythona 2.7:** `python2.7 test_wicero_api.py` → wersja Pythona/OpenSSL, nadawcy, filmy z `say`. Ryzyko: stare certyfikaty / OpenSSL Ubuntu 20.04 bez aktualizacji (wtedy błąd `offline` z `SSL` w `wicero.log`). API YouTube działa, więc raczej OK.
 - [ ] **T2 - ogłoszenia z terminala:** `python2.7 test_wicero_api.py --notifications` → "X przysyła nowy film." (drugie uruchomienie: bez ogłoszenia, ale z przypomnieniem - `startup=True`).
-- [ ] **T3 - start AP:** `./ap.py` uruchamia się (import `wicero`, ikona). Po ~15 s - przypomnienie o nieotwartych filmach (`milena_say`).
-- [ ] **T4 - kafelek WICERO** w NOWE: czytany przy skanowaniu, wybór → plansza nadawców. Bez internetu → "Brak połączenia z internetem", powrót do skanowania NOWE.
-- [ ] **T5 - plansza nadawców:** imiona na kafelkach (czcionka `tableFontSize`), przy skanowaniu czytane z liczbą nowych ("Anna, 2 nowe filmy"), POWRÓT działa, uśpienie po 3 pustych cyklach.
-- [ ] **T6 - plansza typów:** FILMY + POWRÓT.
-- [ ] **T7 - ekran przed filmem:** miniatura, tytuł, komentarz; najpierw czytanie, potem skanowanie (głosy się nie nakładają); POWTÓRZ czyta ponownie. W aplikacji Wicero (oś czasu nadawcy) nic się nie zmienia - `openedAt` jest tylko w bazie; kolejne wejście w WICERO pokazuje mniejsze `newCount`.
-- [ ] **T8 - odtwarzanie:** START → film; pilot jak w YouTube; po 85% - w aplikacji Wicero status "Obejrzany" z datą (na żywo).
-- [ ] **T9 - nawigacja w filmach:** NASTĘPNY / koniec filmu → ekran następnego filmu; po ostatnim: "To już wszystkie filmy." i powrót do planszy typów; POPRZEDNI na pierwszym filmie - ten sam film.
+- [x] **T3 - start AP:** `./ap.py` uruchamia się (import `wicero`, ikona). Po ~15 s - przypomnienie o nieotwartych filmach (`milena_say`).
+- [x] **T4 - kafelek WICERO** w NOWE: czytany przy skanowaniu, wybór → plansza nadawców. Bez internetu → "Brak połączenia z internetem", powrót do skanowania NOWE.
+- [x] **T5 - plansza nadawców:** imiona na kafelkach (czcionka `tableFontSize`), przy skanowaniu czytane z liczbą nowych ("Anna, 2 nowe filmy"), POWRÓT działa, uśpienie po 3 pustych cyklach.
+- [x] **T6 - plansza typów:** FILMY + POWRÓT.
+- [x] **T7 - ekran przed filmem:** miniatura, tytuł, komentarz; najpierw czytanie, potem skanowanie (głosy się nie nakładają); POWTÓRZ czyta ponownie. W aplikacji Wicero (oś czasu nadawcy) nic się nie zmienia - `openedAt` jest tylko w bazie; kolejne wejście w WICERO pokazuje mniejsze `newCount`.
+  - **Obserwacja 1:** nowo wysłany film pojawia się jako ostatni wśród nieobejrzanych - poprawne (serwer sortuje nieotwarte od najstarszego), ale może zaskakiwać. Rozważyć zmianę kolejności po stronie serwera.
+  - **Obserwacja 2:** na każdym ekranie przed filmem Piper czyta "jan kowalski przysyła film..." - po pierwszym razie zbędne, wystarczyłby sam tytuł + komentarz. Do zmiany w `contact_api.py` po stronie serwera (pole `say` dla kolejnych filmów bez imienia nadawcy).
+  - **Obserwacja 3 / BUG UX:** gdy film ma komentarz, pole `say` zawiera tylko komentarz - tytuł nie jest czytany. Do sprawdzenia/zmiany w `contact_api.py` po stronie serwera.
+  - **Obserwacja 4 / BUG UX - kolejność filmów:** filmy `sent` (w tym CLANNAD 3h) zawsze na początku kolejki, bo warunek `viewed` = 85% nigdy nie zostaje spełniony dla długich filmów. Propozycja: po `mark_opened` (pierwsze wejście na IntroScreen) film trafia do "zwykłej kolejki" (obejrzanych), niezależnie od 85%. Warunek 85% zostawić tylko do ustawienia statusu `viewed` u nadawcy. Zmiana po stronie serwera (`contact_messages` - kolejność i logika `isNew`).
+- [x] **T8 - odtwarzanie:** START → film; pilot jak w YouTube; po 85% - w aplikacji Wicero status "Obejrzany" z datą (na żywo).
+- [x] **T9 - nawigacja w filmach:** NASTĘPNY / koniec filmu → ekran następnego filmu; po ostatnim: "To już wszystkie filmy." i powrót do planszy typów; POPRZEDNI na pierwszym filmie - ten sam film.
+- [x] **T10 - ogłoszenie w tle:**
+  - **BUG 1:** ogłoszenie przychodzi podczas odtwarzania w WiceroPlayer mimo flagi `PLAYING`. Prawdopodobna przyczyna: race condition - wątek Notifiera startuje tuż przed ustawieniem `PLAYING=True`, sprawdzenie flagi jest na początku `_tick`, ale wątek już działa. Do naprawy w `wicero.py`: sprawdzać `PLAYING` też wewnątrz wątku workera przed każdym `say()`.
+  - **BUG 2:** Notifier odpytuje dwa razy na ~60s (log pokazuje naprzemiennie ~37s i ~23s). Prawdopodobnie `wicero.Notifier()` tworzony dwa razy. Sprawdzić `ap.py`.
+  - **Do obserwacji (z planu):** nakładanie głosów na IntroScreen (PLAYING obejmuje tylko WiceroPlayer) - potwierdzone jako problem w praktyce.
 - [ ] **T10 - ogłoszenie w tle:** nadawca wysyła film, AP w menu (lub radio / muzyka) → w ciągu ~1 min "X przysyła nowy film."; w trakcie filmu Wicero - ogłoszenie dopiero po wyjściu z odtwarzacza (Notifier pyta co 60 s, ale pomija takty, gdy `PLAYING`).
   - **Do obserwacji - nakładanie głosów na ekranie przed filmem:** `PLAYING` obejmuje tylko `WiceroPlayer`, więc ogłoszenie może paść w trakcie czytania komentarza w `IntroScreen` (lub na planszach Wicero). Test: wejść na ekran filmu, w tym czasie nadawca wysyła nowy film. Jeśli głosy się nakładają i przeszkadza to - ustawiać `PLAYING = True` (lub osobną flagę) od `open_wicero` do wyjścia z planszy nadawców.
-- [ ] **T13 - wiele filmów przy wyłączonym komputerze:** AP wyłączone, nadawca wysyła kilka filmów → start AP → po ~15 s **jeden** komunikat na nadawcę ("X przysyła 5 nowych filmów."), nie osobny na każdy film. Jeśli u tego nadawcy były wcześniej ogłoszone, ale nieotwarte filmy, padnie też przypomnienie o nich ("Czekają nowe filmy. X: 2 nowe filmy.") - poprawne, ale może mylić; ewentualna zmiana po stronie serwera (`contact_notifications` w repo `wicero`): przy starcie jedno zdanie z łączną liczbą.
-- [ ] **T11 - tryb tracker** (`control=tracker` w `parameters`) - wybór kafelków bez skanowania.
-- [ ] **T12 - zły token** w `.wicero_token` → wejście w WICERO: "Wicero nie jest skonfigurowane..."; w tle cisza (tylko log).
+- [x] **T13 - wiele filmów przy wyłączonym komputerze:** AP wyłączone, nadawca wysyła kilka filmów → start AP → po ~15 s **jeden** komunikat na nadawcę ("X przysyła 5 nowych filmów."), nie osobny na każdy film. Jeśli u tego nadawcy były wcześniej ogłoszone, ale nieotwarte filmy, padnie też przypomnienie o nich ("Czekają nowe filmy. X: 2 nowe filmy.") - poprawne, ale może mylić; ewentualna zmiana po stronie serwera (`contact_notifications` w repo `wicero`): przy starcie jedno zdanie z łączną liczbą.
+- [~] **T11 - tryb tracker** (`control=tracker` w `parameters`) - wybór kafelków bez skanowania.
+- [x] **T12 - zły token** w `.wicero_token` → wejście w WICERO: "Wicero nie jest skonfigurowane..."; w tle cisza (tylko log).
 
 ## Do zrobienia później
 - Nagrania `.ogg` dla WICERO / FILMY / POWTÓRZ / START (teraz `milena_say`).

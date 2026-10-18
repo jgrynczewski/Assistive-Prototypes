@@ -99,3 +99,6 @@ ENV/
 
 # Rope project settings
 .ropeproject
+youtube_oauth_token.json
+client_secrets.json
+.youtube_api_key

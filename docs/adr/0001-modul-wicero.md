@@ -44,7 +44,7 @@ W tekstach, UI i komunikatach nie używamy słów "opiekun" ani "niepełnosprawn
 | Endpoint | Zwraca / robi |
 |---|---|
 | `GET contact_senders` | nadawcy z połączeniem `accepted`, z liczbą nowych (`newCount`) i typami materiałów |
-| `GET contact_messages?senderId=&type=youtube` | filmy w kolejności playlisty: nieobejrzane od najstarszego, potem obejrzane od najnowszego |
+| `GET contact_messages?senderId=&type=youtube` | filmy w kolejności playlisty: nowe (nieotwarte) od najnowszego, potem reszta od najnowszego - 85% nie wpływa na kolejność (zmiana 2026-10-18 po testach: długie filmy blokowały początek listy) |
 | `POST contact_message_event` `{connectionId, messageId, event: "opened" \| "viewed"}` | ustawia `openedAt` (pierwsze wejście) / `status: viewed`, `viewedAt`, `statusChangedBy: "contact"` |
 | `POST contact_notifications` `{startup: bool}` | `{say: [...]}` - ogłoszenia nowych (i oznacza je `announcedAt`) oraz przypomnienie o nieotwartych, jeśli `startup` lub minęła godzina od ostatniego |
 
@@ -68,7 +68,7 @@ nowe.py:  IOT  YOUTUBE  WICERO  PUSTE  PUSTE  EXIT
                           │
                           ▼
           Ekran pośredni filmu: tytuł, komentarz, miniatura
-              milena_say: "<imię> przysyła film. <komentarz>"
+              milena_say: "<tytuł>. <komentarz>" (bez imienia - kontakt właśnie wybrał nadawcę)
               przyciski: POWTÓRZ (czyta jeszcze raz)  START  POWRÓT
                           │ START
                           ▼
@@ -85,7 +85,7 @@ nowe.py:  IOT  YOUTUBE  WICERO  PUSTE  PUSTE  EXIT
 - Timer w głównym oknie AP (`ap.py`, istnieje przez cały czas działania) co **60 s** woła `contact_notifications` w osobnym wątku.
 - Nowy film → **jedno** ogłoszenie: "<imię> przysyła nowy film." (imię zawsze w mianowniku - bez odmiany).
 - Nieotwarte filmy (nigdy nie kliknięte) → przypomnienie **przy starcie AP i co godzinę**.
-- Podczas oglądania filmu w Wicero nie ogłaszamy (ogłoszenie przy następnym cyklu). W pozostałych modułach (radio, muzyka, audiobook...) ogłaszamy normalnie - `milena_say` mówi przez dźwięk modułu.
+- Gdy kontakt jest w module Wicero (plansze, ekran przed filmem, film), nie ogłaszamy - ogłoszenie po wyjściu, w ciągu minuty. Ogłasza tylko jeden proces AP na komputerze. W pozostałych modułach (radio, muzyka, audiobook...) ogłaszamy normalnie - `milena_say` mówi przez dźwięk modułu.
 - Brak internetu w tle → cisza (wpis w logu). Brak internetu po wejściu w WICERO → `milena_say` "Brak połączenia z internetem" → powrót.
 
 ### 7. Zaproszenia

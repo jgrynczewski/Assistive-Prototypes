@@ -39,7 +39,8 @@ _log = logging.getLogger('wicero')
 if not _log.handlers:
     _handler = logging.FileHandler(LOG_FILE)
     _handler.setFormatter(logging.Formatter(
-        '%(asctime)s %(levelname)s %(message)s', '%Y-%m-%d %H:%M:%S'))
+        # PID - kilka procesow AP pisze do tego samego pliku (T10, BUG 2)
+        '%(asctime)s [%(process)d] %(levelname)s %(message)s', '%Y-%m-%d %H:%M:%S'))
     _log.addHandler(_handler)
     _log.setLevel(logging.INFO)
     _log.propagate = False

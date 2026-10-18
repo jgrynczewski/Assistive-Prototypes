@@ -15,4 +15,4 @@ Odbiór filmów YouTube przesyłanych przez bliskich w systemie Wicero. **Zaczni
 ## Inne dokumenty
 - `AT_YOUTUBE_PLAN.md`, `AT_YOUTUBE_PROGRESS.md` - moduł YouTube (`modules/youtube_menu.py`, `modules/youtube2.py`)
 - `IOT_INTEGRATION_PLAN.md` - moduł IoT (`iot_client.py`, `modules/iot.py`)
-- `parameters` (przez `reader.py`) - ustawienia użytkownika: `control` (`switch` / `tracker`), `timeGap`, kolory, dźwięki
+- `parameters` (przez `reader.py`) - ustawienia użytkownika: `control`, `timeGap`, kolory, dźwięki. Obsługiwany jest tylko `control=switch` (skanowanie). `tracker` jest nieużywany od ok. 10 lat; gałęzie `control == 'tracker'` w modułach to martwa pozostałość - nie testować ani nie rozwijać (szczegóły: T11 w `WICERO_PLAN.md`).

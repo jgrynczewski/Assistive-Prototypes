@@ -38,8 +38,11 @@ NOTIFY_FIRST_DELAY = 15 * 1000      # pierwsze sprawdzenie po starcie AP [ms]
 NOTIFY_INTERVAL = 60 * 1000         # kolejne co minute [ms]
 MAX_SENDERS = 5                     # plansza 2x3: 5 nadawcow + POWROT (stronicowanie - pozniej)
 
-# Ustawiane przez WiceroPlayer - w trakcie filmu Notifier nie oglasza
-PLAYING = False
+# Modul Wicero otwarty (od planszy nadawcow do wyjscia z niej) - Notifier
+# wtedy nie oglasza: ani w trakcie filmu, ani przy czytaniu komentarza (T10)
+ACTIVE = False
+
+NOTIFIER_LOCK = '/tmp/ap_wicero_notifier.lock'  # jeden Notifier na komputer (T10, BUG 2)
 
 
 #=============================================================================
@@ -479,10 +482,18 @@ class SendersBoard(Board):
     """Nadawcy (imiona) + POWROT."""
 
     def __init__(self, parent, senders):
+        global ACTIVE
+        ACTIVE = True
         self.senders = dict(('S%d' % i, s) for i, s in enumerate(senders[:MAX_SENDERS]))
         buttons = [{'key': 'S%d' % i, 'text': s['name'], 'speech': s.get('say', s['name'])}
                    for i, s in enumerate(senders[:MAX_SENDERS])]
         Board.__init__(self, parent, _fill(buttons, 6))
+
+    def onExit(self):
+        # Wyjscie z modulu Wicero - Notifier znow oglasza (zalegle przy nastepnym takcie)
+        global ACTIVE
+        ACTIVE = False
+        Board.onExit(self)
 
     def onSelect(self, key):
         self.stoper.Stop()
@@ -664,8 +675,6 @@ class WiceroPlayer(youtube2.PlayerFrame):
     """
 
     def __init__(self, parent, item):
-        global PLAYING
-        PLAYING = True
         self.item = item
         self._viewedSent = item.get('status') == 'viewed'
         youtube2.PlayerFrame.__init__(self, parent, query='__wicero__')
@@ -712,8 +721,6 @@ class WiceroPlayer(youtube2.PlayerFrame):
         wx.CallAfter(parent.moveBy, step)
 
     def _onExit(self):
-        global PLAYING
-        PLAYING = False
         self.progress.Stop()
         youtube2.PlayerFrame._onExit(self)
 
@@ -725,30 +732,67 @@ class Notifier(wx.EvtHandler):
     Co minute pyta serwer, co przeczytac (nowe filmy - raz; przypomnienie
     o nieotwartych - przy starcie i co godzine; decyduje serwer).
     Nie dziala, gdy brak .wicero_token (AP bez Wicero). Bledy - tylko log.
+
+    Gdy modul Wicero jest otwarty (ACTIVE) - nie pyta i nie czyta. Teksty
+    pobrane tuz przed wejsciem do Wicero (zapytanie trwa) nie gina - serwer
+    oznaczyl je juz jako ogloszone - tylko czekaja w self.pending na wyjscie.
+
+    Tylko jeden Notifier na komputer (blokada NOTIFIER_LOCK): gdy dziala
+    drugi proces AP, ten nie oglasza - inaczej kazde ogloszenie padloby
+    w kazdym procesie (log pokazywal zapytania co ~37 s / ~23 s).
     """
 
     def __init__(self):
         wx.EvtHandler.__init__(self)
         self.startup = True
         self.busy = False
+        self.pending = []
         if not os.path.exists(wicero_client.TOKEN_FILE):
+            return
+        if not self._lock():
             return
         self.timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self._tick, self.timer)
         self.timer.Start(NOTIFY_FIRST_DELAY, oneShot=True)
 
+    def _lock(self):
+        """Blokada na czas zycia procesu (zwalniana przez system przy jego koncu)."""
+        try:
+            import fcntl
+        except ImportError:  # nie-Linux (test na innym komputerze)
+            return True
+        self._lockFile = open(NOTIFIER_LOCK, 'a+')
+        try:
+            fcntl.flock(self._lockFile, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except IOError:
+            self._lockFile.seek(0)
+            _log.warning('Notifier wylaczony - oglasza juz inny proces AP (PID %s). '
+                         'Sprawdz: ps aux | grep ap.py', self._lockFile.read().strip() or '?')
+            return False
+        self._lockFile.seek(0)
+        self._lockFile.truncate()
+        self._lockFile.write(str(os.getpid()))
+        self._lockFile.flush()
+        return True
+
     def _tick(self, event):
         self.timer.Start(NOTIFY_INTERVAL)
-        if self.busy or PLAYING:
+        if self.busy or ACTIVE:
             return
         self.busy = True
         startup = self.startup
 
         def worker():
             try:
-                texts = wicero_client.get_notifications(startup=startup)
-                self.startup = False
-                for text in texts:
+                texts = self.pending
+                self.pending = []
+                if not texts:
+                    texts = wicero_client.get_notifications(startup=startup)
+                    self.startup = False
+                for i, text in enumerate(texts):
+                    if ACTIVE:  # wejscie do Wicero w trakcie zapytania / czytania
+                        self.pending = texts[i:]
+                        break
                     say(text, wait=True)
             except wicero_client.WiceroError as e:
                 _log.error('notifications: %s %s', e.kind, e.message)

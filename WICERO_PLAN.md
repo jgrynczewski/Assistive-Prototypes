@@ -214,6 +214,8 @@ Decyzja wymaga posłuchania jak Piper czyta każdy wariant z prawdziwym tekstem.
 - [ ] **R9 - tytuł i komentarz:** film z komentarzem → "Tytuł. Komentarz: treść." - obie części wyraźnie rozdzielone; film bez komentarza → sam tytuł. Serwer: `firebase deploy --only functions`; AP bez zmian.
 
 ## Do zrobienia później
+- **Nowy model Wicero (repo `wicero`, ADR-0011 "Równoważni użytkownicy", 2026-10-19):** jedno konto dla każdego interfejsu, AP jako "urządzenie" konta (token z aplikacji Wicero), wspólne API `api` zamiast `contact_*`. W etapie 1 `wicero_client.py` przechodzi na nowe API (bez nowych funkcji - dane w Wicero od zera); w etapie 2 wysyłanie z AP ("Prześlij" w odtwarzaczu). ADR-0001 - do aktualizacji.
+- **Z tyłu głowy:** jeśli Wicero się przyjmie, część AP korzystająca z Wicero (`ap.py` i moduły) zostanie prawdopodobnie przepisana na nową bibliotekę, łatwą do zainstalowania na różnych systemach. Dlatego w obecnym AP nie inwestujemy w nic poza cienkim klientem API - logika zostaje w Wicero (ADR-0011, Notatki).
 - Nagrania `.ogg` dla WICERO / FILMY / POWTÓRZ / START (teraz `milena_say`).
 - Stronicowanie planszy nadawców (> 5).
 - Ikony / zdjęcia nadawców (gdy Wicero je doda) i nazwy nadawane per połączenie ("Mama") - TODO w repo Wicero.

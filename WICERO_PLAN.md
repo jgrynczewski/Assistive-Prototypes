@@ -193,9 +193,21 @@ Serwer wdrożony 2026-10-18 (repo `wicero`, commit `d6063d9`; sprawdzone `test_w
 
 Serwer (R8): do wdrożenia z repo `wicero` (`firebase deploy --only functions`). AP (R6, R7): `git pull`. Jak poprzednio: przed testami zamknąć AP i sprawdzić `ps aux | grep ap.py`.
 
-- [ ] **R6 - ekran przed filmem:** jeden wiersz z ikonami POWTÓRZ / START / NASTĘPNY / POPRZEDNI / POWRÓT. Po przeczytaniu tekstu skanowanie od razu po przyciskach (bez podświetlania całego wiersza). Po dwóch przejściach bez wyboru - uśpienie; naciśnięcie budzi od POWTÓRZ. NASTĘPNY → następny film (tekst, miniatura); na ostatnim → "To już wszystkie filmy." i powrót do FILMY. POPRZEDNI na pierwszym → ten sam film od nowa. Naciśnięcie zaraz po przeczytaniu tekstu, zanim coś się podświetli - nic się nie dzieje (bez błędu).
-- [ ] **R7 - R4 przy jednym AP:** jeden proces AP (`ps aux | grep ap.py` - jedna linia) → scenariusz R4 razem z wariantem `pending`. Przy okazji: po kilku komunikatach `ps aux | grep milena` - brak `<defunct>`.
-- [ ] **R8 - tekst bez hashtagów:** film z tytułem z `#...`, `@...` i emoji → czytany sam tytuł, bez nich; na ekranie tytuł oryginalny. Tytuł złożony z samych hashtagów → czytany komentarz albo "Film".
+- [x] **R6 - ekran przed filmem:** jeden wiersz z ikonami POWTÓRZ / START / NASTĘPNY / POPRZEDNI / POWRÓT. Po przeczytaniu tekstu skanowanie od razu po przyciskach (bez podświetlania całego wiersza). Po dwóch przejściach bez wyboru - uśpienie; naciśnięcie budzi od POWTÓRZ. NASTĘPNY → następny film (tekst, miniatura); na ostatnim → "To już wszystkie filmy." i powrót do FILMY. POPRZEDNI na pierwszym → ten sam film od nowa. Naciśnięcie zaraz po przeczytaniu tekstu, zanim coś się podświetli - nic się nie dzieje (bez błędu).
+- [ ] **R7 - R4 przy jednym AP:** jeden proces AP (`ps aux | grep ap.py` - jedna linia) → scenariusz R4 razem z wariantem `pending`. Przy okazji: po kilku komunikatach `ps aux | grep milena` - brak `<defunct>`. *(odłożony - do zrobienia przy kolejnej sesji)*
+- [x] **R8 - tekst bez hashtagów:** film z tytułem z `#...`, `@...` i emoji → czytany sam tytuł, bez nich; na ekranie tytuł oryginalny. Tytuł złożony z samych hashtagów → czytany komentarz albo "Film".
+
+## UX - do analizy i wdrożenia
+
+### Rozdzielenie tytułu od komentarza przy czytaniu
+Aktualnie pole `say` zawiera "Tytuł. Komentarz." - tytuł i komentarz się zlewają w mowie. Propozycja: wyraźne rozdzielenie przez zapowiedź słowną, np. "Tytuł: ... Komentarz od Jan Kowalski: ...". Zmiana po stronie serwera (`contact_api`, pole `say` / `spoken`).
+
+Warianty do rozważenia:
+- **Zapowiedź obu części:** "Tytuł: X. Komentarz od Jana: Y." - pełna informacja, dłuższe
+- **Tylko zapowiedź komentarza:** "X. Komentarz: Y." - krótsze, tytuł bez etykiety (jest oczywisty)
+- **Przerwa interpunkcyjna:** "X... Y." - wielokropek wydłuża pauzę w Piperze; bez dodatkowych słów
+
+Decyzja wymaga posłuchania jak Piper czyta każdy wariant z prawdziwym tekstem.
 
 ## Do zrobienia później
 - Nagrania `.ogg` dla WICERO / FILMY / POWTÓRZ / START (teraz `milena_say`).

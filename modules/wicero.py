@@ -511,6 +511,26 @@ class SendersBoard(Board):
         buttons = [{'key': 'S%d' % i, 'text': s['name'], 'speech': s.get('say', s['name'])}
                    for i, s in enumerate(senders[:MAX_SENDERS])]
         Board.__init__(self, parent, _fill(buttons, 6))
+        self.shown = False
+
+    def Show(self, show=True):
+        # Powrot z planszy typow / filmu (onExit dziecka): liczby nowych mogly
+        # sie zmienic - pobierz je w tle (N3: kafel czytal stare "3 nowe filmy")
+        if show and self.shown:
+            run_in_thread(wicero_client.get_senders, self._refresh,
+                          lambda e: None)  # blad juz w wicero.log; zostaja stare teksty
+        self.shown = self.shown or show
+        return Board.Show(self, show)
+
+    def _refresh(self, senders):
+        if not self:  # okno zamkniete w trakcie zapytania
+            return
+        fresh = dict((s['conversationId'], s) for s in senders)
+        for key, sender in self.senders.items():
+            sender = fresh.get(sender['conversationId'])
+            if sender:
+                self.senders[key] = sender
+                self.speech[key] = sender.get('say', sender['name'])
 
     def onExit(self):
         # Wyjscie z modulu Wicero - Notifier znow oglasza (zalegle przy nastepnym takcie)
@@ -536,6 +556,26 @@ class TypesBoard(Board):
                     'speech': t.get('say', t['label'])}
                    for t in sender['types']]
         Board.__init__(self, parent, _fill(buttons, 6))
+        self.shown = False
+
+    def Show(self, show=True):
+        # Powrot z ekranu przed filmem - jak w SendersBoard.Show
+        if show and self.shown:
+            run_in_thread(wicero_client.get_senders, self._refresh, lambda e: None)
+        self.shown = self.shown or show
+        return Board.Show(self, show)
+
+    def _refresh(self, senders):
+        if not self:
+            return
+        for sender in senders:
+            if sender['conversationId'] == self.sender['conversationId']:
+                self.sender = sender
+                for t in sender['types']:
+                    key = t['type'].upper()
+                    if key in self.types:
+                        self.types[key] = t
+                        self.speech[key] = t.get('say', t['label'])
 
     def onSelect(self, key):
         self.stoper.Stop()

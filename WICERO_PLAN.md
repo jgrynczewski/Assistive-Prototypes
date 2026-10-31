@@ -10,6 +10,12 @@
 6. Logi: `wicero.log` w katalogu AP (każde zapytanie i odpowiedź API, błędy).
 7. Testy T1-T13 niżej - odhaczaj `[x]` w tym pliku i dopisuj obserwacje.
 
+### ▶ Start następnej sesji (stan 2026-10-31 wieczorem)
+- **PRZEŚLIJ w odtwarzaczu** (etap 2) - zaimplementowane i wypchnięte (`c44c54a`), sekcja "PRZEŚLIJ w odtwarzaczu" niżej. Część sieciowa sprawdzona z Pythona 3; **UI jeszcze nie działa poprawnie**: przy pierwszej próbie P1 na komputerze użytkownika pojawił się błąd - szczegóły nieznane (nie zebrane).
+- **Pierwszy krok:** testy P1-P5 (sekcja niżej) na komputerze użytkownika. Przy każdym błędzie zebrać: ostatnie linie terminala, w którym działa AP (traceback Pythona), oraz `tail -n 20 wicero.log`; przy którym kroku i co było widać / słychać.
+- Kod do sprawdzenia przy błędzie (pisany bez wx / VLC - nigdy nie uruchomiony): `wicero.share_film` i `SendBoard` (plansza nad odtwarzaczem bez `Hide`, pauza / wznowienie VLC, `say_then`), `youtube2.PlayerFrame._buttonLabels` / `ICONS` (pasek 8 przycisków), lazy import `from modules import wicero` w `PlayerFrame._wicero`.
+- Niezależnie do sprawdzenia: przycisk ULUBIONE w odtwarzaczu Wicero (test U1 - nie wykonany; ma działać jak w YouTube).
+
 ### Stan na 2026-10-31 - nowy model Wicero (ADR-0011 w repo `wicero`)
 - AP jest **urządzeniem konta Wicero**: token urządzenia z aplikacji Wicero (ekran "Urządzenia" albo panel admina → użytkownik → Urządzenia). Te same kontakty i historia co w aplikacji na telefonie.
 - `wicero_client.py` przeszedł na wspólne API `/api/v1/...` (stare `contact_*` usunięte). Zwraca te same pola co wcześniej - w `modules/wicero.py` zmieniło się tylko `senderId` → `conversationId`. Sprawdzone z komputera deweloperskiego (Python 3, `test_wicero_api.py`, test T20 w repo `wicero`).
@@ -234,7 +240,8 @@ Przycisk **PRZEŚLIJ** (niebieska strzałka, `icons/pilots/minitubePilot/13_shar
 
 Przygotowanie: `git pull`, zamknąć AP. Test Bartek ma teraz w kontaktach tylko Test Anna - do P3 potrzebny drugi kontakt: Test Celina zaprasza Test Bartka w aplikacji, Test Bartek przyjmuje (w aplikacji albo admin w panelu).
 
-- [ ] **P1 - YouTube:** YOUTUBE → WYSZUKAJ → dowolny film → na pasku 8 przycisków, PRZEŚLIJ za ULUBIONE, przy skanowaniu "Prześlij". Wybór → film staje, plansza z Test Anna (i Test Celina po przygotowaniu) → Test Anna → "Film przesłany: Test Anna." → film gra dalej od tego miejsca. W aplikacji u Test Anna nowy film od Test Bartek.
+- [ ] **U1 - ULUBIONE w Wicero:** WICERO → film → START → ULUBIONE (2. przycisk) → wyjść; YOUTUBE → ULUBIONE → film z Wicero na liście, da się odtworzyć.
+- [ ] **P1 - YouTube:** *(2026-10-31: pierwsza próba - błąd, szczegóły nieznane)* YOUTUBE → WYSZUKAJ → dowolny film → na pasku 8 przycisków, PRZEŚLIJ za ULUBIONE, przy skanowaniu "Prześlij". Wybór → film staje, plansza z Test Anna (i Test Celina po przygotowaniu) → Test Anna → "Film przesłany: Test Anna." → film gra dalej od tego miejsca. W aplikacji u Test Anna nowy film od Test Bartek.
 - [ ] **P2 - POWRÓT:** PRZEŚLIJ → na planszy POWRÓT → film gra dalej, nic nie wysłane.
 - [ ] **P3 - Wicero:** WICERO → Test Anna → FILMY → START → PRZEŚLIJ → na planszy **tylko Test Celina** (bez Test Anna - to jej film) → wybór → "Film przesłany: Test Celina." U Test Celina film "przekazany". (Bez drugiego kontaktu: "Nie masz komu przesłać tego filmu." i film gra dalej.)
 - [ ] **P4 - ulubione:** YOUTUBE → ULUBIONE → PRZEŚLIJ za USUŃ, działa jak w P1; USUŃ dalej usuwa z ulubionych.

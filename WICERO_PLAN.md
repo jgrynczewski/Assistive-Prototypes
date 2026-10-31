@@ -10,6 +10,12 @@
 6. Logi: `wicero.log` w katalogu AP (każde zapytanie i odpowiedź API, błędy).
 7. Testy T1-T13 niżej - odhaczaj `[x]` w tym pliku i dopisuj obserwacje.
 
+### Stan na 2026-10-31 - nowy model Wicero (ADR-0011 w repo `wicero`)
+- AP jest **urządzeniem konta Wicero**: token urządzenia z aplikacji Wicero (ekran "Urządzenia" albo panel admina → użytkownik → Urządzenia). Te same kontakty i historia co w aplikacji na telefonie.
+- `wicero_client.py` przeszedł na wspólne API `/api/v1/...` (stare `contact_*` usunięte). Zwraca te same pola co wcześniej - w `modules/wicero.py` zmieniło się tylko `senderId` → `conversationId`. Sprawdzone z komputera deweloperskiego (Python 3, `test_wicero_api.py`, test T20 w repo `wicero`).
+- Dane w Wicero są od zera - **stary token kontaktu przestał działać**, trzeba dodać urządzenie i wpisać nowy token (sekcja "Przygotowanie").
+- **Do zrobienia na komputerze użytkownika:** T21 w repo `wicero` = test modułu w AP na nowym API, razem z R7 / R9 niżej.
+
 ### Stan na 2026-10-18
 - Testy na komputerze użytkownika (Ubuntu 20.04) przeszły: T3-T10, T12, T13. Wnioski z T7 / T10 / T13 poprawione (serwer + `modules/wicero.py`) - **do sprawdzenia: testy R1-R5** (sekcja "Poprawki 2026-10-18" niżej).
 - T1 / T2 (test API z terminala) nie były potrzebne - AP od razu działało. T11 (tracker) - pominięty, tryb nieobsługiwany.
@@ -27,19 +33,19 @@
 
 - System, w którym bliscy (nadawcy) wysyłają kontaktowi linki do filmów YouTube z opcjonalnym komentarzem. Repo: `github.com/jgrynczewski/wicero` (Flutter + Firebase) - **nie trzeba go mieć na tym komputerze**.
 - Nadawca w aplikacji Wicero (web / Android) widzi oś czasu wysłanych filmów ze statusem "Wysłany" / "Obejrzany + data". "Obejrzany" ustawia AP (85% filmu).
-- Kontakt jest dodawany w panelu admina Wicero; dostaje **token** (UUID) - to jego jedyne "logowanie". Admin akceptuje też zaproszenia nadawców (w AP - na razie nie).
+- Każdy ma zwykłe konto Wicero (zakłada je sam albo admin). AP to **urządzenie** tego konta: dostaje **token urządzenia** (w aplikacji Wicero: "Urządzenia" → "Dodaj urządzenie", albo admin w panelu) - to jego jedyne "logowanie". Zaproszenia przyjmuje się w aplikacji Wicero albo admin w imieniu użytkownika (w AP - na razie nie).
 - Backend: Cloud Functions w Pythonie 3.13 w chmurze Google (region `europe-central2`). **Nie działają na tym komputerze** - AP tylko wysyła do nich zapytania HTTPS. Zmiany po stronie serwera robi się w repo Wicero (`functions/`), nie tutaj.
 
 ## API (kontrakt)
 
-Bazowy URL: `https://europe-central2-wicero-d9a70.cloudfunctions.net`. Każde zapytanie: nagłówek `Authorization: Bearer <token>`. Odpowiedzi JSON UTF-8; błąd → `{"error": "..."}` + kod 400/401/404/405. 401 = zły / brak tokenu.
+Bazowy URL: `https://europe-central2-wicero-d9a70.cloudfunctions.net/api`. Każde zapytanie: nagłówek `Authorization: Bearer <token urządzenia>`. Odpowiedzi JSON UTF-8; błąd → `{"error": "..."}` + kod 400/401/403/404. 401 = zły / brak / unieważniony token; 403 = konto nieaktywne. Pełna lista tras: `functions/README.md` w repo `wicero`; AP używa tych:
 
-| Endpoint | Wejście | Wyjście |
+| Trasa | Wejście | Wyjście (`wicero_client.py`) |
 |---|---|---|
-| `GET contact_senders` | - | `{"senders": [{"senderId", "name", "newCount", "say", "types": [{"type": "youtube", "label": "Filmy", "newCount", "say"}]}]}` - posortowani po imieniu |
-| `GET contact_messages` | `?senderId=&type=youtube` | `{"senderName", "items": [{"connectionId", "messageId", "type", "videoId", "url", "title", "thumbnailUrl", "comment", "senderName", "status", "isNew", "say"}]}` - kolejność playlisty: nowe (nieotwarte) od najnowszego, potem reszta od najnowszego (status "obejrzany" nie wpływa na kolejność); max 150. `say` = tytuł + komentarz, bez imienia nadawcy |
-| `POST contact_message_event` | `{"connectionId", "messageId", "event": "opened" \| "viewed"}` | `{"ok": true}` |
-| `POST contact_notifications` | `{"startup": bool}` | `{"say": ["Anna przysyła nowy film.", ...]}` - może być pusta |
+| `GET v1/conversations` | `?voice=pl` | `get_senders()`: `[{"conversationId", "name", "newCount", "say", "types": [{"type": "youtube", "label": "Filmy", "newCount", "say"}]}]` - posortowane po nazwie, także dawne kontakty (historia zostaje) |
+| `GET v1/conversations/{id}/messages` | `?type=youtube&direction=in&order=playlist&voice=pl` | `get_messages()`: `[{"conversationId", "messageId", "videoId", "url", "title", "thumbnailUrl", "comment", "senderName", "status", "isNew", "say", ...}]` - tylko otrzymane; kolejność playlisty: nowe (nieotwarte) od najnowszego, potem reszta od najnowszego (status "obejrzany" nie wpływa na kolejność); max 150. `say` = tytuł + komentarz, bez imienia nadawcy |
+| `POST v1/conversations/{id}/messages/{mid}/events` | `{"event": "opened" \| "viewed"}` | `{"ok": true}` |
+| `POST v1/notifications` | `{"startup": bool}` | `{"say": ["Anna przysyła nowy film.", ...]}` - może być pusta; osobno dla każdego urządzenia |
 
 - `say` - gotowe teksty dla `milena_say` (odmiana po polsku robiona na serwerze). AP ich nie składa.
 - `isNew` - film nigdy nieotwarty (nie było ekranu przed filmem).
@@ -49,13 +55,13 @@ Bazowy URL: `https://europe-central2-wicero-d9a70.cloudfunctions.net`. Każde za
 
 | Plik | Stan | Opis |
 |---|---|---|
-| `wicero_client.py` | ✅ przetestowany na Pythonie 3 z wdrożonym API (2026-10-13: nadawcy, filmy, ogłoszenia, przypomnienia, opened, viewed → "Obejrzany" u nadawcy); ⏳ Python 2.7 | Funkcje: `get_senders`, `get_messages`, `mark_opened`, `mark_viewed`, `get_notifications`. Błędy: `WiceroError.kind` = `offline` / `token` / `server`. |
+| `wicero_client.py` | ✅ nowe API (ADR-0011) przetestowane na Pythonie 3 (2026-10-31: rozmowy, filmy, ogłoszenia, przypomnienia, opened → "Wyświetlono" u nadawcy); ⏳ Python 2.7 na nowym API | Funkcje: `get_senders`, `get_messages`, `mark_opened`, `mark_viewed`, `get_notifications`. Błędy: `WiceroError.kind` = `offline` / `token` / `server`. |
 | `test_wicero_api.py` | ✅ Python 3; ⏳ Python 2.7 | Diagnostyka API (patrz T1). |
 | `modules/wicero.py` | ✅ działa na Ubuntu 20.04 (testy 2026-10-18); ⏳ poprawki Notifiera (R4, R5) | `Board` (plansza ze skanowaniem), `SendersBoard`, `TypesBoard`, `IntroScreen`, `WiceroPlayer`, `Notifier`, `say()`. Samodzielnie: `python2.7 modules/wicero.py` (rodzic `_Standalone` zamiast `nowe.py`; powrót z planszy nadawców kończy program). |
 | `modules/nowe.py` | ✅ | Slot 3: `PUSTE` → `WICERO` (import, etykieta, ikona, `onPress`, dźwięk przy skanowaniu przez `milena_say`). |
 | `ap.py` | ✅ | Import `wicero` + `self.wiceroNotifier = wicero.Notifier( )` w `initializeTimer`. |
 | `icons/modules/wicero.png` | ✅ | Logo Wicero (dwa "V" tworzące "W" - Vincentius / Wincenty) na białym zaokrąglonym kwadracie, 200×200 RGBA. Białe tło celowo: przy skanowaniu kafelek dostaje `scanningColour` (#0033FF), na którym niebieskie logo by znikło. Źródło: repo `wicero`, `assets/logo/wicero.svg` + `tools/generate_icons.py`. |
-| `.wicero_token` | do utworzenia | Token kontaktu z panelu admina Wicero, jedna linia. W `.gitignore`. |
+| `.wicero_token` | do utworzenia | Token urządzenia z aplikacji Wicero ("Urządzenia") albo z panelu admina, jedna linia. W `.gitignore`. |
 | `wicero.log` | tworzony automatycznie | Własny handler loggera `wicero` (nie `basicConfig` - ten zajmuje już `iot_client.py`). Każda linia z PID procesu (`[1234]`) - widać, gdy działa kilka procesów AP. |
 | `/tmp/ap_wicero_notifier.lock` | tworzony automatycznie | Blokada: tylko jeden proces AP ogłasza; w środku PID tego procesu. |
 
@@ -110,34 +116,34 @@ Notifier (ap.py, cały czas, jeden na komputer - blokada w /tmp): 15 s po starci
 
 ## Backend (repo `wicero`) - gdyby trzeba było coś sprawdzić lub zmienić
 
-- Kod: `github.com/jgrynczewski/wicero`, katalog `functions/` (`main.py` - endpointy, `contact_api.py` - teksty i reguły, `tests/` - testy `python -m unittest discover -s tests`). Deploy: `firebase deploy --only functions` (Firebase CLI, konto właściciela projektu) - **zwykle robiony z komputera deweloperskiego**, nie z komputera użytkownika. Opisz potrzebną zmianę w notatce, jeśli nie masz tu repo / CLI.
+- Kod: `github.com/jgrynczewski/wicero`, katalog `functions/` (`wicero_api.py` - trasy, `core.py` - reguły, `voice.py` - teksty do czytania, `tests/` - testy `python -m unittest discover -s tests`; w starszych notatkach niżej `contact_api.py` = dzisiejsze `core.py` + `voice.py`). Deploy: `firebase deploy --only functions` (Firebase CLI, konto właściciela projektu) - **zwykle robiony z komputera deweloperskiego**, nie z komputera użytkownika. Opisz potrzebną zmianę w notatce, jeśli nie masz tu repo / CLI.
 - Firebase Console projektu `wicero-d9a70` → Firestore - podgląd i ręczna edycja danych.
 
 ### Model danych Firestore (to, czego dotyczy AP)
 | Ścieżka | Pola istotne dla AP |
 |---|---|
-| `contacts/{contactId}/private/admin` | `desktopToken` - token z `.wicero_token` |
-| `contacts/{contactId}/private/inbox` | `lastReminderAt` - czas ostatniego przypomnienia / ogłoszenia |
-| `connections/{senderId}_{contactId}` | `senderId`, `contactId`, `status` (`accepted` = nadawca widoczny w AP) |
-| `connections/{connectionId}/messages/{messageId}` | `senderId`, `contactId`, `type: "youtube"`, `videoId`, `url`, `title`, `comment`, `status` (`sent` → `viewed`), `createdAt`, `viewedAt`, `statusChangedBy`, **`openedAt`** (null = nowy, nieotwarty), **`announcedAt`** (null = jeszcze nie ogłoszony) |
-| `users/{senderId}` | `displayName` - imię nadawcy w AP |
+Szczegóły: ADR-0011 w repo `wicero`. Najważniejsze dla AP:
 
-### Reset stanu do ponownych testów (Firebase Console → Firestore, edycja pola)
-- Ponowne ogłoszenie filmu: `announcedAt` → `null` (typ null) i `status` = `sent`.
-- Film znów "nowy" (przypomnienia, `newCount`): `openedAt` → `null`.
-- Ponowne "obejrzany": `status` → `sent`, usunąć `viewedAt`.
-- Przypomnienie od razu (bez startu AP): usunąć `lastReminderAt` w `contacts/{id}/private/inbox`.
-- Najprościej: nadawca wysyła nowy film w aplikacji Wicero (web / Android).
-- Filmy wysłane **przed 2026-10-12** nie mają pól `openedAt` / `announcedAt` - nigdy nie są "nowe" ani ogłaszane (zapytanie `== null` pomija brakujące pola). To celowe.
+| Ścieżka | Pola istotne dla AP |
+|---|---|
+| `users/{uid}` | `displayName`, `status` (`active` / `inactive`) - profil konta; nazwa widoczna dla kontaktów |
+| `users/{uid}/devices/{deviceId}` | `tokenHash` (w bazie tylko skrót tokenu z `.wicero_token`), `announcedUpTo` (do kiedy ogłoszono nowe filmy), `lastReminderAt`, `revokedAt` |
+| `users/{uid}/inbox/{messageId}` | `conversationId`, `senderId`, `type`, `createdAt`, **`openedAt`** (null = nowy, nieotwarty), `viewedAt` |
+| `connections/{uidA}_{uidB}` | `members`, `status` (`accepted` = kontakt) |
+| `conversations/{id}/messages/{messageId}` | `senderId`, `type: "youtube"`, `content` (`videoId`, `url`, `title`), `comment`, `receipts.{uid}` (`openedAt`, `viewedAt`, `by`) |
 
-### Dane testowe (stan 2026-10-13)
-Testowy kontakt ma jednego nadawcę: **"jan kowalski"** (displayName, małe litery - tak jest w danych) i 4 filmy: 2 stare (sprzed pól), "Wojciech Cejrowski..." (nowy, nieotwarty), "Piotr Szumowski..." (obejrzany przez test API). Token testowego kontaktu - od właściciela projektu (nie jest w repo).
+### Reset stanu do ponownych testów
+- Najprościej: nadawca wysyła nowy film w aplikacji Wicero (web / Android) - jest od razu nowy, nieotwarty i do ogłoszenia.
+- Ogłoszenia są osobne dla każdego urządzenia: nowe urządzenie (nowy token) zaczyna od zera.
+
+### Dane testowe (stan 2026-10-31)
+Konta testowe Test Anna (admin), Test Bartek, Test Celina, Test Dorota, Test Ewa - z aplikacji Wicero (repo `wicero`, `docs/testy-adr-0011.md`). Test Bartek ma filmy od Test Anna. Tokeny urządzeń - od właściciela projektu (nie są w repo).
 
 ## Przygotowanie (na komputerze użytkownika)
 
 1. `git pull` na gałęzi `user/radek/master`.
-2. Token: panel admina Wicero → kontakt → token → zapisać do `.wicero_token` w katalogu AP.
-3. W Wicero: kontakt musi mieć **zaakceptowane** połączenie z kontem nadawcy, a nadawca wysłać mu 1-2 filmy **po 2026-10-12** (starsze nie mają pól `openedAt` / `announcedAt` - nie będą ogłaszane ani liczone jako nowe).
+2. Token: aplikacja Wicero (konto osoby korzystającej z AP) → "Urządzenia" → "Dodaj urządzenie" (albo panel admina → użytkownik → Urządzenia) → skopiować token i zapisać jako jedyną linię `.wicero_token` w katalogu AP. Token jest pokazywany tylko raz.
+3. W Wicero: konto musi mieć kontakt (przyjęte zaproszenie) z kontem nadawcy, a nadawca wysłać mu 1-2 filmy.
 4. `milena_say` i `yt-dlp` - te same co dla YouTube (`AT_YOUTUBE_PLAN.md`). Zamiana milena_say na Piper TTS (lepszy głos): `SYNTEZATOR.md`.
 
 ## Testy (do przejścia po kolei)

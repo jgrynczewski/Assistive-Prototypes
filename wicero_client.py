@@ -137,6 +137,27 @@ def mark_viewed(item):
     return _event(item, 'viewed')
 
 
+def get_recipients(exclude=None):
+    """Komu mozna przeslac film: rozmowy z aktualnymi kontaktami (aktywne
+    konta), bez rozmowy exclude (z niej przyszedl film), posortowane po nazwie."""
+    return [c for c in get_senders()
+            if c['canSend'] and c['conversationId'] != exclude]
+
+
+def send_film(conversation_id, film, comment=None):
+    """Przeslij film do rozmowy.
+    film: {'url': link YouTube} - nowy film, albo
+          {'forwardFrom': {'conversationId', 'messageId'}} - przekazanie
+          filmu z Wicero (u odbiorcy "przekazany", bez pochodzenia).
+    comment - komentarz (AP na razie bez - miejsce na pozniej)."""
+    if 'forwardFrom' in film:
+        body = {'forwardFrom': film['forwardFrom']}
+    else:
+        body = {'type': 'youtube', 'url': film['url']}
+    body['comment'] = comment
+    return _call('POST', 'v1/conversations/%s/messages' % conversation_id, body=body)
+
+
 def get_notifications(startup=False):
     """Lista tekstow do przeczytania teraz (moze byc pusta) - osobno dla
     kazdego urzadzenia. startup=True przy starcie AP - wymusza przypomnienie

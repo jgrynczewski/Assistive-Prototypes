@@ -68,14 +68,30 @@ def say(text, wait=False):
         _log.error('milena_say: %r', e)
 
 
-def say_error(error):
+def say_then(text, callback):
+    """Przeczytaj tekst, potem callback() w watku GUI - np. wznowienie filmu
+    dopiero po komunikacie, zeby sie nie nakladaly."""
+    def worker():
+        say(text, wait=True)
+        wx.CallAfter(callback)
+    t = threading.Thread(target=worker)
+    t.daemon = True
+    t.start()
+
+
+def error_text(error):
     """Komunikat dla WiceroError."""
     if error.kind == 'offline':
-        say(u'Brak połączenia z internetem.')
-    elif error.kind == 'token':
-        say(u'Wicero nie jest skonfigurowane. Brak lub nieprawidłowy token.')
-    else:
-        say(u'Wystąpił błąd. Spróbuj później.')
+        return u'Brak połączenia z internetem.'
+    if error.kind == 'token':
+        if os.path.exists(wicero_client.TOKEN_FILE):
+            return u'Nieprawidłowy token Wicero.'  # serwer odrzucil (zly / uniewazniony)
+        return u'Wicero nie jest skonfigurowane.'
+    return u'Wystąpił błąd. Spróbuj później.'
+
+
+def say_error(error):
+    say(error_text(error))
 
 
 def run_in_thread(target, on_success, on_error):
@@ -732,6 +748,79 @@ class IntroScreen(Board):
 
 
 #=============================================================================
+def share_film(player, film):
+    """PRZESLIJ w odtwarzaczu (youtube2.PlayerFrame - YouTube i Wicero):
+    pauza -> plansza kontaktow -> wyslanie -> powrot do filmu w tym samym miejscu.
+    film: jak w wicero_client.send_film, plus 'exclude' - rozmowa, z ktorej
+    film przyszedl (Wicero) - jej nie ma na planszy (odsylanie nie ma sensu)."""
+    player.stoper.Stop()
+    resume = bool(player.player.is_playing())
+    if resume:
+        player.player.pause()
+
+    def back():
+        if resume:
+            player.player.play()
+        _resume(player)
+
+    def on_success(recipients):
+        if not recipients:
+            say_then(u'Nie masz komu przesłać tego filmu.', back)
+            return
+        SendBoard(player, recipients, film, resume).Show(True)
+
+    def on_error(e):
+        say_then(error_text(e), back)
+
+    run_in_thread(lambda: wicero_client.get_recipients(film.get('exclude')),
+                  on_success, on_error)
+
+
+#=============================================================================
+class SendBoard(Board):
+    """Komu przeslac film: kontakty (nazwy) + POWROT. Wybor = wyslanie od razu,
+    "Film przesłany: <nazwa>." i powrot do filmu. Odtwarzacz (rodzic) zostaje
+    pod spodem - bez Hide (VLC rysuje w jego oknie)."""
+
+    def __init__(self, parent, recipients, film, resume):
+        self.film = film
+        self.resume = resume
+        self.sending = False
+        self.closed = False
+        recipients = recipients[:MAX_SENDERS]  # stronicowanie - pozniej
+        self.recipients = dict(('C%d' % i, c) for i, c in enumerate(recipients))
+        buttons = [{'key': 'C%d' % i, 'text': c['name'], 'speech': c['name']}
+                   for i, c in enumerate(recipients)]
+        Board.__init__(self, parent, _fill(buttons, 6))
+
+    def onSelect(self, key):
+        if self.sending:  # drugie nacisniecie w trakcie wysylania
+            return
+        self.sending = True
+        self.stoper.Stop()
+        recipient = self.recipients[key]
+
+        def on_success(result):
+            say_then(u'Film przesłany: %s.' % recipient['name'], self.onExit)
+
+        def on_error(e):
+            say_then(error_text(e), self.onExit)
+
+        # Komentarz (comment=...) - gdy AP dostanie sposob jego wpisania
+        run_in_thread(lambda: wicero_client.send_film(recipient['conversationId'], self.film),
+                      on_success, on_error)
+
+    def onExit(self):
+        # Tylko raz: POWROT w trakcie wysylania, potem koniec komunikatu
+        if self.closed:
+            return
+        self.closed = True
+        if self.resume:
+            self.parent.player.play()
+        Board.onExit(self)
+
+
+#=============================================================================
 class WiceroPlayer(youtube2.PlayerFrame):
     """Odtwarzacz jednego filmu Wicero (wzor: FavouritesPlayer).
 
@@ -753,6 +842,13 @@ class WiceroPlayer(youtube2.PlayerFrame):
 
     def _cacheFile(self):
         return None
+
+    def _shareable(self):
+        # Przekazanie dalej (u odbiorcy "przekazany", bez pochodzenia);
+        # bez nadawcy tego filmu na planszy
+        return {'forwardFrom': {'conversationId': self.item['conversationId'],
+                                'messageId': self.item['messageId']},
+                'exclude': self.item['conversationId']}
 
     def _loadPlaylist(self):
         url = self.item['url']

@@ -219,6 +219,27 @@ Przygotowanie:
 
 Problem → zapisać obserwację tutaj + fragment `wicero.log`.
 
+## PRZEŚLIJ w odtwarzaczu (2026-10-31, etap 2 ADR-0011)
+
+Przycisk **PRZEŚLIJ** (niebieska strzałka, `icons/pilots/minitubePilot/13_share.png`) w odtwarzaczu `youtube2.PlayerFrame` - czyli w YouTube (WYSZUKAJ, ULUBIONE) i w Wicero. LOSOWE (`at_youtube.py`, osobny kod) - bez zmian.
+
+- Miejsce: za ULUBIONE (w ulubionych za USUŃ). Tylko gdy jest plik `.wicero_token` - bez niego pasek jak dawniej (7 przycisków).
+- Wybór → film pauzuje → plansza kontaktów (nazwy, max 5 + POWRÓT; stronicowanie później) → wybór kontaktu = wysłanie od razu → "Film przesłany: <nazwa>." → powrót do filmu, gra dalej. POWRÓT na planszy → film gra dalej, nic nie wysłane.
+- Na planszy tylko aktualne kontakty z aktywnym kontem (`canSend`). W Wicero bez osoby, od której film przyszedł.
+- Z YouTube - nowy film (link). Z Wicero - **przekazanie dalej** (u odbiorcy "przekazany", bez pochodzenia).
+- Komunikaty: brak kontaktów → "Nie masz komu przesłać tego filmu."; brak pliku tokenu → "Wicero nie jest skonfigurowane."; token odrzucony → "Nieprawidłowy token Wicero." (także przy kafelku WICERO); brak sieci → "Brak połączenia z internetem."
+- Komentarz: `wicero_client.send_film(..., comment=None)` - API go przyjmuje, AP na razie nie ma jak go wpisać.
+- Kod: `wicero_client.get_recipients` / `send_film`, `wicero.share_film` + `SendBoard`, `youtube2.PlayerFrame._share` / `_shareable` (`WiceroPlayer._shareable` - przekazanie). Przyciski i ikony odtwarzacza: `PlayerFrame.LABELS` / `ICONS` (wcześniej listy po indeksie; `FavouritesPlayer` podmieniał przyciski po zbudowaniu paska).
+- Sprawdzone z komputera deweloperskiego (Python 3): lista adresatów, przekazanie, wysłanie linku. UI - do sprawdzenia tutaj.
+
+Przygotowanie: `git pull`, zamknąć AP. Test Bartek ma teraz w kontaktach tylko Test Anna - do P3 potrzebny drugi kontakt: Test Celina zaprasza Test Bartka w aplikacji, Test Bartek przyjmuje (w aplikacji albo admin w panelu).
+
+- [ ] **P1 - YouTube:** YOUTUBE → WYSZUKAJ → dowolny film → na pasku 8 przycisków, PRZEŚLIJ za ULUBIONE, przy skanowaniu "Prześlij". Wybór → film staje, plansza z Test Anna (i Test Celina po przygotowaniu) → Test Anna → "Film przesłany: Test Anna." → film gra dalej od tego miejsca. W aplikacji u Test Anna nowy film od Test Bartek.
+- [ ] **P2 - POWRÓT:** PRZEŚLIJ → na planszy POWRÓT → film gra dalej, nic nie wysłane.
+- [ ] **P3 - Wicero:** WICERO → Test Anna → FILMY → START → PRZEŚLIJ → na planszy **tylko Test Celina** (bez Test Anna - to jej film) → wybór → "Film przesłany: Test Celina." U Test Celina film "przekazany". (Bez drugiego kontaktu: "Nie masz komu przesłać tego filmu." i film gra dalej.)
+- [ ] **P4 - ulubione:** YOUTUBE → ULUBIONE → PRZEŚLIJ za USUŃ, działa jak w P1; USUŃ dalej usuwa z ulubionych.
+- [ ] **P5 - bez Wicero:** zmienić nazwę `.wicero_token` (np. na `.wicero_token.off`) → YOUTUBE → film: pasek 7 przycisków jak dawniej; kafelek WICERO → "Wicero nie jest skonfigurowane.". Przywrócić nazwę, wpisać do pliku coś błędnego → PRZEŚLIJ → "Nieprawidłowy token Wicero." i film gra dalej. Na koniec przywrócić prawidłowy token.
+
 ## UX - do analizy i wdrożenia
 
 ### Rozdzielenie tytułu od komentarza przy czytaniu

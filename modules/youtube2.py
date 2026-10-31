@@ -69,6 +69,21 @@ class GenSymbolTextButton(bt.GenBitmapTextButton):
 class PlayerFrame(wx.Frame):
     """Odtwarzacz filmow dla wybranej frazy."""
 
+    # Przyciski paska (jeden wiersz). PRZESLIJ (Wicero) dochodzi za ULUBIONE /
+    # USUN - tylko gdy jest plik .wicero_token (_buttonLabels)
+    LABELS = 'NASTEPNY ULUBIONE PLAY_PAUSE CISZEJ GLOSNIEJ POPRZEDNI EXIT'.split()
+    ICONS = {
+        'NASTEPNY': 'icons/pilots/minitubePilot/4_next.png',
+        'ULUBIONE': 'icons/pilots/minitubePilot/7_download.png',
+        'USUN': 'icons/delete2.png',
+        'PRZESLIJ': 'icons/pilots/minitubePilot/13_share.png',
+        'PLAY_PAUSE': 'icons/pilots/minitubePilot/6_pause.png',
+        'CISZEJ': 'icons/pilots/minitubePilot/1_volume down.png',
+        'GLOSNIEJ': 'icons/pilots/minitubePilot/2_volume up.png',
+        'POPRZEDNI': 'icons/pilots/minitubePilot/3_previous.png',
+        'EXIT': 'icons/pilots/minitubePilot/9_cancel.png',
+    }
+
     def __init__(self, parent, query):
         wx.Frame.__init__(self, parent, -1, 'AP YouTube2')
         style = self.GetWindowStyle()
@@ -83,12 +98,12 @@ class PlayerFrame(wx.Frame):
 
         self._readParameters()
 
-        self.labels = 'NASTEPNY ULUBIONE PLAY_PAUSE CISZEJ GLOSNIEJ POPRZEDNI EXIT'.split()
+        self.labels = self._buttonLabels()
 
         self.flag = 'rest'
         self.pressFlag = False
         self.numberOfRows = [1]
-        self.numberOfColumns = [7]
+        self.numberOfColumns = [len(self.labels)]
         self.maxRows = [3 * item for item in self.numberOfRows]
         self.maxColumns = [2 * item for item in self.numberOfColumns]
         self.rowIteration = 1
@@ -131,6 +146,16 @@ class PlayerFrame(wx.Frame):
         t = threading.Thread(target=self._loadPlaylist)
         t.daemon = True
         t.start()
+
+    def _buttonLabels(self):
+        labels = list(self.LABELS)
+        # Bez Wicero (brak pliku tokenu) pasek jak dotad - bez martwego przycisku
+        if os.path.exists(os.path.join(self.pathToAP, '.wicero_token')):
+            for after in ('ULUBIONE', 'USUN'):
+                if after in labels:
+                    labels.insert(labels.index(after) + 1, 'PRZESLIJ')
+                    break
+        return labels
 
     def _readParameters(self):
         with open('./.pathToAP', 'r') as f:
@@ -193,19 +218,10 @@ class PlayerFrame(wx.Frame):
         self._loading_next = False
 
     def _initGui(self):
-        labelFiles = [
-            self.pathToAP + 'icons/pilots/minitubePilot/4_next.png',
-            self.pathToAP + 'icons/pilots/minitubePilot/7_download.png',
-            self.pathToAP + 'icons/pilots/minitubePilot/6_pause.png',
-            self.pathToAP + 'icons/pilots/minitubePilot/1_volume down.png',
-            self.pathToAP + 'icons/pilots/minitubePilot/2_volume up.png',
-            self.pathToAP + 'icons/pilots/minitubePilot/3_previous.png',
-            self.pathToAP + 'icons/pilots/minitubePilot/9_cancel.png',
-        ]
         self.labelbitmaps = {}
-        for index in xrange(len(self.labels)):
-            self.labelbitmaps[self.labels[index]] = wx.BitmapFromImage(
-                wx.ImageFromStream(open(labelFiles[index], 'rb')))
+        for label in self.labels:
+            self.labelbitmaps[label] = wx.BitmapFromImage(
+                wx.ImageFromStream(open(self.pathToAP + self.ICONS[label], 'rb')))
 
         self.vbox = wx.BoxSizer(wx.VERTICAL)
         self.vlcPanel = wx.Panel(self, -1)
@@ -460,6 +476,23 @@ class PlayerFrame(wx.Frame):
         except Exception as e:
             print '[ULUBIONE] BLAD:', e
 
+    def _shareable(self):
+        """Co wyslac przy PRZESLIJ (wicero_client.send_film): biezacy film jako
+        link YouTube. None - nic nie gra. WiceroPlayer - przekazanie dalej."""
+        if not self.playlist:
+            return None
+        return {'url': self.playlist[self.current_index]}
+
+    def _share(self):
+        film = self._shareable()
+        if film is not None:
+            self._wicero().share_film(self, film)
+
+    def _wicero(self):
+        # Import tutaj, nie na gorze pliku: modules/wicero.py importuje youtube2
+        from modules import wicero
+        return wicero
+
     def onPress(self, event):
         if self.pressSound.lower() != 'off':
             self.pressingSound.play()
@@ -490,6 +523,8 @@ class PlayerFrame(wx.Frame):
                     self._addToFavourites()
                 elif self.label == 'USUN':
                     self._addToFavourites()
+                elif self.label == 'PRZESLIJ':
+                    self._share()
                 elif self.label == 'EXIT':
                     self._onExit()
 
@@ -553,6 +588,10 @@ class PlayerFrame(wx.Frame):
                         if self.pressSound.lower() == 'voice':
                             self.usunSound.play()
                         self._addToFavourites()
+
+                    elif label == 'PRZESLIJ':
+                        # bez dzwieku wyboru - plansza kontaktow zaraz czyta nazwy
+                        self._share()
 
                     elif label == 'EXIT':
                         if self.pressSound.lower() == 'voice':
@@ -618,6 +657,8 @@ class PlayerFrame(wx.Frame):
                             self.ulubioneSound.play()
                         elif b.Name == 'USUN':
                             self.usunSound.play()
+                        elif b.Name == 'PRZESLIJ':
+                            self._wicero().say(u'Prześlij')  # brak nagrania .ogg
                         elif b.Name == 'EXIT':
                             self.powrotSound.play()
 
@@ -682,26 +723,10 @@ class PlayerFrame(wx.Frame):
 class FavouritesPlayer(PlayerFrame):
     """Odtwarzacz ulubionych - laduje filmy z tabeli favourites WHERE status=active."""
 
+    LABELS = 'NASTEPNY POPRZEDNI PLAY_PAUSE CISZEJ GLOSNIEJ USUN EXIT'.split()
+
     def __init__(self, parent):
         PlayerFrame.__init__(self, parent, query='__favourites__')
-        self.labels = 'NASTEPNY POPRZEDNI PLAY_PAUSE CISZEJ GLOSNIEJ USUN EXIT'.split()
-        labelFiles = [
-            self.pathToAP + 'icons/pilots/minitubePilot/4_next.png',
-            self.pathToAP + 'icons/pilots/minitubePilot/3_previous.png',
-            self.pathToAP + 'icons/pilots/minitubePilot/6_pause.png',
-            self.pathToAP + 'icons/pilots/minitubePilot/1_volume down.png',
-            self.pathToAP + 'icons/pilots/minitubePilot/2_volume up.png',
-            self.pathToAP + 'icons/delete2.png',
-            self.pathToAP + 'icons/pilots/minitubePilot/9_cancel.png',
-        ]
-        for index in xrange(len(self.labels)):
-            self.labelbitmaps[self.labels[index]] = wx.BitmapFromImage(
-                wx.ImageFromStream(open(labelFiles[index], 'rb')))
-        items = list(self.sizer.GetChildren())
-        for i, item in enumerate(items):
-            b = item.GetWindow()
-            b.SetName(self.labels[i])
-            b.SetBitmapLabel(self.labelbitmaps[self.labels[i]])
 
     def _removeFromFavourites(self):
         if not self.playlist:

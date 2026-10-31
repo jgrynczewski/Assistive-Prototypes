@@ -236,10 +236,10 @@ Decyzja wymaga posłuchania jak Piper czyta każdy wariant z prawdziwym tekstem.
 - [x] **R9 - tytuł i komentarz:** film z komentarzem → "Tytuł. Komentarz: treść." - obie części wyraźnie rozdzielone; film bez komentarza → sam tytuł. Serwer: `firebase deploy --only functions`; AP bez zmian.
 
 ## Do zrobienia później
-- **Nowy model Wicero (repo `wicero`, ADR-0011 "Równoważni użytkownicy", 2026-10-19):** jedno konto dla każdego interfejsu, AP jako "urządzenie" konta (token z aplikacji Wicero), wspólne API `api` zamiast `contact_*`. W etapie 1 `wicero_client.py` przechodzi na nowe API (bez nowych funkcji - dane w Wicero od zera); w etapie 2 wysyłanie z AP ("Prześlij" w odtwarzaczu). ADR-0001 - do aktualizacji.
+- **Nowy model Wicero (repo `wicero`, ADR-0011 "Równoważni użytkownicy", 2026-10-19):** jedno konto dla każdego interfejsu, AP jako "urządzenie" konta (token z aplikacji Wicero), wspólne API `api` zamiast `contact_*`. Etap 1 zrobiony 2026-10-31: `wicero_client.py` na nowym API, ADR-0001 zaktualizowany. W etapie 2 wysyłanie z AP ("Prześlij" w odtwarzaczu).
 - **Z tyłu głowy:** jeśli Wicero się przyjmie, część AP korzystająca z Wicero (`ap.py` i moduły) zostanie prawdopodobnie przepisana na nową bibliotekę, łatwą do zainstalowania na różnych systemach. Dlatego w obecnym AP nie inwestujemy w nic poza cienkim klientem API - logika zostaje w Wicero (ADR-0011, Notatki).
 - Nagrania `.ogg` dla WICERO / FILMY / POWTÓRZ / START (teraz `milena_say`).
 - Stronicowanie planszy nadawców (> 5).
-- Ikony / zdjęcia nadawców (gdy Wicero je doda) i nazwy nadawane per połączenie ("Mama") - TODO w repo Wicero.
-- Akceptacja zaproszeń w AP (teraz panel admina Wicero).
+- Zdjęcia nadawców na kafelkach - Wicero już je ma (`photoURL` w profilu, API zwraca je w `members`), w AP do zrobienia. Własne nazwy kontaktów ("Mama") już działają - AP dostaje je w `name`.
+- Przyjmowanie zaproszeń w AP (teraz aplikacja Wicero na tym samym koncie albo admin w imieniu użytkownika).
 - Kolejne typy materiałów: serwer zwróci je w `types`, w AP - nowe kafelki na planszy typów i własne ekrany.

@@ -1,8 +1,8 @@
 # ADR-0001: Moduł Wicero w AP - odbiór filmów od bliskich
 
-**Status:** Accepted (pytania otwarte - patrz koniec dokumentu)
+**Status:** Accepted (pytania otwarte - patrz koniec dokumentu). Zaktualizowany 2026-10-31 do nowego modelu Wicero (ADR-0011 w repo Wicero): AP jest **urządzeniem konta Wicero**, a nie osobnym "kontaktem" - zmienione pkt 2-4, 6, 7.
 
-**Data:** 2026-10-12
+**Data:** 2026-10-12, aktualizacja 2026-10-31
 
 ---
 
@@ -29,39 +29,43 @@ W tekstach, UI i komunikatach nie używamy słów "opiekun" ani "niepełnosprawn
 
 | Chmura (Cloud Functions, Python 3.13) | AP (Python 2.7) |
 |---|---|
-| Weryfikacja tokenu kontaktu, sprawdzenie, że kontakt jest aktywny | `.wicero_token` + `wicero_client.py` (styl `iot_client.py`: `urllib2`, timeout, retry, log `wicero.log`) |
+| Weryfikacja tokenu urządzenia, sprawdzenie, że konto jest aktywne | `.wicero_token` + `wicero_client.py` (styl `iot_client.py`: `urllib2`, timeout, retry, log `wicero.log`) |
 | Lista nadawców z liczbą nowych filmów | Kafelek **WICERO** w `nowe.py` → plansza nadawców |
 | Filmy nadawcy w gotowej kolejności | Ekran pośredni + `WiceroPlayer` |
 | Zapis "otwarty" / "obejrzany" | Wywołanie przy wejściu na ekran pośredni / przy 85% filmu |
 | Decyzja: co ogłosić, czy przypomnieć | Timer w tle → `milena_say` |
 
-### 2. Autoryzacja: token w każdym zapytaniu
-- Token kontaktu (UUID z panelu admina Wicero) w pliku `.wicero_token` w katalogu AP (jak `.youtube_api_key`), wpisywany ręcznie przy instalacji.
-- Każde zapytanie wysyła go w nagłówku `Authorization: Bearer <token>`; funkcja szuka kontaktu po tokenie (Admin SDK po stronie serwera).
-- **Zmiana względem ADR-0009 w repo Wicero**, który planował wymianę tokenu na Firebase custom token (`desktop_login`) i bezpośredni dostęp do Firestore. Bez SDK w Pythonie 2.7 custom token wymagałby ręcznej obsługi ID tokenów i odświeżania - token w zapytaniu jest prostszy i wystarcza, bo AP nie nasłuchuje na żywo.
+### 2. Autoryzacja: token urządzenia w każdym zapytaniu
+- Osoba korzystająca z AP ma zwykłe konto Wicero (to samo, którego może używać na telefonie). AP to **urządzenie** tego konta: token urządzenia z aplikacji Wicero ("Urządzenia" → "Dodaj urządzenie") albo z panelu admina, w pliku `.wicero_token` w katalogu AP (jak `.youtube_api_key`), wpisywany ręcznie przy instalacji. Token pokazywany jest raz; w bazie tylko jego skrót.
+- Każde zapytanie wysyła go w nagłówku `Authorization: Bearer <token>`; API ustala po nim konto (Admin SDK po stronie serwera). Unieważnienie urządzenia w aplikacji odcina AP.
+- **Zmiana względem ADR-0009 w repo Wicero**, który planował wymianę tokenu na Firebase custom token (`desktop_login`) i bezpośredni dostęp do Firestore. Bez SDK w Pythonie 2.7 custom token wymagałby ręcznej obsługi ID tokenów i odświeżania - token w zapytaniu jest prostszy i wystarcza, bo AP nie nasłuchuje na żywo. ADR-0011 zachował to rozwiązanie (token urządzenia zamiast tokenu kontaktu).
+- *Do 2026-10-30: token kontaktu (`contacts/{id}/private/admin.desktopToken`) z panelu admina - usunięty razem ze starym modelem.*
 
-### 3. API (repo `wicero/functions/`, wdrożone 2026-10-12)
-| Endpoint | Zwraca / robi |
+### 3. API (repo `wicero/functions/`, wspólne API `api`, od 2026-10-31)
+Bazowy URL `.../api`, trasy `/v1/...` - te same dla aplikacji Flutter i AP. AP używa:
+
+| Trasa | Zwraca / robi |
 |---|---|
-| `GET contact_senders` | nadawcy z połączeniem `accepted`, z liczbą nowych (`newCount`) i typami materiałów |
-| `GET contact_messages?senderId=&type=youtube` | filmy w kolejności playlisty: nowe (nieotwarte) od najnowszego, potem reszta od najnowszego - 85% nie wpływa na kolejność (zmiana 2026-10-18 po testach: długie filmy blokowały początek listy) |
-| `POST contact_message_event` `{connectionId, messageId, event: "opened" \| "viewed"}` | ustawia `openedAt` (pierwsze wejście) / `status: viewed`, `viewedAt`, `statusChangedBy: "contact"` |
-| `POST contact_notifications` `{startup: bool}` | `{say: [...]}` - ogłoszenia nowych (i oznacza je `announcedAt`) oraz przypomnienie o nieotwartych, jeśli `startup` lub minęła godzina od ostatniego |
+| `GET v1/conversations?voice=pl` | rozmowy konta (także z dawnymi kontaktami - historia zostaje) z liczbą nowych (`newCount`) i typami materiałów |
+| `GET v1/conversations/{id}/messages?type=youtube&direction=in&order=playlist&voice=pl` | otrzymane filmy w kolejności playlisty: nowe (nieotwarte) od najnowszego, potem reszta od najnowszego - 85% nie wpływa na kolejność (zmiana 2026-10-18 po testach: długie filmy blokowały początek listy) |
+| `POST v1/conversations/{id}/messages/{mid}/events` `{event: "opened" \| "viewed"}` | odbiór tego konta: `openedAt` (pierwsze wejście) / `viewedAt` - tylko do przodu |
+| `POST v1/notifications` `{startup: bool}` | `{say: [...]}` - ogłoszenia nowych oraz przypomnienie o nieotwartych, jeśli `startup` lub minęła godzina od ostatniego |
 
-Gotowe teksty do przeczytania (`say`) składa serwer - odmiana po polsku w jednym miejscu. Dokładny kontrakt pól: `WICERO_PLAN.md`.
+Gotowe teksty do przeczytania (`say`) składa serwer - odmiana po polsku w jednym miejscu. `wicero_client.py` zwraca modułowi te same pola co przy starych endpointach (`contact_*`, usunięte 2026-10-31). Dokładny kontrakt pól: `WICERO_PLAN.md`, pełna lista tras: `functions/README.md` w repo Wicero.
 
-Odpowiedzi: JSON w UTF-8, błąd → `{"error": "..."}`. Brak / zły token → HTTP 401. Kontakt nieaktywny jest wpuszczany - otrzymane materiały zostają dostępne (ADR-0010 w repo Wicero).
+Odpowiedzi: JSON w UTF-8, błąd → `{"error": "..."}`. Brak / zły / unieważniony token → HTTP 401. Konto nieaktywne (dezaktywowane przez admina) → 403.
 
-### 4. Model danych (rozszerzenie modelu z ADR-0010 w repo Wicero)
-- `messages`: nowe pola `openedAt` (pierwsze wejście na ekran pośredni - "kliknięty") i `announcedAt` (ogłoszony głosowo). Statusy bez zmian: `sent` → `viewed`.
-- Czas ostatniego przypomnienia - w dokumencie per kontakt (np. `contacts/{id}/private/inbox.lastReminderAt`), żeby zachowanie nie zależało od komputera.
+### 4. Model danych (ADR-0011 w repo Wicero)
+- Odbiór per odbiorca w wiadomości: `receipts.{uid}` z `openedAt` (pierwsze wejście na ekran pośredni - "kliknięty") i `viewedAt` (85%). U nadawcy statusy "Wysłano / Wyświetlono / Obejrzano".
+- Co ogłoszono i kiedy było przypomnienie - **osobno dla każdego urządzenia** (`users/{uid}/devices/{id}`: `announcedUpTo`, `lastReminderAt`): ogłoszenie w AP nie wpływa na telefon i odwrotnie.
+- *Wcześniej: pola `openedAt` / `announcedAt` w wiadomości i `lastReminderAt` per kontakt.*
 
 ### 5. Nawigacja i UI w AP
 ```
 nowe.py:  IOT  YOUTUBE  WICERO  PUSTE  PUSTE  EXIT
                           │
                           ▼
-          Plansza nadawców (imię = displayName nadawcy; czytane przy skanowaniu przez milena_say) + POWRÓT
+          Plansza nadawców (nazwa kontaktu - własna nadana w Wicero albo z jego profilu; czytana przy skanowaniu przez milena_say) + POWRÓT
                           ▼
           Plansza typów materiałów: FILMY + POWRÓT
               (od razu, choć typ jest jeden - nawyk nawigacji nie zmieni się, gdy dojdą zdjęcia, słowa, quizy)
@@ -84,14 +88,14 @@ nowe.py:  IOT  YOUTUBE  WICERO  PUSTE  PUSTE  EXIT
 - `WiceroPlayer` nie zapisuje tabeli `seen` w `youtube.db` (stan obejrzenia jest w Wicero). Przycisk ULUBIONE zostaje - dodaje film do ulubionych AP.
 
 ### 6. Powiadomienia
-- Timer w głównym oknie AP (`ap.py`, istnieje przez cały czas działania) co **60 s** woła `contact_notifications` w osobnym wątku.
+- Timer w głównym oknie AP (`ap.py`, istnieje przez cały czas działania) co **60 s** woła `v1/notifications` w osobnym wątku. Po każdym powrocie na planszę nadawców / typów liczby nowych są pobierane ponownie w tle (od 2026-10-31).
 - Nowy film → **jedno** ogłoszenie: "<imię> przysyła nowy film." (imię zawsze w mianowniku - bez odmiany).
 - Nieotwarte filmy (nigdy nie kliknięte) → przypomnienie **przy starcie AP i co godzinę**.
 - Gdy kontakt jest w module Wicero (plansze, ekran przed filmem, film), nie ogłaszamy - ogłoszenie po wyjściu, w ciągu minuty. Ogłasza tylko jeden proces AP na komputerze. W pozostałych modułach (radio, muzyka, audiobook...) ogłaszamy normalnie - `milena_say` mówi przez dźwięk modułu.
 - Brak internetu w tle → cisza (wpis w logu). Brak internetu po wejściu w WICERO → `milena_say` "Brak połączenia z internetem" → powrót.
 
 ### 7. Zaproszenia
-Akceptowane na razie w panelu admina Wicero. W AP - później.
+Przyjmowane w aplikacji Wicero (na tym samym koncie) albo przez admina w imieniu użytkownika (panel admina). W AP - później.
 
 ### 8. Środowisko pracy
 Development i testy bezpośrednio na komputerze użytkownika (Ubuntu 20.04) - odtwarzanie, skanowanie i `milena_say` nie dają się sensownie testować gdzie indziej. Backend (Cloud Functions) rozwijany w repo `wicero`.
@@ -107,8 +111,8 @@ Development i testy bezpośrednio na komputerze użytkownika (Ubuntu 20.04) - od
 ### Negatywne
 - Brak natychmiastowości - nowy film ogłaszany z opóźnieniem do 60 s (akceptowalne dla filmów; przy przyszłym czacie do rewizji).
 - Każda zmiana UI w AP wymaga ręcznego wgrania kodu na komputery użytkowników (brak aktualizacji).
-- Token w pliku na dysku - kto ma dostęp do komputera, może czytać materiały kontaktu (ten sam poziom co `.youtube_api_key`); wyciek → nowy token w panelu admina.
-- Odstępstwo od ADR-0009 (custom token) - do odnotowania w repo Wicero.
+- Token w pliku na dysku - kto ma dostęp do komputera, może czytać materiały z tego konta (ten sam poziom co `.youtube_api_key`); wyciek → unieważnić urządzenie w aplikacji Wicero i dodać nowe.
+- Odstępstwo od ADR-0009 (custom token) - odnotowane w ADR-0011 w repo Wicero (token urządzenia).
 
 ## Rozważane alternatywy
 
@@ -126,7 +130,7 @@ Development i testy bezpośrednio na komputerze użytkownika (Ubuntu 20.04) - od
 **Przeciw:** dużo cykli skanowania przy wielu filmach. **Odłożona.**
 
 ## Ustalenia szczegółowe i pytania otwarte
-- Imię nadawcy: na razie `displayName` z rejestracji Wicero. Nazwa nadawana per połączenie ("Mama", "Ciocia Ania") - TODO w repo Wicero (`PROGRESS.md`, Faza 3).
+- Nazwa nadawcy: własna nazwa kontaktu nadana w Wicero na tym koncie ("Mama", "Ciocia Ania"), a bez niej nazwa z profilu nadawcy - wybiera serwer (pole `name`).
 - Plansza typów materiałów: od razu, z jednym kafelkiem FILMY.
 - Ogłoszenia w trakcie innych modułów: mówimy przez nie.
 - Więcej niż 5 nadawców: na razie nie występuje - stronicowanie planszy później.
@@ -134,6 +138,6 @@ Development i testy bezpośrednio na komputerze użytkownika (Ubuntu 20.04) - od
 
 ## Odnośniki
 - **`WICERO_PLAN.md`** - stan implementacji, kontrakt API, lista testów
-- Repo Wicero: `docs/adr/0009-*` (tokeny, Cloud Functions), `docs/adr/0010-*` (model materiałów), `docs/analiza-wysylanie-materialow.md`
+- Repo Wicero: `docs/adr/0011-rownowazni-uzytkownicy.md` (obecny model: konta, urządzenia, wspólne API), `docs/testy-adr-0011.md` (testy, w tym AP: T20, T21), `functions/README.md` (trasy API); historycznie `docs/adr/0009-*`, `docs/adr/0010-*`
 - `AT_YOUTUBE_PROGRESS.md`, `modules/youtube2.py` (`PlayerFrame`, `FavouritesPlayer`)
 - `IOT_INTEGRATION_PLAN.md`, `iot_client.py` (wzorzec klienta HTTP)

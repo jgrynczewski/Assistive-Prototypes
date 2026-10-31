@@ -203,6 +203,20 @@ Serwer (R8): do wdrożenia z repo `wicero` (`firebase deploy --only functions`).
 - [ ] **R7 - R4 przy jednym AP:** jeden proces AP (`ps aux | grep ap.py` - jedna linia) → scenariusz R4 razem z wariantem `pending`. Przy okazji: po kilku komunikatach `ps aux | grep milena` - brak `<defunct>`. *(odłożony - do zrobienia przy kolejnej sesji)*
 - [x] **R8 - tekst bez hashtagów:** film z tytułem z `#...`, `@...` i emoji → czytany sam tytuł, bez nich; na ekranie tytuł oryginalny. Tytuł złożony z samych hashtagów → czytany komentarz albo "Film".
 
+## Testy na nowym API (2026-10-31, T21 w repo `wicero`)
+
+Przygotowanie:
+1. Zamknąć AP (`ps aux | grep ap.py` - pusto), `git pull` na `user/radek/master`.
+2. Nadawca w aplikacji Wicero (web) zalogowany jako **Test Anna**. Panel admina (Test Anna) → Test Bartek → Urządzenia → "Dodaj urządzenie" `AP - komputer użytkownika` → token jako jedyna linia `.wicero_token` (stary token przestał działać).
+3. Test Anna wysyła Test Bartkowi 2 filmy: jeden **z komentarzem**, jeden **bez**.
+
+- [ ] **N1 - API z Pythona 2.7:** `python2.7 test_wicero_api.py` → rozmowy Test Bartka (Test Anna z liczbą nowych, Test Celina), filmy od Test Anna z `say`. Błąd `offline` z `SSL` w `wicero.log` → zatrzymać się i zgłosić (stare OpenSSL w Pythonie 2.7).
+- [ ] **N2 - przegląd filmów (+R9):** uruchomić AP → WICERO → kafel czytany "Test Anna, N nowych filmów" (N - liczba nieotwartych) → FILMY → ekran przed filmem. Film z komentarzem czytany "Tytuł. Komentarz: treść." (obie części wyraźnie rozdzielone), bez komentarza - sam tytuł. W aplikacji u Test Anna oba filmy: "Wyświetlono".
+- [ ] **N3 - obejrzany:** START na jednym filmie, obejrzeć ponad 85% (krótki film) → u Test Anna "Obejrzano". Na planszy nadawców po powrocie - kafel bez "nowych".
+- [ ] **N4 - ogłoszenia (R7):** jeden proces AP (`ps aux | grep ap.py` - jedna linia), AP na ekranie głównym. Test Anna wysyła film → w ciągu ~1 min "Test Anna przysyła nowy film." - **raz**. Potem: wejść w WICERO i zostać na planszy, Test Anna wysyła kolejny film → **cisza**, dopóki jesteś w module; po wyjściu z planszy nadawców → ogłoszenie w ciągu ~1 min. Na koniec `ps aux | grep milena` - brak `<defunct>`.
+
+Problem → zapisać obserwację tutaj + fragment `wicero.log`.
+
 ## UX - do analizy i wdrożenia
 
 ### Rozdzielenie tytułu od komentarza przy czytaniu

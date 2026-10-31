@@ -37,14 +37,14 @@ def main():
 
     show('\nNadawcy: %d' % len(senders))
     for s in senders:
-        show(u'  %s - nowe: %d (%s)' % (s['name'], s['newCount'], s['senderId']))
+        show(u'  %s - nowe: %d (%s)' % (s['name'], s['newCount'], s['conversationId']))
 
     if not senders:
-        show('Brak nadawcow - kontakt nie ma zaakceptowanych polaczen.')
+        show('Brak rozmow - konto nie ma jeszcze kontaktow.')
         return 0
 
     first = senders[0]
-    items = wicero_client.get_messages(first['senderId'])
+    items = wicero_client.get_messages(first['conversationId'])
     show(u'\nFilmy od %s: %d' % (first['name'], len(items)))
     for item in items:
         show(u'  [%s%s] %s' % (item['status'], ', nowy' if item['isNew'] else '', item['title']))

@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
-"""Klient HTTP API Wicero (Cloud Functions) - ADR-0001 (docs/adr/0001-modul-wicero.md).
+"""Klient HTTP API Wicero (Cloud Functions) - ADR-0001 (docs/adr/0001-modul-wicero.md),
+model z ADR-0011 w repo wicero (docs/adr/0011-rownowazni-uzytkownicy.md).
 
 Dziala w Pythonie 2.7 (AP) i 3 (testy poza AP). Cala logika (kolejnosc
 filmow, teksty do przeczytania, przypomnienia) jest po stronie serwera -
 tutaj tylko zapytania i bledy.
 
-Token kontaktu: plik .wicero_token w katalogu AP (jedna linia, z panelu
-admina Wicero).
+AP to urzadzenie konta Wicero - te same kontakty i historia co w aplikacji.
+Token urzadzenia: plik .wicero_token w katalogu AP (jedna linia, z ekranu
+"Urzadzenia" w aplikacji Wicero albo z panelu admina).
 
 Bledy zglaszane jako WiceroError z polem kind:
   'offline' - brak internetu / serwer nie odpowiada
@@ -25,7 +27,7 @@ except ImportError:  # Python 3 (testy)
     import urllib.request as _request
     from urllib.parse import urlencode
 
-BASE_URL = 'https://europe-central2-wicero-d9a70.cloudfunctions.net'
+BASE_URL = 'https://europe-central2-wicero-d9a70.cloudfunctions.net/api'
 # Pierwsze zapytanie po przerwie budzi funkcje (cold start, 2-5 s)
 TIMEOUT = 20
 
@@ -97,39 +99,46 @@ def _call(method, endpoint, params=None, body=None):
 
 
 def get_senders():
-    """[{'senderId', 'name', 'newCount', 'types': [{'type', 'label', 'newCount'}]}]
-    posortowani po imieniu."""
-    return _call('GET', 'contact_senders')['senders']
+    """Rozmowy (kafle na planszy nadawcow), posortowane po nazwie:
+    [{'conversationId', 'name', 'newCount', 'say',
+      'types': [{'type', 'label', 'newCount', 'say'}]}]
+    Takze dawne kontakty - historia zostaje (ADR-0011)."""
+    return _call('GET', 'v1/conversations', params={'voice': 'pl'})['conversations']
 
 
-def get_messages(sender_id, material_type='youtube'):
-    """Filmy nadawcy w kolejnosci playlisty. Kazdy element:
-    {'connectionId', 'messageId', 'videoId', 'url', 'title', 'thumbnailUrl',
+def get_messages(conversation_id, material_type='youtube'):
+    """Otrzymane filmy rozmowy w kolejnosci playlisty. Kazdy element:
+    {'conversationId', 'messageId', 'videoId', 'url', 'title', 'thumbnailUrl',
      'comment', 'senderName', 'status', 'isNew', 'say'}
     'say' - gotowy tekst dla milena_say na ekranie przed filmem."""
-    return _call('GET', 'contact_messages',
-                 params={'senderId': sender_id, 'type': material_type})['items']
+    messages = _call('GET', 'v1/conversations/%s/messages' % conversation_id, params={
+        'type': material_type, 'direction': 'in', 'order': 'playlist', 'voice': 'pl',
+    })['messages']
+    items = []
+    for m in messages:
+        item = dict(m)
+        item.update(m['content'])  # videoId, url, title, thumbnailUrl
+        items.append(item)
+    return items
+
+
+def _event(item, event):
+    return _call('POST', 'v1/conversations/%s/messages/%s/events'
+                 % (item['conversationId'], item['messageId']), body={'event': event})
 
 
 def mark_opened(item):
-    """Kontakt wszedl na ekran przed filmem."""
-    return _call('POST', 'contact_message_event', body={
-        'connectionId': item['connectionId'],
-        'messageId': item['messageId'],
-        'event': 'opened',
-    })
+    """Wejscie na ekran przed filmem."""
+    return _event(item, 'opened')
 
 
 def mark_viewed(item):
-    """Kontakt obejrzal 85% filmu."""
-    return _call('POST', 'contact_message_event', body={
-        'connectionId': item['connectionId'],
-        'messageId': item['messageId'],
-        'event': 'viewed',
-    })
+    """Obejrzane 85% filmu."""
+    return _event(item, 'viewed')
 
 
 def get_notifications(startup=False):
-    """Lista tekstow do przeczytania teraz (moze byc pusta).
-    startup=True przy starcie AP - wymusza przypomnienie o nieotwartych."""
-    return _call('POST', 'contact_notifications', body={'startup': startup})['say']
+    """Lista tekstow do przeczytania teraz (moze byc pusta) - osobno dla
+    kazdego urzadzenia. startup=True przy starcie AP - wymusza przypomnienie
+    o nieotwartych."""
+    return _call('POST', 'v1/notifications', body={'startup': startup})['say']

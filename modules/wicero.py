@@ -553,7 +553,7 @@ class TypesBoard(Board):
             say_error(e)
             _resume(self)
 
-        run_in_thread(lambda: wicero_client.get_messages(self.sender['senderId'], material_type),
+        run_in_thread(lambda: wicero_client.get_messages(self.sender['conversationId'], material_type),
                       on_success, on_error)
 
 

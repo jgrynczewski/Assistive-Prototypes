@@ -14,7 +14,7 @@
 - AP jest **urządzeniem konta Wicero**: token urządzenia z aplikacji Wicero (ekran "Urządzenia" albo panel admina → użytkownik → Urządzenia). Te same kontakty i historia co w aplikacji na telefonie.
 - `wicero_client.py` przeszedł na wspólne API `/api/v1/...` (stare `contact_*` usunięte). Zwraca te same pola co wcześniej - w `modules/wicero.py` zmieniło się tylko `senderId` → `conversationId`. Sprawdzone z komputera deweloperskiego (Python 3, `test_wicero_api.py`, test T20 w repo `wicero`).
 - Dane w Wicero są od zera - **stary token kontaktu przestał działać**, trzeba dodać urządzenie i wpisać nowy token (sekcja "Przygotowanie").
-- **Do zrobienia na komputerze użytkownika:** T21 w repo `wicero` = test modułu w AP na nowym API, razem z R7 / R9 niżej.
+- Test na komputerze użytkownika (T21 w repo `wicero`, testy N1-N4 niżej) **przeszedł** 2026-10-31, razem z R7 / R9.
 
 ### Stan na 2026-10-18
 - Testy na komputerze użytkownika (Ubuntu 20.04) przeszły: T3-T10, T12, T13. Wnioski z T7 / T10 / T13 poprawione (serwer + `modules/wicero.py`) - **do sprawdzenia: testy R1-R5** (sekcja "Poprawki 2026-10-18" niżej).
@@ -200,7 +200,7 @@ Serwer wdrożony 2026-10-18 (repo `wicero`, commit `d6063d9`; sprawdzone `test_w
 Serwer (R8): do wdrożenia z repo `wicero` (`firebase deploy --only functions`). AP (R6, R7): `git pull`. Jak poprzednio: przed testami zamknąć AP i sprawdzić `ps aux | grep ap.py`.
 
 - [x] **R6 - ekran przed filmem:** jeden wiersz z ikonami POWTÓRZ / START / NASTĘPNY / POPRZEDNI / POWRÓT. Po przeczytaniu tekstu skanowanie od razu po przyciskach (bez podświetlania całego wiersza). Po dwóch przejściach bez wyboru - uśpienie; naciśnięcie budzi od POWTÓRZ. NASTĘPNY → następny film (tekst, miniatura); na ostatnim → "To już wszystkie filmy." i powrót do FILMY. POPRZEDNI na pierwszym → ten sam film od nowa. Naciśnięcie zaraz po przeczytaniu tekstu, zanim coś się podświetli - nic się nie dzieje (bez błędu).
-- [ ] **R7 - R4 przy jednym AP:** jeden proces AP (`ps aux | grep ap.py` - jedna linia) → scenariusz R4 razem z wariantem `pending`. Przy okazji: po kilku komunikatach `ps aux | grep milena` - brak `<defunct>`. *(odłożony - do zrobienia przy kolejnej sesji)*
+- [x] **R7 - R4 przy jednym AP:** jeden proces AP (`ps aux | grep ap.py` - jedna linia) → scenariusz R4 razem z wariantem `pending`. Przy okazji: po kilku komunikatach `ps aux | grep milena` - brak `<defunct>`. *(zrobiony 2026-10-31 jako N4)*
 - [x] **R8 - tekst bez hashtagów:** film z tytułem z `#...`, `@...` i emoji → czytany sam tytuł, bez nich; na ekranie tytuł oryginalny. Tytuł złożony z samych hashtagów → czytany komentarz albo "Film".
 
 ## Testy na nowym API (2026-10-31, T21 w repo `wicero`)
@@ -210,10 +210,12 @@ Przygotowanie:
 2. Nadawca w aplikacji Wicero (web) zalogowany jako **Test Anna**. Panel admina (Test Anna) → Test Bartek → Urządzenia → "Dodaj urządzenie" `AP - komputer użytkownika` → token jako jedyna linia `.wicero_token` (stary token przestał działać).
 3. Test Anna wysyła Test Bartkowi 2 filmy: jeden **z komentarzem**, jeden **bez**.
 
-- [ ] **N1 - API z Pythona 2.7:** `python2.7 test_wicero_api.py` → rozmowy Test Bartka (Test Anna z liczbą nowych, Test Celina), filmy od Test Anna z `say`. Błąd `offline` z `SSL` w `wicero.log` → zatrzymać się i zgłosić (stare OpenSSL w Pythonie 2.7).
-- [ ] **N2 - przegląd filmów (+R9):** uruchomić AP → WICERO → kafel czytany "Test Anna, N nowych filmów" (N - liczba nieotwartych) → FILMY → ekran przed filmem. Film z komentarzem czytany "Tytuł. Komentarz: treść." (obie części wyraźnie rozdzielone), bez komentarza - sam tytuł. W aplikacji u Test Anna oba filmy: "Wyświetlono".
-- [ ] **N3 - obejrzany:** START na jednym filmie, obejrzeć ponad 85% (krótki film) → u Test Anna "Obejrzano". Na planszy nadawców po powrocie - kafel bez "nowych".
-- [ ] **N4 - ogłoszenia (R7):** jeden proces AP (`ps aux | grep ap.py` - jedna linia), AP na ekranie głównym. Test Anna wysyła film → w ciągu ~1 min "Test Anna przysyła nowy film." - **raz**. Potem: wejść w WICERO i zostać na planszy, Test Anna wysyła kolejny film → **cisza**, dopóki jesteś w module; po wyjściu z planszy nadawców → ogłoszenie w ciągu ~1 min. Na koniec `ps aux | grep milena` - brak `<defunct>`.
+- [x] **N1 - API z Pythona 2.7:** `python2.7 test_wicero_api.py` → rozmowy Test Bartka (Test Anna z liczbą nowych, Test Celina), filmy od Test Anna z `say`. Błąd `offline` z `SSL` w `wicero.log` → zatrzymać się i zgłosić (stare OpenSSL w Pythonie 2.7).
+- [x] **N2 - przegląd filmów (+R9):** uruchomić AP → WICERO → kafel czytany "Test Anna, N nowych filmów" (N - liczba nieotwartych) → FILMY → ekran przed filmem. Film z komentarzem czytany "Tytuł. Komentarz: treść." (obie części wyraźnie rozdzielone), bez komentarza - sam tytuł. W aplikacji u Test Anna oba filmy: "Wyświetlono".
+- [x] **N3 - obejrzany:** START na jednym filmie, obejrzeć ponad 85% (krótki film) → u Test Anna "Obejrzano". Na planszy nadawców po powrocie - kafel bez "nowych".
+- [x] **N4 - ogłoszenia (R7):** jeden proces AP (`ps aux | grep ap.py` - jedna linia), AP na ekranie głównym. Test Anna wysyła film → w ciągu ~1 min "Test Anna przysyła nowy film." - **raz**. Potem: wejść w WICERO i zostać na planszy, Test Anna wysyła kolejny film → **cisza**, dopóki jesteś w module; po wyjściu z planszy nadawców → ogłoszenie w ciągu ~1 min. Na koniec `ps aux | grep milena` - brak `<defunct>`.
+
+**Wynik 2026-10-31: N1-N4 przeszły** (R7 i R9 w ramach N4 / N2). Przy N3: kafle po powrocie czytały stare liczby nowych filmów - poprawione (`5937e2a`, odświeżanie w tle przy powrocie na planszę nadawców / FILMY), sprawdzone.
 
 Problem → zapisać obserwację tutaj + fragment `wicero.log`.
 
@@ -231,7 +233,7 @@ Decyzja wymaga posłuchania jak Piper czyta każdy wariant z prawdziwym tekstem.
 
 **→ Decyzja 2026-10-19: tylko zapowiedź komentarza** - "Tytuł. Komentarz: treść." (`contact_api.intro_text`, repo `wicero`). Bez imienia nadawcy (wymagałoby odmiany - imiona są dowolne, teksty używają tylko mianownika; kontakt właśnie wybrał nadawcę). Bez wielokropka (pauza zależy od syntezatora). Sam komentarz bez tytułu - czytany bez etykiety. Sprawdzić: R9.
 
-- [ ] **R9 - tytuł i komentarz:** film z komentarzem → "Tytuł. Komentarz: treść." - obie części wyraźnie rozdzielone; film bez komentarza → sam tytuł. Serwer: `firebase deploy --only functions`; AP bez zmian.
+- [x] **R9 - tytuł i komentarz:** film z komentarzem → "Tytuł. Komentarz: treść." - obie części wyraźnie rozdzielone; film bez komentarza → sam tytuł. Serwer: `firebase deploy --only functions`; AP bez zmian.
 
 ## Do zrobienia później
 - **Nowy model Wicero (repo `wicero`, ADR-0011 "Równoważni użytkownicy", 2026-10-19):** jedno konto dla każdego interfejsu, AP jako "urządzenie" konta (token z aplikacji Wicero), wspólne API `api` zamiast `contact_*`. W etapie 1 `wicero_client.py` przechodzi na nowe API (bez nowych funkcji - dane w Wicero od zera); w etapie 2 wysyłanie z AP ("Prześlij" w odtwarzaczu). ADR-0001 - do aktualizacji.

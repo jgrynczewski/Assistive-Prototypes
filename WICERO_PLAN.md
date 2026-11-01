@@ -10,11 +10,11 @@
 6. Logi: `wicero.log` w katalogu AP (każde zapytanie i odpowiedź API, błędy).
 7. Testy T1-T13 niżej - odhaczaj `[x]` w tym pliku i dopisuj obserwacje.
 
-### ▶ Start następnej sesji (stan 2026-10-31 wieczorem)
-- **PRZEŚLIJ w odtwarzaczu** (etap 2) - zaimplementowane i wypchnięte (`c44c54a`), sekcja "PRZEŚLIJ w odtwarzaczu" niżej. Część sieciowa sprawdzona z Pythona 3; **UI jeszcze nie działa poprawnie**: przy pierwszej próbie P1 na komputerze użytkownika pojawił się błąd - szczegóły nieznane (nie zebrane).
-- **Pierwszy krok:** testy P1-P5 (sekcja niżej) na komputerze użytkownika. Przy każdym błędzie zebrać: ostatnie linie terminala, w którym działa AP (traceback Pythona), oraz `tail -n 20 wicero.log`; przy którym kroku i co było widać / słychać.
-- Kod do sprawdzenia przy błędzie (pisany bez wx / VLC - nigdy nie uruchomiony): `wicero.share_film` i `SendBoard` (plansza nad odtwarzaczem bez `Hide`, pauza / wznowienie VLC, `say_then`), `youtube2.PlayerFrame._buttonLabels` / `ICONS` (pasek 8 przycisków), lazy import `from modules import wicero` w `PlayerFrame._wicero`.
-- Niezależnie do sprawdzenia: przycisk ULUBIONE w odtwarzaczu Wicero (test U1 - nie wykonany; ma działać jak w YouTube).
+### ▶ Start następnej sesji (stan 2026-11-01)
+- **PRZEŚLIJ w odtwarzaczu (etap 2) - gotowe:** testy P1-P5 i U1 przeszły na komputerze użytkownika 2026-11-01 (błąd z pierwszej próby P1 31.10 się nie powtórzył).
+- **Następne zadanie:** nieaktywny kontakt - sekcja "Do zrobienia: nieaktywny kontakt" niżej (komunikat z serwera + oznaczenie na planszy nadawców).
+- Plansza ze skanowaniem (`Board`) jest teraz w `modules/board.py`, wspólna z modułem GRA (`GRA_PLAN.md`); Wicero sprawdzone po przeniesieniu (G9).
+- Przy błędach: AP z terminala (`python ap.py 2>&1 | tee /tmp/ap.log`), traceback + `tail -n 20 wicero.log`.
 
 ### Stan na 2026-10-31 - nowy model Wicero (ADR-0011 w repo `wicero`)
 - AP jest **urządzeniem konta Wicero**: token urządzenia z aplikacji Wicero (ekran "Urządzenia" albo panel admina → użytkownik → Urządzenia). Te same kontakty i historia co w aplikacji na telefonie.
@@ -249,14 +249,14 @@ Problem: gdy ktoś usunie kontakt (albo jego konto zostanie wyłączone), użytk
 
 Sprawdzić najpierw: jak serwer oznacza takie rozmowy (`canSend: false`) i czy odróżnia usunięcie kontaktu od wyłączenia konta.
 
-- [x] **P1** (2026-11-01 passed; pierwsza próba 2026-10-31 - błąd, który się nie powtórzył), **P2**, **P3** (passed 2026-11-01)
+- [x] **P1** (2026-11-01 passed; pierwsza próba 2026-10-31 - błąd, który się nie powtórzył), **P2**, **P3**, **P4**, **P5**, **U1** (passed 2026-11-01)
 
-- [ ] **U1 - ULUBIONE w Wicero:** WICERO → film → START → ULUBIONE (2. przycisk) → wyjść; YOUTUBE → ULUBIONE → film z Wicero na liście, da się odtworzyć.
-- [ ] **P1 - YouTube:** *(2026-10-31: pierwsza próba - błąd, szczegóły nieznane)* YOUTUBE → WYSZUKAJ → dowolny film → na pasku 8 przycisków, PRZEŚLIJ za ULUBIONE, przy skanowaniu "Prześlij". Wybór → film staje, plansza z Test Anna (i Test Celina po przygotowaniu) → Test Anna → "Film przesłany: Test Anna." → film gra dalej od tego miejsca. W aplikacji u Test Anna nowy film od Test Bartek.
-- [ ] **P2 - POWRÓT:** PRZEŚLIJ → na planszy POWRÓT → film gra dalej, nic nie wysłane.
-- [ ] **P3 - Wicero:** WICERO → Test Anna → FILMY → START → PRZEŚLIJ → na planszy **tylko Test Celina** (bez Test Anna - to jej film) → wybór → "Film przesłany: Test Celina." U Test Celina film "przekazany". (Bez drugiego kontaktu: "Nie masz komu przesłać tego filmu." i film gra dalej.)
-- [ ] **P4 - ulubione:** YOUTUBE → ULUBIONE → PRZEŚLIJ za USUŃ, działa jak w P1; USUŃ dalej usuwa z ulubionych.
-- [ ] **P5 - bez Wicero:** zmienić nazwę `.wicero_token` (np. na `.wicero_token.off`) → YOUTUBE → film: pasek 7 przycisków jak dawniej; kafelek WICERO → "Wicero nie jest skonfigurowane.". Przywrócić nazwę, wpisać do pliku coś błędnego → PRZEŚLIJ → "Nieprawidłowy token Wicero." i film gra dalej. Na koniec przywrócić prawidłowy token.
+- [x] **U1 - ULUBIONE w Wicero:** WICERO → film → START → ULUBIONE (2. przycisk) → wyjść; YOUTUBE → ULUBIONE → film z Wicero na liście, da się odtworzyć.
+- [x] **P1 - YouTube:** *(2026-10-31: pierwsza próba - błąd, szczegóły nieznane)* YOUTUBE → WYSZUKAJ → dowolny film → na pasku 8 przycisków, PRZEŚLIJ za ULUBIONE, przy skanowaniu "Prześlij". Wybór → film staje, plansza z Test Anna (i Test Celina po przygotowaniu) → Test Anna → "Film przesłany: Test Anna." → film gra dalej od tego miejsca. W aplikacji u Test Anna nowy film od Test Bartek.
+- [x] **P2 - POWRÓT:** PRZEŚLIJ → na planszy POWRÓT → film gra dalej, nic nie wysłane.
+- [x] **P3 - Wicero:** WICERO → Test Anna → FILMY → START → PRZEŚLIJ → na planszy **tylko Test Celina** (bez Test Anna - to jej film) → wybór → "Film przesłany: Test Celina." U Test Celina film "przekazany". (Bez drugiego kontaktu: "Nie masz komu przesłać tego filmu." i film gra dalej.)
+- [x] **P4 - ulubione:** YOUTUBE → ULUBIONE → PRZEŚLIJ za USUŃ, działa jak w P1; USUŃ dalej usuwa z ulubionych.
+- [x] **P5 - bez Wicero:** zmienić nazwę `.wicero_token` (np. na `.wicero_token.off`) → YOUTUBE → film: pasek 7 przycisków jak dawniej; kafelek WICERO → "Wicero nie jest skonfigurowane.". Przywrócić nazwę, wpisać do pliku coś błędnego → PRZEŚLIJ → "Nieprawidłowy token Wicero." i film gra dalej. Na koniec przywrócić prawidłowy token.
 
 ## UX - do analizy i wdrożenia
 

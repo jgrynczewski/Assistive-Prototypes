@@ -548,6 +548,10 @@ class PlayerFrame(wx.Frame):
         self.colIteration = 0
         self.countColumns = 0
         self.countRows = 0
+        # wx 2.8: MakeModal(True) kazdego okna otwartego w miedzyczasie
+        # (menu YouTube, NOWE...) wylacza WSZYSTKIE inne okna, takze to
+        # ukryte - bez Enable przyciski paska zostaja szare (test B3)
+        self.Enable(True)
         self.Show(True)
         self.Raise()
         self.MakeModal(True)

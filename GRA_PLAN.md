@@ -34,6 +34,6 @@ Aktualizacja gry: `cd ~/ap-gra && git pull && docker compose up -d --build` (nag
 | G7 | Dwa przejścia skanowania bez naciśnięcia, potem naciśnięcie | „usypiam”, potem skanowanie od początku | passed |
 | G8 | `cd ~/ap-gra && docker compose stop`, wejście w GRA; potem `docker compose start` | milena: „Gra nie jest uruchomiona.”, zostaje menu | passed |
 | G9 | Wicero (plansza przeniesiona do `modules/board.py`): nadawcy → FILMY → ekran przed filmem → film → powrót | działa jak wcześniej | passed |
-| G10 | `top` przy otwartej grze | AP nie zjada procesora przez animację (orientacyjnie < 30%) | |
+| G10 | `top` przy otwartej grze | AP nie zjada procesora przez animację (orientacyjnie < 30%) | passed (7-15% CPU, Latitude 7490) |
 
 Przy błędzie: traceback z terminala AP i `tail -n 20 gra.log`.

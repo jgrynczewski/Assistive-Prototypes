@@ -177,19 +177,19 @@ Możliwe rozwiązania:
 - [ ] Dźwięki dla WYSZUKAJ i LOSOWE w youtube_menu (na razie używa youtube.ogg dla obu)
 
 ### Zgłoszone przez użytkownika (2026-11-01)
-- [ ] **Odtwarzacz w tle** - zrobione 2026-11-01, do testów na komputerze użytkownika (B1-B7 niżej).
+- [x] **Odtwarzacz w tle** - zrobione i przetestowane 2026-11-01 (B1-B7 niżej).
   - Decyzje użytkownika: przycisk **W TLE** na pasku odtwarzacza (za PRZEŚLIJ / ULUBIONE / USUŃ) - okno znika, film gra dalej, AP wraca do menu YOUTUBE; powrót: kafel **ODTWARZACZ** w menu YOUTUBE (na miejscu pustego; bez filmu w tle wygląda i działa jak PUSTE); zatrzymanie: EXIT w odtwarzaczu. Moduły, które grają / mówią, **pauzują film w tle i wznawiają po wyjściu**: Wicero, Tajemnica zegara, LOSOWE, MUZYKA, RADIO, AUDIOBOOKI, TV. PISAK, SKOCZEK, ŁAPACZ - film gra dalej.
   - Ustalenia: jeden film w tle naraz (nowy odtwarzacz zamyka ten z tła); odtwarzacz Wicero i LOSOWE bez W TLE; muzyka / radio / audiobook grają dalej po wyjściu z modułu (smplayer) - wtedy film się nie wznawia, wraca grając dopiero przez ODTWARZACZ. **W drugą stronę (z testu B5):** film YouTube, który zaczyna grać (nowy, LOSOWE, Wicero, powrót przez ODTWARZACZ), zamyka smplayer (`background.stopMusic`) - gra to, co wybrane ostatnio, nic się nie nakłada.
   - Kod: `modules/background.py` (jeden odtwarzacz, `pause` / `resume` / `guard`), `youtube2.PlayerFrame` (`BACKGROUND`, `_toBackground`, `returnFromBackground`, `closeBackground`; okno należy do głównego menu AP, więc zamknięcie menu YouTube / galerii go nie zamyka), `youtube_menu.py` (kafel ODTWARZACZ, `Show` → `refreshPlayerTile`), `ap.py` (`background.guard` dla muzyki, radia, audiobooków, TV), `wicero.py` / `gra.py` (pause / resume). Ikony: `icons/pilots/minitubePilot/14_background.png`, `icons/modules/youtube_odtwarzacz.png`.
   - Testy (AP z terminala: `python ap.py 2>&1 | tee /tmp/ap.log`):
-    - B1-B4 passed 2026-11-01 (B3 po poprawce: szary pasek - `Enable` przy powrocie).
+    - B1-B7 passed 2026-11-01 (B7: ok. 1% CPU) (B6: poprzedni film przepada - decyzja: tak zostaje) (B3 po poprawce: szary pasek - `Enable` przy powrocie).
     - [x] **B1** YOUTUBE → WYSZUKAJ → film: na pasku W TLE (nuta ze strzałką) za PRZEŚLIJ, przy skanowaniu „do tła” (`sounds/do_tła.ogg`; bez pliku - głos AP). Wybór → menu YOUTUBE, film słychać dalej; kafel ODTWARZACZ z ikoną, przy skanowaniu „Odtwarzacz”.
     - [x] **B2** Z menu YOUTUBE wyjść do głównego menu, wejść w PISAK albo SKOCZEK - film słychać cały czas, wszystko działa normalnie.
     - [x] **B3** YOUTUBE → ODTWARZACZ - odtwarzacz wraca **z obrazem**, skanowanie paska działa; EXIT → film staje, w menu YOUTUBE kafel znów pusty.
     - [x] **B4** Film w tle → NOWE → WICERO - film milknie; wyjście z Wicero - gra dalej od tego miejsca. To samo z gry Tajemnica zegara.
-    - [ ] **B5** Film w tle → MUZYKA → włączyć album → wyjść - gra muzyka, film stoi; YOUTUBE → ODTWARZACZ - film wraca grając, **muzyka milknie**; W TLE - gra tylko film. Też: muzyka gra → YOUTUBE → WYSZUKAJ → film - muzyka milknie.
-    - [ ] **B6** Film w tle → YOUTUBE → ULUBIONE (albo WYSZUKAJ) → inny film - tamten z tła zamilkł (jeden naraz); W TLE działa też z ULUBIONYCH.
-    - [ ] **B7** `top` z filmem w tle - AP nie zjada procesora (wideo dekodowane w ukrytym oknie).
+    - [x] **B5** Film w tle → MUZYKA → włączyć album → wyjść - gra muzyka, film stoi; YOUTUBE → ODTWARZACZ - film wraca grając, **muzyka milknie**; W TLE - gra tylko film. Też: muzyka gra → YOUTUBE → WYSZUKAJ → film - muzyka milknie.
+    - [x] **B6** Film w tle → YOUTUBE → ULUBIONE (albo WYSZUKAJ) → inny film - tamten z tła zamilkł (jeden naraz); W TLE działa też z ULUBIONYCH.
+    - [x] **B7** `top` z filmem w tle - AP nie zjada procesora (wideo dekodowane w ukrytym oknie).
 - [ ] **PRZEŚLIJ w LOSOWE** (`at_youtube.py` - osobny kod, bez przycisku PRZEŚLIJ) - jak w `youtube2.PlayerFrame` (`WICERO_PLAN.md` → "PRZEŚLIJ w odtwarzaczu"): przycisk tylko przy pliku `.wicero_token`, plansza kontaktów `wicero.share_film`.
 
 ### at_youtube2.py - integracja do AP

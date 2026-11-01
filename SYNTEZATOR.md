@@ -60,3 +60,36 @@ sudo chmod +x /usr/local/bin/milena_say
 ```bash
 sudo cp /usr/local/bin/milena_say.orig /usr/local/bin/milena_say
 ```
+
+## Piper + głos mc_speech (używany od 2026-11-01)
+
+Ten sam głos i te same ustawienia co narrator gry „Tajemnica zegara” (repo ap-gra, `engine/voice.py`): `pl_PL-mc_speech-medium`, o 20% wolniej (`length_scale 1.2`), 0,6 s przerwy między zdaniami. Wybrany w porównaniu gosia / darkman / mc_speech - brzmi lepiej niż Gosia. Cały AP (Wicero, przyciski, komunikaty) mówi wtedy tym samym głosem co gra.
+
+```bash
+# 1. Model - OBA pliki (piper bez .onnx.json kończy się core dump)
+cd ~/piper
+wget https://huggingface.co/rhasspy/piper-voices/resolve/main/pl/pl_PL/mc_speech/medium/pl_PL-mc_speech-medium.onnx
+wget https://huggingface.co/rhasspy/piper-voices/resolve/main/pl/pl_PL/mc_speech/medium/pl_PL-mc_speech-medium.onnx.json
+ls -l pl_PL-mc_speech-medium.onnx*        # .onnx ~60 MB, .onnx.json kilka KB
+
+# 2. Próbka
+echo "Wicero. Masz trzy nowe filmy. Wybrałeś: Kontynuuj." | ~/piper/piper/piper \
+  --model ~/piper/pl_PL-mc_speech-medium.onnx --length_scale 1.2 --sentence_silence 0.6 \
+  --output_file /tmp/test.wav && aplay /tmp/test.wav
+
+# 3. Podmiana milena_say (kopia wersji z Gosią)
+sudo cp /usr/local/bin/milena_say /usr/local/bin/milena_say.gosia
+sudo tee /usr/local/bin/milena_say > /dev/null << 'EOF'
+#!/bin/bash
+echo "$*" | /home/radoslaw/piper/piper/piper \
+  --model /home/radoslaw/piper/pl_PL-mc_speech-medium.onnx \
+  --length_scale 1.2 --sentence_silence 0.6 \
+  --output_file /tmp/milena_say_out.wav 2>/dev/null
+aplay -q /tmp/milena_say_out.wav 2>/dev/null
+EOF
+milena_say Test nowego głosu
+```
+
+Powrót do Gosi: `sudo cp /usr/local/bin/milena_say.gosia /usr/local/bin/milena_say`. Krótkie komunikaty za wolne - w skrypcie `--length_scale 1.0`.
+
+Nie zastępować `.onnx.json` configiem z innego głosu (np. Gosi) - mapa fonemów mc_speech ma symbole, których Gosia nie ma (m.in. `ʦ`), i Piper by je pomijał.

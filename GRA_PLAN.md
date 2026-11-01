@@ -29,11 +29,11 @@ Aktualizacja gry: `cd ~/ap-gra && git pull && docker compose up -d --build` (nag
 | G3 | Wybór opcji 1 (Kuba), potem 2 (żart) | kolejne sceny; w scenie radiowęzła zdanie „Klasa jeszcze chichocze…” | passed |
 | G4 | POWTÓRZ | tekst sceny od nowa, znowu w takt czytania | passed |
 | G5 | WYJDŹ, ponowne wejście w GRA | powrót do menu; po wejściu: „Masz zapisaną grę.”, KONTYNUUJ / NOWA GRA; KONTYNUUJ - ta sama scena co przy wyjściu | passed |
-| G5a | Skanowanie opcji (po poprawce z G6) | narrator doczytuje każdą opcję do końca, potem ok. 1 s przerwy, dopiero wtedy następny przycisk; po wyborze „Wybrałeś: …” z podświetlonym wybranym przyciskiem | |
-| G6 | Gra do końca (drzwi auli) - 1. próba: skanowanie ucinało czytanie opcji, brak potwierdzenia wyboru (poprawione) | zakończenie: tytuł „Ciąg dalszy nastąpi”, „Zakończenie pierwsze z jednego”, „Odkryte zakończenia: 1 z 1”; przycisk NOWA GRA | |
-| G7 | Dwa przejścia skanowania bez naciśnięcia, potem naciśnięcie | „usypiam”, potem skanowanie od początku | |
-| G8 | `cd ~/ap-gra && docker compose stop`, wejście w GRA; potem `docker compose start` | milena: „Gra nie jest uruchomiona.”, zostaje menu | |
-| G9 | Wicero (plansza przeniesiona do `modules/board.py`): nadawcy → FILMY → ekran przed filmem → film → powrót | działa jak wcześniej | |
+| G5a | Skanowanie opcji (po poprawce z G6) | narrator doczytuje każdą opcję do końca, potem ok. 1 s przerwy, dopiero wtedy następny przycisk; po wyborze „Wybrałeś: …” z podświetlonym wybranym przyciskiem | passed (najpierw „Wybrałeś” głosem AP - kontener nie był przebudowany) |
+| G6 | Gra do końca (drzwi auli) - 1. próba: skanowanie ucinało czytanie opcji, brak potwierdzenia wyboru (poprawione) | zakończenie: tytuł „Ciąg dalszy nastąpi”, „Zakończenie pierwsze z jednego”, „Odkryte zakończenia: 1 z 1”; przycisk NOWA GRA | passed |
+| G7 | Dwa przejścia skanowania bez naciśnięcia, potem naciśnięcie | „usypiam”, potem skanowanie od początku | passed |
+| G8 | `cd ~/ap-gra && docker compose stop`, wejście w GRA; potem `docker compose start` | milena: „Gra nie jest uruchomiona.”, zostaje menu | passed |
+| G9 | Wicero (plansza przeniesiona do `modules/board.py`): nadawcy → FILMY → ekran przed filmem → film → powrót | działa jak wcześniej | passed |
 | G10 | `top` przy otwartej grze | AP nie zjada procesora przez animację (orientacyjnie < 30%) | |
 
 Przy błędzie: traceback z terminala AP i `tail -n 20 gra.log`.

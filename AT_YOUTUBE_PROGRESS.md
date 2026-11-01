@@ -176,6 +176,10 @@ Możliwe rozwiązania:
 - [ ] Ikona dla WYSZUKAJ w youtube_menu (na razie mockowana przez youtube2.png)
 - [ ] Dźwięki dla WYSZUKAJ i LOSOWE w youtube_menu (na razie używa youtube.ogg dla obu)
 
+### Zgłoszone przez użytkownika (2026-11-01)
+- [ ] **Odtwarzacz w tle** - możliwość schowania odtwarzacza YouTube (`youtube2.PlayerFrame`, a docelowo też `at_youtube.py` i odtwarzacz Wicero) tak, żeby dźwięk grał dalej, a użytkownik korzystał z reszty AP (np. rysował albo grał). Do przemyślenia: jak wrócić do odtwarzacza (przycisk w menu głównym?), kto steruje głośnością / pauzą w tle, co z obrazem (VLC rysuje w oknie odtwarzacza - tylko dźwięk?), konflikt dźwięku z modułami, które same mówią (gra, Wicero).
+- [ ] **PRZEŚLIJ w LOSOWE** (`at_youtube.py` - osobny kod, bez przycisku PRZEŚLIJ) - jak w `youtube2.PlayerFrame` (`WICERO_PLAN.md` → "PRZEŚLIJ w odtwarzaczu"): przycisk tylko przy pliku `.wicero_token`, plansza kontaktów `wicero.share_film`.
+
 ### at_youtube2.py - integracja do AP
 - [ ] Przenieść logikę OAuth2+subskrypcje do osobnego modułu AP
 - [ ] Dodać jako trzecia opcja w youtube_menu: SUBSKRYPCJE

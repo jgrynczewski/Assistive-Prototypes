@@ -12,6 +12,7 @@
 
 ### ▶ Start następnej sesji (stan 2026-11-01)
 - **PRZEŚLIJ w odtwarzaczu (etap 2) - gotowe:** testy P1-P5 i U1 przeszły na komputerze użytkownika 2026-11-01 (błąd z pierwszej próby P1 31.10 się nie powtórzył).
+- Do zrobienia także: PRZEŚLIJ w YouTube LOSOWE (`at_youtube.py`) i odtwarzacz w tle - `AT_YOUTUBE_PROGRESS.md` → "Zgłoszone przez użytkownika".
 - **Następne zadanie:** nieaktywny kontakt - sekcja "Do zrobienia: nieaktywny kontakt" niżej (komunikat z serwera + oznaczenie na planszy nadawców).
 - Plansza ze skanowaniem (`Board`) jest teraz w `modules/board.py`, wspólna z modułem GRA (`GRA_PLAN.md`); Wicero sprawdzone po przeniesieniu (G9).
 - Przy błędach: AP z terminala (`python ap.py 2>&1 | tee /tmp/ap.log`), traceback + `tail -n 20 wicero.log`.

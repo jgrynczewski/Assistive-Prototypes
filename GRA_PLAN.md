@@ -21,6 +21,14 @@ curl -s localhost:8766/v1/health       # "ok": true, "recordings": 99
 
 Aktualizacja gry: `cd ~/ap-gra && git pull && docker compose up -d --build` (nagrywa tylko nowe teksty).
 
+**Start z systemem:** AP niczego nie uruchamia. Kontener `ap-gra` ma `restart: unless-stopped` - podnosi go Docker przy starcie komputera (jak `aac-iot-hub` i `unipress-game-server-1`; sprawdzone 2026-11-01). Wyjątek: kontener zatrzymany ręcznie (`docker compose stop`) zostaje zatrzymany także po restarcie - wtedy `cd ~/ap-gra && docker compose up -d`. Wicero nie ma nic lokalnie (Cloud Functions w chmurze, wystarczy internet).
+
+Sprawdzenie wszystkich kontenerów:
+
+```bash
+docker ps -a --format '{{.Names}}\t{{.Status}}' | while IFS=$'\t' read n s; do echo "$n | $s | restart: $(docker inspect -f '{{.HostConfig.RestartPolicy.Name}}' "$n")"; done
+```
+
 ## Testy ręczne (komputer użytkownika, po kolei)
 
 | # | Test | Oczekiwane | Wynik |

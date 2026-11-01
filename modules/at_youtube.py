@@ -11,13 +11,34 @@ from pygame import mixer
 
 import vlc
 
+from modules import background
+
 #=============================================================================
-class youtube(wx.Frame):
+class youtube(background.BackgroundPlayer, wx.Frame):
+    """LOSOWE - popularne filmy. PRZESLIJ (Wicero) i W TLE jak w
+    youtube2.PlayerFrame; W TLE - background.BackgroundPlayer."""
+
+    LABELS = 'NASTEPNY ULUBIONE PLAY_PAUSE CISZEJ GLOSNIEJ POPRZEDNI EXIT'.split()
+    ICONS = {
+        'NASTEPNY': 'icons/pilots/minitubePilot/4_next.png',
+        'ULUBIONE': 'icons/pilots/minitubePilot/7_download.png',
+        'PRZESLIJ': 'icons/pilots/minitubePilot/13_share.png',
+        'W_TLE': 'icons/pilots/minitubePilot/14_background.png',
+        'PLAY_PAUSE': 'icons/pilots/minitubePilot/6_pause.png',
+        'CISZEJ': 'icons/pilots/minitubePilot/1_volume down.png',
+        'GLOSNIEJ': 'icons/pilots/minitubePilot/2_volume up.png',
+        'POPRZEDNI': 'icons/pilots/minitubePilot/3_previous.png',
+        'EXIT': 'icons/pilots/minitubePilot/9_cancel.png',
+    }
+
     def __init__(self, parent, id):
 
         self.winWidth, self.winHeight = wx.DisplaySize()
 
-        wx.Frame.__init__(self, parent, id, 'AP YouTube')
+        background.stopMusic()  # muzyka / radio / audiobook milkna - gra film
+        background.stop()       # jeden film naraz - nowy zastepuje ten z tla
+        # Okno nalezy do glownego menu AP - menu YouTube mozna zamknac, film w tle gra
+        wx.Frame.__init__(self, background.topWindow(parent), id, 'AP YouTube')
         style = self.GetWindowStyle()
         self.SetWindowStyle(style | wx.STAY_ON_TOP)
 
@@ -53,13 +74,13 @@ class youtube(wx.Frame):
             except ValueError:
                 setattr(self, item[:item.find('=')], item[item.find('=')+1:])
 
-        self.labels = 'NASTEPNY ULUBIONE PLAY_PAUSE CISZEJ GLOSNIEJ POPRZEDNI EXIT'.split()
+        self.labels = self._buttonLabels()
 
         self.flag = 'rest'
         self.pressFlag = False
 
         self.numberOfRows = [1]
-        self.numberOfColumns = [7]
+        self.numberOfColumns = [len(self.labels)]
         self.maxRows = [3 * item for item in self.numberOfRows]
         self.maxColumns = [2 * item for item in self.numberOfColumns]
 
@@ -90,10 +111,42 @@ class youtube(wx.Frame):
             self.usypiamSound = mixer.Sound(self.pathToAP + '/sounds/usypiam.ogg')
             self.pusteSound = mixer.Sound(self.pathToAP + '/sounds/puste.ogg')
             self.oneSound = mixer.Sound(self.pathToAP + '/sounds/rows/1.ogg')
+            # W TLE: nagranie, a dopoki go nie ma - glos AP (milena_say)
+            path = self.pathToAP + '/sounds/do_tła.ogg'
+            self.wTleSound = mixer.Sound(path) if os.path.exists(path) else None
 
         self.SetBackgroundColour('black')
 
         self._initDb()
+
+    #-------------------------------------------------------------------------
+    def _buttonLabels(self):
+        """Jak youtube2.PlayerFrame: PRZESLIJ za ULUBIONE tylko z plikiem
+        .wicero_token, za nim W_TLE."""
+        labels = list(self.LABELS)
+        after = 'ULUBIONE'
+        if os.path.exists(os.path.join(self.pathToAP, '.wicero_token')):
+            labels.insert(labels.index(after) + 1, 'PRZESLIJ')
+            after = 'PRZESLIJ'
+        labels.insert(labels.index(after) + 1, 'W_TLE')
+        return labels
+
+    #-------------------------------------------------------------------------
+    def _shareable(self):
+        """Co wyslac przy PRZESLIJ: biezacy film jako link YouTube."""
+        if not self.playlist:
+            return None
+        return {'url': self.playlist[self.current_index]}
+
+    def _share(self):
+        film = self._shareable()
+        if film is not None:
+            from modules import wicero  # tutaj - wicero importuje youtube2
+            wicero.share_film(self, film)
+
+    def _say(self, text):
+        from modules.board import say
+        say(text)
 
     #-------------------------------------------------------------------------
     def _initDb(self):
@@ -397,19 +450,10 @@ class youtube(wx.Frame):
     #-------------------------------------------------------------------------
     def initializeBitmaps(self):
 
-        labelFiles = [
-            self.pathToAP + 'icons/pilots/minitubePilot/4_next.png',
-            self.pathToAP + 'icons/pilots/minitubePilot/7_download.png',
-            self.pathToAP + 'icons/pilots/minitubePilot/6_pause.png',
-            self.pathToAP + 'icons/pilots/minitubePilot/1_volume down.png',
-            self.pathToAP + 'icons/pilots/minitubePilot/2_volume up.png',
-            self.pathToAP + 'icons/pilots/minitubePilot/3_previous.png',
-            self.pathToAP + 'icons/pilots/minitubePilot/9_cancel.png',
-        ]
-
         self.labelbitmaps = {}
-        for index in xrange(len(self.labels)):
-            self.labelbitmaps[self.labels[index]] = wx.BitmapFromImage(wx.ImageFromStream(open(labelFiles[index], 'rb')))
+        for label in self.labels:
+            self.labelbitmaps[label] = wx.BitmapFromImage(
+                wx.ImageFromStream(open(self.pathToAP + self.ICONS[label], 'rb')))
 
     #-------------------------------------------------------------------------
     def createGui(self):
@@ -488,6 +532,11 @@ class youtube(wx.Frame):
 
     #-------------------------------------------------------------------------
     def onExit(self):
+        if self.inBackground():
+            # w tle (np. nie pobrano filmow) - nie pokazywac rodzica nad tym,
+            # co robi uzytkownik
+            background.stop()
+            return
         self._intentional_stop = True
         if self._ffmpeg_proc:
             self._ffmpeg_proc.kill()
@@ -536,6 +585,10 @@ class youtube(wx.Frame):
                     os.system('pactl set-sink-volume 0 -20%')
                 elif self.label == 'ULUBIONE':
                     self._addToFavourites()
+                elif self.label == 'PRZESLIJ':
+                    self._share()
+                elif self.label == 'W_TLE':
+                    self._toBackground()
                 elif self.label == 'EXIT':
                     self.onExit()
 
@@ -596,6 +649,15 @@ class youtube(wx.Frame):
                         if self.pressSound.lower() == 'voice':
                             self.ulubioneSound.play()
                         self._addToFavourites()
+
+                    elif label == 'PRZESLIJ':
+                        # bez dzwieku wyboru - plansza kontaktow zaraz czyta nazwy
+                        self._share()
+
+                    elif label == 'W_TLE':
+                        if self.pressSound.lower() == 'voice':
+                            self._sayBackground()
+                        self._toBackground()
 
                     elif label == 'EXIT':
                         if self.pressSound.lower() == 'voice':
@@ -666,6 +728,10 @@ class youtube(wx.Frame):
                             self.ciszejSound.play()
                         elif b.Name == 'ULUBIONE':
                             self.ulubioneSound.play()
+                        elif b.Name == 'PRZESLIJ':
+                            self._say(u'Prześlij')  # brak nagrania .ogg
+                        elif b.Name == 'W_TLE':
+                            self._sayBackground()
                         elif b.Name == 'EXIT':
                             self.powrotSound.play()
 

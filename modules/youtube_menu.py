@@ -144,7 +144,6 @@ class youtube_menu(wx.Frame):
         # Powrot z odtwarzacza (EXIT / W TLE), galerii albo LOSOWE
         if show:
             self.refreshPlayerTile()
-            background.resume('losowe')
         return wx.Frame.Show(self, show)
 
     def _openPlayer(self):
@@ -156,9 +155,7 @@ class youtube_menu(wx.Frame):
         return False
 
     def _openRandom(self):
-        """LOSOWE - osobny odtwarzacz; film w tle czeka (wznowienie w Show)."""
-        background.pause('losowe')
-        background.stopMusic()  # muzyka / radio / audiobook milkna - gra film
+        """LOSOWE (at_youtube) - sam zamyka film z tla i muzyke (jeden film naraz)."""
         self.stoper.Stop()
         at_youtube.youtube(self, id=-1).Show(True)
         self.Hide()

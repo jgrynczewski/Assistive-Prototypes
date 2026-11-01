@@ -11,6 +11,8 @@ from pygame import mixer
 
 import vlc
 
+from modules import background
+
 YTDLP = '/home/radoslaw/.local/bin/yt-dlp'
 FMT = 'bestvideo[height<=480][vcodec^=avc]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio'
 RESULTS_PER_QUERY = 25
@@ -66,8 +68,8 @@ class GenSymbolTextButton(bt.GenBitmapTextButton):
 
 
 #=============================================================================
-class PlayerFrame(wx.Frame):
-    """Odtwarzacz filmow dla wybranej frazy."""
+class PlayerFrame(background.BackgroundPlayer, wx.Frame):
+    """Odtwarzacz filmow dla wybranej frazy. W TLE - background.BackgroundPlayer."""
 
     # Przyciski paska (jeden wiersz). PRZESLIJ (Wicero) dochodzi za ULUBIONE /
     # USUN - tylko gdy jest plik .wicero_token; W_TLE za nimi - gdy
@@ -90,15 +92,11 @@ class PlayerFrame(wx.Frame):
     }
 
     def __init__(self, parent, query):
-        from modules import background
         background.stopMusic()  # muzyka / radio / audiobook milkna - gra film
         wxParent = parent
         if self.BACKGROUND:
             background.stop()  # jeden film naraz - nowy zastepuje ten z tla
-            # Okno nalezy do glownego menu AP, nie do menu YouTube / galerii:
-            # te mozna zamknac, a film w tle gra dalej (do zamkniecia AP)
-            while wxParent is not None and wxParent.GetParent() is not None:
-                wxParent = wxParent.GetParent()
+            wxParent = background.topWindow(parent)  # menu YouTube / Wicero mozna zamknac
         wx.Frame.__init__(self, wxParent, -1, 'AP YouTube2')
         style = self.GetWindowStyle()
         self.SetWindowStyle(style | wx.STAY_ON_TOP)
@@ -515,68 +513,6 @@ class PlayerFrame(wx.Frame):
         from modules import wicero
         return wicero
 
-    #-------------------------------------------------------------------------
-    # Film w tle (modules/background.py)
-
-    def _sayBackground(self):
-        if getattr(self, 'wTleSound', None):
-            self.wTleSound.play()
-        else:
-            self._wicero().say(u'Do tła')
-
-    def _toBackground(self):
-        """W TLE: okno znika, film gra dalej; AP wraca do najblizszego menu
-        z kaflem ODTWARZACZ (YOUTUBE albo NOWE) - plansze po drodze (galeria
-        fraz; w Wicero: ekran przed filmem, typy, nadawcy) zamykaja sie przez
-        swoje onExit, ktore pokazuje rodzica."""
-        from modules import background
-        self.stoper.Stop()
-        self.MakeModal(False)
-        self.Hide()
-        background.put(self)
-        frame = self.parent
-        if hasattr(frame, 'refreshPlayerTile'):  # menu YOUTUBE (ULUBIONE)
-            frame.Show(True)
-            if self.control != 'tracker':
-                frame.stoper.Start(frame.timeGap)
-            return
-        while frame is not None and not hasattr(frame, 'refreshPlayerTile'):
-            parent = getattr(frame, 'parent', None)
-            if hasattr(frame, 'onExit'):
-                frame.onExit()
-            frame = parent
-
-    def returnFromBackground(self, menu):
-        """Kafel ODTWARZACZ w menu YOUTUBE: odtwarzacz wraca na ekran."""
-        from modules import background
-        background.stopMusic()  # film wraca - muzyka z MUZYKI / RADIA milknie (B5)
-        self.parent = menu  # tu wroci EXIT (poprzedni rodzic mogl byc zamkniety)
-        menu.stoper.Stop()
-        menu.Hide()
-        self.flag = 'rest'
-        self.colIteration = 0
-        self.countColumns = 0
-        self.countRows = 0
-        # wx 2.8: MakeModal(True) kazdego okna otwartego w miedzyczasie
-        # (menu YouTube, NOWE...) wylacza WSZYSTKIE inne okna, takze to
-        # ukryte - bez Enable przyciski paska zostaja szare (test B3)
-        self.Enable(True)
-        self.Show(True)
-        self.Raise()
-        self.MakeModal(True)
-        if self.control != 'tracker':
-            self.mouseCursor.move(*self.mousePosition)
-            self.stoper.Start(self.timeGap)
-
-    def closeBackground(self):
-        """Zatrzymaj film w tle i zamknij okno (bez pokazywania rodzica)."""
-        self._intentional_stop = True
-        if self._ffmpeg_proc:
-            self._ffmpeg_proc.kill()
-        self.player.stop()
-        self.db.close()
-        self.stoper.Stop()
-        self.Destroy()
 
     def onPress(self, event):
         if self.pressSound.lower() != 'off':
@@ -801,13 +737,11 @@ class PlayerFrame(wx.Frame):
                 self.mouseCursor.move(*self.mousePosition)
 
     def _onExit(self):
-        if self.BACKGROUND:
-            from modules import background
-            if background.player() is self:
-                # w tle (np. koniec listy ulubionych) - rodzic mogl juz byc
-                # zamkniety i nie wolno go pokazywac nad tym, co robi uzytkownik
-                background.stop()
-                return
+        if self.inBackground():
+            # w tle (np. koniec listy ulubionych) - rodzic mogl juz byc
+            # zamkniety i nie wolno go pokazywac nad tym, co robi uzytkownik
+            background.stop()
+            return
         self._intentional_stop = True
         if self._ffmpeg_proc:
             self._ffmpeg_proc.kill()

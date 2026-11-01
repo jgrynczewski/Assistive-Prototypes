@@ -12,7 +12,7 @@
 
 ### ▶ Start następnej sesji (stan 2026-11-01)
 - **PRZEŚLIJ w odtwarzaczu (etap 2) - gotowe:** testy P1-P5 i U1 przeszły na komputerze użytkownika 2026-11-01 (błąd z pierwszej próby P1 31.10 się nie powtórzył).
-- Do zrobienia także: PRZEŚLIJ w YouTube LOSOWE (`at_youtube.py`) i odtwarzacz w tle - `AT_YOUTUBE_PROGRESS.md` → "Zgłoszone przez użytkownika".
+- Zrobione 2026-11-01: **film w tle** (W TLE, kafel ODTWARZACZ w YOUTUBE i NOWE - także dla filmów z Wicero) i **PRZEŚLIJ + W TLE w LOSOWE** - `AT_YOUTUBE_PROGRESS.md` → "Zgłoszone przez użytkownika" (do testu: B11, B12).
 - **Następne zadanie:** nieaktywny kontakt - sekcja "Do zrobienia: nieaktywny kontakt" niżej (komunikat z serwera + oznaczenie na planszy nadawców).
 - Plansza ze skanowaniem (`Board`) jest teraz w `modules/board.py`, wspólna z modułem GRA (`GRA_PLAN.md`); Wicero sprawdzone po przeniesieniu (G9).
 - Przy błędach: AP z terminala (`python ap.py 2>&1 | tee /tmp/ap.log`), traceback + `tail -n 20 wicero.log`.
@@ -228,7 +228,7 @@ Problem → zapisać obserwację tutaj + fragment `wicero.log`.
 
 ## PRZEŚLIJ w odtwarzaczu (2026-10-31, etap 2 ADR-0011)
 
-Przycisk **PRZEŚLIJ** (niebieska strzałka, `icons/pilots/minitubePilot/13_share.png`) w odtwarzaczu `youtube2.PlayerFrame` - czyli w YouTube (WYSZUKAJ, ULUBIONE) i w Wicero. LOSOWE (`at_youtube.py`, osobny kod) - bez zmian.
+Przycisk **PRZEŚLIJ** (niebieska strzałka, `icons/pilots/minitubePilot/13_share.png`) w odtwarzaczu `youtube2.PlayerFrame` - czyli w YouTube (WYSZUKAJ, ULUBIONE) i w Wicero; od 2026-11-01 także w LOSOWE (`at_youtube.py`, osobny kod - `_shareable` / `_share`).
 
 - Miejsce: za ULUBIONE (w ulubionych za USUŃ). Tylko gdy jest plik `.wicero_token` - bez niego pasek jak dawniej (7 przycisków).
 - Wybór → film pauzuje → plansza kontaktów (nazwy, max 5 + POWRÓT; stronicowanie później) → wybór kontaktu = wysłanie od razu → "Film przesłany: <nazwa>." → powrót do filmu, gra dalej. POWRÓT na planszy → film gra dalej, nic nie wysłane.

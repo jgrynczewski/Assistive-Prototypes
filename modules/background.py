@@ -7,8 +7,12 @@ dalej; uzytkownik korzysta z reszty AP (rysuje, gra). Dotyczy filmow
 z YouTube (WYSZUKAJ, ULUBIONE) i z Wicero. Powrot: kafel ODTWARZACZ w menu
 YOUTUBE i w NOWE (returnTo); zatrzymanie: EXIT w odtwarzaczu.
 
+Odtwarzacze z W TLE: youtube2.PlayerFrame (WYSZUKAJ, ULUBIONE, Wicero)
+i at_youtube.youtube (LOSOWE) - wspolny kod w BackgroundPlayer; nowy film
+zamyka ten z tla (jeden naraz).
+
 Moduly, ktore same graja albo mowia (Wicero, gra "Tajemnica zegara",
-LOSOWE, MUZYKA, RADIO, AUDIOBOOKI, TV), na czas swojego dzialania pauzuja
+MUZYKA, RADIO, AUDIOBOOKI, TV), na czas swojego dzialania pauzuja
 film w tle i wznawiaja go po wyjsciu - pause(owner) / resume(owner) albo
 guard(klasa, owner). Muzyka, radio i audiobooki graja dalej po wyjsciu
 z modulu (smplayer w tle) - wtedy film w tle sie nie wznawia. W druga
@@ -138,6 +142,85 @@ def guard(cls, owner):
     cls.__init__ = __init__
     cls.onExit = guardedExit
     return cls
+
+
+class BackgroundPlayer(object):
+    """Domieszka odtwarzacza z przyciskiem W TLE (youtube2.PlayerFrame,
+    at_youtube.youtube - LOSOWE). Wymaga atrybutow odtwarzacza: player (VLC),
+    stoper, parent, control, timeGap, mouseCursor / mousePosition,
+    _ffmpeg_proc, _intentional_stop, db; opcjonalnie wTleSound."""
+
+    def _sayBackground(self):
+        sound = getattr(self, 'wTleSound', None)
+        if sound:
+            sound.play()
+        else:
+            from modules.board import say  # glos AP, dopoki nie ma sounds/do_tła.ogg
+            say(u'Do tła')
+
+    def _toBackground(self):
+        """W TLE: okno znika, film gra dalej; AP wraca do najblizszego menu
+        z kaflem ODTWARZACZ (YOUTUBE albo NOWE) - plansze po drodze (galeria
+        fraz; w Wicero: ekran przed filmem, typy, nadawcy) zamykaja sie przez
+        swoje onExit, ktore pokazuje rodzica."""
+        self.stoper.Stop()
+        self.MakeModal(False)
+        self.Hide()
+        put(self)
+        frame = self.parent
+        if hasattr(frame, 'refreshPlayerTile'):  # menu YOUTUBE (ULUBIONE, LOSOWE)
+            frame.Show(True)
+            if self.control != 'tracker':
+                frame.stoper.Start(frame.timeGap)
+            return
+        while frame is not None and not hasattr(frame, 'refreshPlayerTile'):
+            parent = getattr(frame, 'parent', None)
+            if hasattr(frame, 'onExit'):
+                frame.onExit()
+            frame = parent
+
+    def returnFromBackground(self, menu):
+        """Kafel ODTWARZACZ: odtwarzacz wraca na ekran; EXIT wroci do `menu`."""
+        stopMusic()  # film wraca - muzyka z MUZYKI / RADIA milknie (B5)
+        self.parent = menu  # poprzedni rodzic mogl byc zamkniety
+        menu.stoper.Stop()
+        menu.Hide()
+        self.flag = 'rest'
+        self.colIteration = 0
+        self.countColumns = 0
+        self.countRows = 0
+        # wx 2.8: MakeModal(True) kazdego okna otwartego w miedzyczasie
+        # (menu YouTube, NOWE...) wylacza WSZYSTKIE inne okna, takze to
+        # ukryte - bez Enable przyciski paska zostaja szare (test B3)
+        self.Enable(True)
+        self.Show(True)
+        self.Raise()
+        self.MakeModal(True)
+        if self.control != 'tracker':
+            self.mouseCursor.move(*self.mousePosition)
+            self.stoper.Start(self.timeGap)
+
+    def closeBackground(self):
+        """Zatrzymaj film w tle i zamknij okno (bez pokazywania rodzica)."""
+        self._intentional_stop = True
+        if self._ffmpeg_proc:
+            self._ffmpeg_proc.kill()
+        self.player.stop()
+        self.db.close()
+        self.stoper.Stop()
+        self.Destroy()
+
+    def inBackground(self):
+        return player() is self
+
+
+def topWindow(window):
+    """Najwyzsze okno nad `window` (glowne menu AP) - rodzic wx odtwarzacza,
+    ktory moze isc w tlo: zamkniecie menu YouTube / galerii / Wicero go nie
+    zamyka (gra do zamkniecia AP)."""
+    while window is not None and window.GetParent() is not None:
+        window = window.GetParent()
+    return window
 
 
 def _vlc(frame, method):

@@ -66,7 +66,8 @@ def error_text(error):
 
 
 def open_gra(parent):
-    """Wejscie z nowe.py: sprawdz serwer, pobierz nagrania przyciskow, pokaz gre.
+    """Wejscie z planszy gier (new_games.py, przycisk TAJEMNICA): sprawdz serwer,
+    pobierz nagrania przyciskow, pokaz gre.
     parent.stoper jest zatrzymany przez wywolujacego."""
 
     def load():

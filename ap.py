@@ -151,6 +151,11 @@ class main_menu( wx.Frame ):
                     self.pusteSound = mixer.Sound( self.path + '/sounds/puste.ogg' )
                     self.audiobookSound = mixer.Sound( self.path + '/sounds/książki_czytane.ogg')
                     self.skoczekSound = mixer.Sound( self.path + '/sounds/skoczek.ogg')
+                    # Przycisk GAMES (plansza gier): "gry"; dopoki nie ma nagrania gry.ogg - gra.ogg
+                    self.gryPath = self.path + '/sounds/gry.ogg'
+                    if not os.path.exists( self.gryPath ):
+                        self.gryPath = self.path + '/sounds/gra.ogg'
+                    self.grySound = mixer.Sound( self.gryPath )
                     ########## UNIPRESS
                     self.gamesSound = mixer.Sound( self.path + '/sounds/gra.ogg')
 
@@ -742,7 +747,7 @@ class main_menu( wx.Frame ):
 
                                     elif label == 'GAMES':
                                             if self.pressSound.lower() == 'voice':
-                                                self.skoczekSound.play()
+                                                self.grySound.play()
 
                                             # self.stoper.Stop( )
                                             # time.sleep( ( self.selectionTime + self.timeGap )/(1000.*2) )
@@ -895,7 +900,7 @@ class main_menu( wx.Frame ):
                                                     if (b.Name == "TV"):
                                                         self.tvSound.play()
                                                     if (b.Name == "GAMES"):
-                                                        self.skoczekSound.play()
+                                                        self.grySound.play()
                                                     if (b.Name == "PUSTE"):
                                                         self.pusteSound.play()
 

@@ -27,6 +27,13 @@ from pymouse import PyMouse
 from pygame import mixer
 from ewriting import eplatform
 import atgames
+from modules import gra  # gra przygodowa (serwer ap-gra, GRA_PLAN.md)
+
+def optionalSound(path):
+	"""Dzwiek z pliku albo None, gdy pliku jeszcze nie ma (nagranie do dorobienia)."""
+	if os.path.exists( path ):
+		return mixer.Sound( path )
+	return None
 
 #=============================================================================
 class games( wx.Frame ):
@@ -71,7 +78,7 @@ class games( wx.Frame ):
 							
 		self.pressFlag = False
 
-		self.numberOfColumns = 3,
+		self.numberOfColumns = 4,
 		self.numberOfRows = 2,
 		
 		self.columnIteration = 0
@@ -102,6 +109,7 @@ class games( wx.Frame ):
                                 self.skoczekSound = mixer.Sound( self.pathToAP + '/sounds/skoczek.ogg' )
                                 self.skoczek2Sound = mixer.Sound( self.pathToAP + '/sounds/skoczek2.ogg' )
                                 self.lapaczSound = mixer.Sound( self.pathToAP + '/sounds/lapacz.ogg' )
+                                self.tajemnicaSound = optionalSound( self.pathToAP + '/sounds/tajemnica_zegara.ogg' )
                                 self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
                                 self.usypiamSound = mixer.Sound( self.pathToAP + '/sounds/usypiam.ogg' )
 		
@@ -113,9 +121,9 @@ class games( wx.Frame ):
 		self.panels = { 1 : [ [], [] ] }
 		self.numberOfPanels = 1
 				
-		self.functionButtonPath = [ wx.BitmapFromImage( wx.ImageFromStream( open(self.pathToAP + 'icons/back.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream( open(self.pathToAP + 'icons/new_games/skoczek.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream( open(self.pathToAP + 'icons/new_games/skoczek2.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream(open(self.pathToAP + 'icons/new_games/łapacz.png', 'rb' ) ) ) ]
+		self.functionButtonPath = [ wx.BitmapFromImage( wx.ImageFromStream( open(self.pathToAP + 'icons/back.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream( open(self.pathToAP + 'icons/new_games/skoczek.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream( open(self.pathToAP + 'icons/new_games/skoczek2.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream(open(self.pathToAP + 'icons/new_games/łapacz.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream(open(self.pathToAP + 'icons/new_games/tajemnica_zegara.png', 'rb' ) ) ) ]
 
-		self.labels = [ 'SKOCZEK', 'SKOCZEK2', 'ŁAPACZ' ]
+		self.labels = [ 'SKOCZEK', 'SKOCZEK2', 'ŁAPACZ', 'TAJEMNICA' ]
 		self.functionButtonName = [ 'back' ]
 
 		if self.numberOfPanels == 1:
@@ -144,7 +152,7 @@ class games( wx.Frame ):
 			
 			index = 0
 
-			for index in range( 3 ):
+			for index in range( len( self.labels ) ):
 				b = bt.GenBitmapButton( self, -1, bitmap = self.functionButtonPath[ index+1 ], name = self.labels[ index ] )
 				b.SetBackgroundColour( self.backgroundColour )
 				b.SetBezelWidth( 3 )
@@ -155,7 +163,7 @@ class games( wx.Frame ):
 			b.SetBackgroundColour( self.backgroundColour )
 			b.SetBezelWidth( 3 )
 			b.Bind( event, self.onPress )
-			subSizer.Add( b, ( ( index + 1 ) / self.numberOfColumns[ 0 ], ( index + 1 ) % self.numberOfColumns[ 0 ] ), (1, 3), wx.EXPAND )
+			subSizer.Add( b, ( ( index + 1 ) / self.numberOfColumns[ 0 ], ( index + 1 ) % self.numberOfColumns[ 0 ] ), (1, self.numberOfColumns[ 0 ]), wx.EXPAND )
 				
 			for number in range( self.numberOfRows[ 0 ] ):
 				subSizer.AddGrowableRow( number )
@@ -229,6 +237,22 @@ class games( wx.Frame ):
 				self.mouseCursor.move( *self.mousePosition )	
 
 	#-------------------------------------------------------------------------
+	def sayGame(self):
+		# Nazwa gry: nagranie sounds/tajemnica_zegara.ogg, a dopoki go nie ma - milena
+		if getattr( self, 'tajemnicaSound', None ):
+			self.tajemnicaSound.play( )
+		else:
+			gra.say( u'Tajemnica zegara' )
+
+	def openGame(self):
+		if self.pressSound.lower( ) == 'voice':
+			self.sayGame( )
+		self.stoper.Stop( )
+		# Sprawdza serwer gry w tle, potem chowa te plansze i pokazuje gre;
+		# powrot z gry - Show i stoper.Start tej planszy (jak z innych modulow)
+		gra.open_gra( self )
+
+	#-------------------------------------------------------------------------
 	def onExit(self):
 
 		if __name__ == '__main__':
@@ -296,6 +320,8 @@ class games( wx.Frame ):
 				self.stoper.Stop( )
 				atgames.games( self, id = -1 ).Show( True )
 				self.Hide( )
+			if self.label == 'TAJEMNICA':
+				self.openGame( )
 
 			elif self.label == 'writing':
 				self.stoper.Stop( )
@@ -452,6 +478,9 @@ class games( wx.Frame ):
 		                                self.SetFocus()
 		                                self.stoper.Start(self.timeGap)
 
+					elif self.position == 3:
+						self.openGame( )
+
 					if self.numberOfPanels == 1:
 					    self.flag = 'row'
 					    self.panelIteration = 0
@@ -600,6 +629,8 @@ class games( wx.Frame ):
                                                 self.skoczek2Sound.play()
                                             if (self.columnIteration == 2):
                                                 self.lapaczSound.play()
+                                            if (self.columnIteration == 3):
+                                                self.sayGame( )
 
 
 					items = self.subSizers[ self.panelIteration ].GetChildren( )

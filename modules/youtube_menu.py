@@ -160,6 +160,7 @@ class youtube_menu(wx.Frame):
     def _openRandom(self):
         """LOSOWE - osobny odtwarzacz; film w tle czeka (wznowienie w Show)."""
         background.pause('losowe')
+        background.stopMusic()  # muzyka / radio / audiobook milkna - gra film
         self.stoper.Stop()
         at_youtube.youtube(self, id=-1).Show(True)
         self.Hide()

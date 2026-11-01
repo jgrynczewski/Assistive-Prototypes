@@ -90,9 +90,10 @@ class PlayerFrame(wx.Frame):
     }
 
     def __init__(self, parent, query):
+        from modules import background
+        background.stopMusic()  # muzyka / radio / audiobook milkna - gra film
         wxParent = parent
         if self.BACKGROUND:
-            from modules import background
             background.stop()  # jeden film naraz - nowy zastepuje ten z tla
             # Okno nalezy do glownego menu AP, nie do menu YouTube / galerii:
             # te mozna zamknac, a film w tle gra dalej (do zamkniecia AP)
@@ -541,6 +542,8 @@ class PlayerFrame(wx.Frame):
 
     def returnFromBackground(self, menu):
         """Kafel ODTWARZACZ w menu YOUTUBE: odtwarzacz wraca na ekran."""
+        from modules import background
+        background.stopMusic()  # film wraca - muzyka z MUZYKI / RADIA milknie (B5)
         self.parent = menu  # tu wroci EXIT (poprzedni rodzic mogl byc zamkniety)
         menu.stoper.Stop()
         menu.Hide()

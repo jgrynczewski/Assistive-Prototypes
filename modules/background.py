@@ -10,10 +10,12 @@ Moduly, ktore same graja albo mowia (Wicero, gra "Tajemnica zegara",
 LOSOWE, MUZYKA, RADIO, AUDIOBOOKI, TV), na czas swojego dzialania pauzuja
 film w tle i wznawiaja go po wyjsciu - pause(owner) / resume(owner) albo
 guard(klasa, owner). Muzyka, radio i audiobooki graja dalej po wyjsciu
-z modulu (smplayer w tle) - wtedy film w tle sie nie wznawia.
+z modulu (smplayer w tle) - wtedy film w tle sie nie wznawia. W druga
+strone: film YouTube, ktory zaczyna grac, zamyka smplayer (stopMusic).
 """
 
 import logging
+import os
 
 _log = logging.getLogger('background')
 
@@ -97,6 +99,15 @@ def resume(owner):
         return
     _vlc(frame, 'play')
     _heldByUs = False
+
+
+def stopMusic():
+    """Film YouTube zaczyna grac (nowy albo powrot przez ODTWARZACZ) - zamknij
+    smplayer (muzyka, radio, audiobook), jak robi to sama MUZYKA przy zmianie
+    albumu. Gra to, co uzytkownik wybral ostatnio - nic sie nie naklada."""
+    if _smplayerRunning():
+        _log.info('film YouTube - zamykam smplayer')
+        os.system('smplayer -send-action quit &')
 
 
 def guard(cls, owner):

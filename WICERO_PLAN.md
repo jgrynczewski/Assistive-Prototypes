@@ -240,6 +240,17 @@ Przycisk **PRZEŚLIJ** (niebieska strzałka, `icons/pilots/minitubePilot/13_shar
 
 Przygotowanie: `git pull`, zamknąć AP. Test Bartek ma teraz w kontaktach tylko Test Anna - do P3 potrzebny drugi kontakt: Test Celina zaprasza Test Bartka w aplikacji, Test Bartek przyjmuje (w aplikacji albo admin w panelu).
 
+### Do zrobienia: nieaktywny kontakt (uwaga z testu P3, 2026-11-01)
+
+Problem: gdy ktoś usunie kontakt (albo jego konto zostanie wyłączone), użytkownik AP nie może mu już wysłać filmu - i nie wie o tym (osoba po prostu znika z planszy PRZEŚLIJ). Propozycja (do zatwierdzenia przy wdrożeniu):
+1. **Jednorazowy komunikat** (serwer, repo `wicero`; AP bez zmian - czyta `v1/notifications`): „Anna nie jest już w twoich kontaktach.” - neutralnie, tak samo przy usunięciu kontaktu i wyłączeniu konta. Przy ponownym dodaniu: „Anna jest znowu w twoich kontaktach.”
+2. **Stały stan na planszy nadawców** (`modules/wicero.py`): rozmowa z byłym kontaktem zostaje (stare filmy), kafelek wyszarzony, przy skanowaniu „Anna. Kontakt nieaktywny.”
+3. Plansza PRZEŚLIJ - bez zmian (nieaktywnych nie pokazuje).
+
+Sprawdzić najpierw: jak serwer oznacza takie rozmowy (`canSend: false`) i czy odróżnia usunięcie kontaktu od wyłączenia konta.
+
+- [x] **P1** (2026-11-01 passed; pierwsza próba 2026-10-31 - błąd, który się nie powtórzył), **P2**, **P3** (passed 2026-11-01)
+
 - [ ] **U1 - ULUBIONE w Wicero:** WICERO → film → START → ULUBIONE (2. przycisk) → wyjść; YOUTUBE → ULUBIONE → film z Wicero na liście, da się odtworzyć.
 - [ ] **P1 - YouTube:** *(2026-10-31: pierwsza próba - błąd, szczegóły nieznane)* YOUTUBE → WYSZUKAJ → dowolny film → na pasku 8 przycisków, PRZEŚLIJ za ULUBIONE, przy skanowaniu "Prześlij". Wybór → film staje, plansza z Test Anna (i Test Celina po przygotowaniu) → Test Anna → "Film przesłany: Test Anna." → film gra dalej od tego miejsca. W aplikacji u Test Anna nowy film od Test Bartek.
 - [ ] **P2 - POWRÓT:** PRZEŚLIJ → na planszy POWRÓT → film gra dalej, nic nie wysłane.

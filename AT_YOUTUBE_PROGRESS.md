@@ -190,6 +190,10 @@ Możliwe rozwiązania:
     - [x] **B5** Film w tle → MUZYKA → włączyć album → wyjść - gra muzyka, film stoi; YOUTUBE → ODTWARZACZ - film wraca grając, **muzyka milknie**; W TLE - gra tylko film. Też: muzyka gra → YOUTUBE → WYSZUKAJ → film - muzyka milknie.
     - [x] **B6** Film w tle → YOUTUBE → ULUBIONE (albo WYSZUKAJ) → inny film - tamten z tła zamilkł (jeden naraz); W TLE działa też z ULUBIONYCH.
     - [x] **B7** `top` z filmem w tle - AP nie zjada procesora (wideo dekodowane w ukrytym oknie).
+  - **W TLE w Wicero** (prośba użytkownika 2026-11-01: długi film od kontaktu też w tle): W TLE w odtwarzaczu Wicero zamyka Wicero (ekran przed filmem, typy, nadawcy) i wraca do **NOWE**; film gra dalej. Kafel **ODTWARZACZ także w NOWE** (miejsce po przeniesionej grze) - wraca do każdego filmu w tle, z YouTube albo z Wicero. Film z Wicero w tle: koniec / NASTĘPNY / POPRZEDNI kończy odtwarzanie (ekranu przed filmem już nie ma - nic nie wyskakuje); „obejrzany” zgłasza się jak zwykle.
+    - [ ] **B8** WICERO → nadawca → FILMY → START → na pasku W TLE za PRZEŚLIJ → wybór: AP w NOWE, film słychać, kafel ODTWARZACZ (ekran z nutą). Wyjść do głównego menu, coś porobić - film gra.
+    - [ ] **B9** NOWE → ODTWARZACZ - film z Wicero wraca z obrazem, przyciski aktywne; EXIT → NOWE, kafel pusty. Też: film z YouTube w tle → NOWE → ODTWARZACZ - wraca film z YouTube.
+    - [ ] **B10** Film z Wicero w tle do końca (krótki film) - po końcu cisza, nic nie wyskakuje; w aplikacji Wicero u nadawcy film „obejrzany”.
 - [ ] **PRZEŚLIJ w LOSOWE** (`at_youtube.py` - osobny kod, bez przycisku PRZEŚLIJ) - jak w `youtube2.PlayerFrame` (`WICERO_PLAN.md` → "PRZEŚLIJ w odtwarzaczu"): przycisk tylko przy pliku `.wicero_token`, plansza kontaktów `wicero.share_film`.
 
 ### at_youtube2.py - integracja do AP

@@ -525,20 +525,26 @@ class PlayerFrame(wx.Frame):
             self._wicero().say(u'Do tła')
 
     def _toBackground(self):
-        """W TLE: okno znika, film gra dalej; AP wraca do menu YOUTUBE
-        (z galerii fraz - przez jej wyjscie)."""
+        """W TLE: okno znika, film gra dalej; AP wraca do najblizszego menu
+        z kaflem ODTWARZACZ (YOUTUBE albo NOWE) - plansze po drodze (galeria
+        fraz; w Wicero: ekran przed filmem, typy, nadawcy) zamykaja sie przez
+        swoje onExit, ktore pokazuje rodzica."""
         from modules import background
         self.stoper.Stop()
         self.MakeModal(False)
         self.Hide()
         background.put(self)
-        parent = self.parent
-        if hasattr(parent, 'refreshPlayerTile'):  # menu YOUTUBE (ULUBIONE)
-            parent.Show(True)
+        frame = self.parent
+        if hasattr(frame, 'refreshPlayerTile'):  # menu YOUTUBE (ULUBIONE)
+            frame.Show(True)
             if self.control != 'tracker':
-                parent.stoper.Start(parent.timeGap)
-        else:  # galeria fraz (WYSZUKAJ) - zamyka sie i pokazuje menu
-            parent.onExit()
+                frame.stoper.Start(frame.timeGap)
+            return
+        while frame is not None and not hasattr(frame, 'refreshPlayerTile'):
+            parent = getattr(frame, 'parent', None)
+            if hasattr(frame, 'onExit'):
+                frame.onExit()
+            frame = parent
 
     def returnFromBackground(self, menu):
         """Kafel ODTWARZACZ w menu YOUTUBE: odtwarzacz wraca na ekran."""

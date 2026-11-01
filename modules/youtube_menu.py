@@ -149,13 +149,11 @@ class youtube_menu(wx.Frame):
 
     def _openPlayer(self):
         """ODTWARZACZ: film z tla wraca na ekran (nic w tle - jak PUSTE)."""
-        player = background.take()
-        if player is None:
-            if self.pressSound.lower() == 'voice':
-                self.pusteSound.play()
-            return False
-        player.returnFromBackground(self)
-        return True
+        if background.returnTo(self):
+            return True
+        if self.pressSound.lower() == 'voice':
+            self.pusteSound.play()
+        return False
 
     def _openRandom(self):
         """LOSOWE - osobny odtwarzacz; film w tle czeka (wznowienie w Show)."""

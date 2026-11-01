@@ -3,8 +3,9 @@
 """Film YouTube w tle - jeden naraz.
 
 W odtwarzaczu (youtube2.PlayerFrame) przycisk W TLE chowa okno, a film gra
-dalej; uzytkownik korzysta z reszty AP (rysuje, gra). Powrot: kafel
-ODTWARZACZ w menu YOUTUBE; zatrzymanie: EXIT w odtwarzaczu.
+dalej; uzytkownik korzysta z reszty AP (rysuje, gra). Dotyczy filmow
+z YouTube (WYSZUKAJ, ULUBIONE) i z Wicero. Powrot: kafel ODTWARZACZ w menu
+YOUTUBE i w NOWE (returnTo); zatrzymanie: EXIT w odtwarzaczu.
 
 Moduly, ktore same graja albo mowia (Wicero, gra "Tajemnica zegara",
 LOSOWE, MUZYKA, RADIO, AUDIOBOOKI, TV), na czas swojego dzialania pauzuja
@@ -59,6 +60,16 @@ def take():
     _pausedBy.clear()
     _heldByUs = False
     return frame
+
+
+def returnTo(menu):
+    """Kafel ODTWARZACZ (menu YOUTUBE albo NOWE): film z tla wraca na ekran,
+    po EXIT wroci do `menu`. False - nic nie gra w tle (kafel jak PUSTE)."""
+    frame = take()
+    if frame is None:
+        return False
+    frame.returnFromBackground(menu)
+    return True
 
 
 def stop():

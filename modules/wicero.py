@@ -414,9 +414,12 @@ class WiceroPlayer(youtube2.PlayerFrame):
     Przy VIEWED_FRACTION dlugosci - zgloszenie 'obejrzany'.
     Nie zapisuje tabeli seen (stan obejrzenia jest w Wicero); ULUBIONE dziala
     jak w youtube2 (ulubione AP).
-    """
 
-    BACKGROUND = False  # bez W TLE - pojedynczy film z ekranem komentarza
+    W TLE (jak w YouTube): Wicero sie zamyka, AP wraca do NOWE, film gra
+    dalej; powrot - kafel ODTWARZACZ w NOWE (albo w menu YOUTUBE). Ekranu
+    przed filmem juz wtedy nie ma - koniec filmu / NASTEPNY / POPRZEDNI
+    konczy odtwarzanie (w tle - po cichu, bez wyskakujacych plansz).
+    """
 
     def __init__(self, parent, item):
         self.item = item
@@ -468,12 +471,20 @@ class WiceroPlayer(youtube2.PlayerFrame):
 
     def _leave(self, step):
         parent = self.parent
-        self._onExit()
-        wx.CallAfter(parent.moveBy, step)
+        inBackground = background.player() is self
+        self._onExit()  # w tle: zamyka film po cichu (PlayerFrame._onExit)
+        # Ekran przed filmem jest tylko wtedy, gdy film nie byl w tle (po
+        # powrocie przez ODTWARZACZ rodzicem jest menu NOWE / YOUTUBE)
+        if not inBackground and parent and hasattr(parent, 'moveBy'):
+            wx.CallAfter(parent.moveBy, step)
 
     def _onExit(self):
         self.progress.Stop()
         youtube2.PlayerFrame._onExit(self)
+
+    def closeBackground(self):
+        self.progress.Stop()
+        youtube2.PlayerFrame.closeBackground(self)
 
 
 #=============================================================================

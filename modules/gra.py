@@ -98,6 +98,109 @@ def prepare(view):
 
 
 #=============================================================================
+def wrap(dc, text, width):
+    """Zawijanie wierszy z gory (a nie w trakcie wypisywania - slowa nie
+    przeskakuja do nastepnej linii). Spacje -> nowe linie; dlugosc tekstu
+    bez zmian, wiec pozycja wypisywania jest ta sama."""
+    result = list(text)
+    lineStart, lastSpace = 0, -1
+    for i, ch in enumerate(text):
+        if ch == u'\n':
+            lineStart, lastSpace = i + 1, -1
+            continue
+        if ch == u' ':
+            lastSpace = i
+        if lastSpace > lineStart and dc.GetTextExtent(text[lineStart:i + 1])[0] > width:
+            result[lastSpace] = u'\n'
+            lineStart, lastSpace = lastSpace + 1, -1
+    return u''.join(result)
+
+
+class TextPanel(wx.Panel):
+    """Tekst sceny rysowany recznie: przerwa miedzy akapitami = pol linii,
+    wypisywanie po znaku (show), a gdy tekst sie nie miesci - mniejsza
+    czcionka (najwyzej o MIN_SCALE). Caly tekst ma byc widoczny - limit
+    dlugosci sceny pilnuje ap-gra (engine/screen.py), to tylko zabezpieczenie."""
+
+    PARAGRAPH_GAP = 0.5
+    MIN_SCALE = 0.7
+
+    def __init__(self, parent, size, colour, background, margin):
+        wx.Panel.__init__(self, parent, -1)
+        self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
+        self.baseSize = size
+        self.colour = colour
+        self.background = background
+        self.margin = margin
+        self.text = u''
+        self.wrapped = u''
+        self.typed = 0
+        self.font = self._font(size)
+        self.lineHeight = size
+        self.Bind(wx.EVT_PAINT, self.onPaint)
+        self.Bind(wx.EVT_SIZE, self.onSize)
+
+    def _font(self, size):
+        return wx.Font(size, wx.SWISS, wx.NORMAL, wx.NORMAL)
+
+    def setText(self, text):
+        self.text = text
+        self.typed = 0
+        self._fit()
+        self.Refresh(False)
+
+    def show(self, typed):
+        """Pokaz pierwsze `typed` znakow tekstu."""
+        self.typed = typed
+        self.Refresh(False)
+
+    def _height(self, wrapped, lineHeight):
+        return sum(lineHeight * self.PARAGRAPH_GAP if line == u'' else lineHeight
+                   for line in wrapped.split(u'\n'))
+
+    def _fit(self):
+        width, height = self.GetClientSize()
+        width -= 2 * self.margin
+        height -= 2 * self.margin
+        if width <= 0 or height <= 0:
+            self.wrapped = self.text
+            return
+        dc = wx.ClientDC(self)
+        size = self.baseSize
+        while True:
+            font = self._font(size)
+            dc.SetFont(font)
+            wrapped = wrap(dc, self.text, width)
+            lineHeight = int(dc.GetTextExtent(u'ĄŻgj')[1] * 1.1)
+            if (self._height(wrapped, lineHeight) <= height
+                    or size <= self.baseSize * self.MIN_SCALE):
+                break
+            size -= 1
+        if size < self.baseSize:
+            _log.warning('tekst nie miescil sie - czcionka %d zamiast %d', size, self.baseSize)
+        self.font, self.wrapped, self.lineHeight = font, wrapped, lineHeight
+
+    def onSize(self, event):
+        self._fit()
+        self.Refresh(False)
+        event.Skip()
+
+    def onPaint(self, event):
+        dc = wx.BufferedPaintDC(self)
+        dc.SetBackground(wx.Brush(self.background))
+        dc.Clear()
+        dc.SetFont(self.font)
+        dc.SetTextForeground(self.colour)
+        y = self.margin
+        for line in self.wrapped[:self.typed].split(u'\n'):
+            if line == u'':
+                y += int(self.lineHeight * self.PARAGRAPH_GAP)
+            else:
+                dc.DrawText(line, self.margin, y)
+                y += self.lineHeight
+
+
+#=============================================================================
 class GameBoard(board.Board):
 
     columnsOnly = True
@@ -146,19 +249,18 @@ class GameBoard(board.Board):
 
         self.topPanel = wx.Panel(self, -1)
         self.topPanel.SetBackgroundColour(self.backgroundColour)
-        self.textFont = wx.Font(self.tableFontSize * 3 / 5, wx.SWISS, wx.NORMAL, wx.NORMAL)
-        # Bez auto-rozmiaru: napis rosnie w trakcie wypisywania, pole stoi w miejscu
-        self.text = wx.StaticText(self.topPanel, -1, u'', style=wx.ST_NO_AUTORESIZE)
-        self.text.SetFont(self.textFont)
-        self.text.SetForegroundColour(self.textColour)
+        self.text = TextPanel(self.topPanel, self.tableFontSize * 3 / 5, self.textColour,
+                              self.backgroundColour, 2 * self.xBorder)
         # Z prawej scenka (zegar, ludziki) - ok. 1/3 szerokosci, rusza sie caly czas
         self.scenka = scenka.Scenka(self.topPanel)
         self.scenka.SetMinSize((self.winWidth / 3, -1))
         box = wx.BoxSizer(wx.HORIZONTAL)
-        box.Add(self.text, 1, wx.EXPAND | wx.ALL, 2 * self.xBorder)
+        box.Add(self.text, 1, wx.EXPAND)
         box.Add(self.scenka, 0, wx.EXPAND)
         self.topPanel.SetSizer(box)
-        self.vbox.Add(self.topPanel, 5, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, self.xBorder)
+        # Tekst wyzszy niz opcje razem (6 : 4 + 1) - limit dlugosci sceny w ap-gra
+        # (engine/screen.py) jest liczony dla tego ukladu
+        self.vbox.Add(self.topPanel, 6, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, self.xBorder)
 
         font = wx.Font(self.tableFontSize * 2 / 3, wx.SWISS, wx.NORMAL, wx.BOLD)
         self.windows = {}
@@ -169,11 +271,15 @@ class GameBoard(board.Board):
             self.optionWindows.append(b)
             self.vbox.Add(b, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, self.xBorder)
 
+        # POWTORZ / WYJDZ na cala szerokosc, ostatni przycisk dochodzi do prawego
+        # marginesu jak w innych planszach - przy sterowaniu przelacznikiem kursor
+        # myszy stoi w prawym dolnym rogu i klikniecie musi trafic w przycisk
         bottom = wx.BoxSizer(wx.HORIZONTAL)
+        last = self.buttons[-1]['key']
         for button in self.buttons[MAX_OPTIONS:]:
             b = self.makeButton(self, button, font)
             self.windows[button['key']] = b
-            bottom.Add(b, 1, wx.EXPAND | wx.RIGHT, self.xBorder)
+            bottom.Add(b, 1, wx.EXPAND | (0 if button['key'] == last else wx.RIGHT), self.xBorder)
         self.vbox.Add(bottom, 1, wx.EXPAND | wx.ALL, self.xBorder)
 
         self.buttonWindows = []
@@ -214,10 +320,11 @@ class GameBoard(board.Board):
     def showMenu(self):
         """Jest zapis gry: KONTYNUUJ / NOWA GRA."""
         title = self.health.get('title') or u''
-        self.setSegments([(u'', title, None, 0), (u'\n\n', u'Masz zapisaną grę.', None, 0)])
+        # Najpierw przyciski (uklad), potem tekst - dopasowanie tekstu do pola
         self.setButtons([('KONTYNUUJ', u'Kontynuuj', self.voicePaths.get('KONTYNUUJ')),
                          ('NOWA_GRA', u'Nowa gra', self.voicePaths.get('NOWA_GRA'))],
                         repeat=False)
+        self.setSegments([(u'', title, None, 0), (u'\n\n', u'Masz zapisaną grę.', None, 0)])
         self.startReading()
 
     def newGame(self):
@@ -280,8 +387,8 @@ class GameBoard(board.Board):
         else:
             options = [('OPCJA%d' % o['number'], o['text'], o.get('path'))
                        for o in view['options']]
+        self.setButtons(options)  # najpierw uklad, potem dopasowanie tekstu
         self.setSegments(segments)
-        self.setButtons(options)
         self.startReading()
 
     #-------------------------------------------------------------------------
@@ -289,28 +396,7 @@ class GameBoard(board.Board):
 
     def setSegments(self, segments):
         self.segments = segments
-        full = u''.join(before + text for before, text, path, duration in segments)
-        # Szerokosc tekstu: ekran bez scenki (1/3) i marginesow
-        self.wrapped = self._wrap(full, self.winWidth - self.winWidth / 3 - 6 * self.xBorder)
-
-    def _wrap(self, text, width):
-        """Zawijanie wierszy z gory (a nie w trakcie wypisywania - slowa nie
-        przeskakuja do nastepnej linii). Spacje -> nowe linie; dlugosc tekstu
-        bez zmian, wiec pozycja wypisywania jest ta sama."""
-        dc = wx.ClientDC(self.text)
-        dc.SetFont(self.textFont)
-        result = list(text)
-        lineStart, lastSpace = 0, -1
-        for i, ch in enumerate(text):
-            if ch == u'\n':
-                lineStart, lastSpace = i + 1, -1
-                continue
-            if ch == u' ':
-                lastSpace = i
-            if lastSpace > lineStart and dc.GetTextExtent(text[lineStart:i + 1])[0] > width:
-                result[lastSpace] = u'\n'
-                lineStart, lastSpace = lastSpace + 1, -1
-        return u''.join(result)
+        self.text.setText(u''.join(before + text for before, text, path, duration in segments))
 
     def startReading(self):
         """Tekst od poczatku, w takt nagran; potem skanowanie."""
@@ -318,8 +404,7 @@ class GameBoard(board.Board):
         self.readId += 1
         self.segment = -1
         self.typed = 0        # ile znakow tekstu juz wypisane
-        self.text.SetLabel(u'')
-        self.topPanel.Layout()
+        self.text.show(0)
         self._nextSegment(self.readId)
 
     def stopReading(self):
@@ -374,7 +459,7 @@ class GameBoard(board.Board):
             position = self.segmentFrom + int((self.segmentTo - self.segmentFrom) * fraction)
         if position != self.typed or done:
             self.typed = position
-            self.text.SetLabel(self.wrapped[:position])
+            self.text.show(position)
         if done:
             self.typer.Stop()
             self._nextSegment(self.readId)

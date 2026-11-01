@@ -8,6 +8,7 @@ gra_client.py (katalog AP).
 
 Ekran (GameBoard):
     tekst sceny - wypisywany w takt czytania (nagrania narratora z serwera)
+    z prawej    - scenka: zegar z wahadlem i krzatajace sie ludziki (modules/scenka.py)
     opcje 2-4   - szerokie przyciski jeden pod drugim
     POWTORZ / WYJDZ - w rzedzie pod opcjami
 Skanowanie - po przyciskach od gory (jak ekran przed filmem w Wicero),
@@ -27,7 +28,7 @@ from pygame import mixer
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import gra_client
-from modules import board
+from modules import board, scenka
 from modules.board import say, resume
 
 _log = logging.getLogger('gra')
@@ -150,8 +151,12 @@ class GameBoard(board.Board):
         self.text = wx.StaticText(self.topPanel, -1, u'', style=wx.ST_NO_AUTORESIZE)
         self.text.SetFont(self.textFont)
         self.text.SetForegroundColour(self.textColour)
-        box = wx.BoxSizer(wx.VERTICAL)
+        # Z prawej scenka (zegar, ludziki) - ok. 1/3 szerokosci, rusza sie caly czas
+        self.scenka = scenka.Scenka(self.topPanel)
+        self.scenka.SetMinSize((self.winWidth / 3, -1))
+        box = wx.BoxSizer(wx.HORIZONTAL)
         box.Add(self.text, 1, wx.EXPAND | wx.ALL, 2 * self.xBorder)
+        box.Add(self.scenka, 0, wx.EXPAND)
         self.topPanel.SetSizer(box)
         self.vbox.Add(self.topPanel, 5, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, self.xBorder)
 
@@ -285,7 +290,8 @@ class GameBoard(board.Board):
     def setSegments(self, segments):
         self.segments = segments
         full = u''.join(before + text for before, text, path, duration in segments)
-        self.wrapped = self._wrap(full, self.winWidth - 6 * self.xBorder)
+        # Szerokosc tekstu: ekran bez scenki (1/3) i marginesow
+        self.wrapped = self._wrap(full, self.winWidth - self.winWidth / 3 - 6 * self.xBorder)
 
     def _wrap(self, text, width):
         """Zawijanie wierszy z gory (a nie w trakcie wypisywania - slowa nie
@@ -432,6 +438,7 @@ class GameBoard(board.Board):
         if not self:
             return
         self.stopReading()
+        self.scenka.stop()
         board.Board.onExit(self)
 
 

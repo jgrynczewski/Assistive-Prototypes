@@ -1,6 +1,8 @@
 # Moduł GRA - plan i testy
 
-Gra przygodowa czytana na głos - **„Tajemnica zegara”** (przycisk na planszy gier, obok SKOCZKA i ŁAPACZA; nagranie nazwy: `sounds/tajemnica_zegara.ogg`). Pierwsza opowieść: „Sala pod zegarem”. Serwer gry (silnik, scenariusz, nagrania narratora) - osobne repo `github.com/jgrynczewski/ap-gra`, kontener Docker na tym komputerze (port 8766, obok huba IoT 8765). W AP: `gra_client.py`, `modules/gra.py` (ekran), `modules/scenka.py` (zegar i ludziki), `modules/board.py` (plansza ze skanowaniem - wspólna z Wicero).
+Gra przygodowa czytana na głos - **„Tajemnica zegara”** (przycisk na planszy gier, obok SKOCZKA i ŁAPACZA; nagranie nazwy: `sounds/tajemnica_zegara.ogg`). Pierwsza opowieść: „Sala pod zegarem”.
+
+**Stan (2026-11-01):** ekran gry przetestowany (G0-G10 passed). Opowieść kompletna jako PoC: 27 scen, 7 zakończeń, 8-12 minut na rozgrywkę (ap-gra, `docs/fabula.md` → „Wersja PoC”). Nagrania `sounds/gry.ogg` i `sounds/tajemnica_zegara.ogg` zrobione na komputerze użytkownika - **jeszcze nie w repo** (dodać: `git add sounds/gry.ogg sounds/tajemnica_zegara.ogg`). Dalej: granie różnymi ścieżkami i uwagi do fabuły; rozbudowa tylko, jeśli gra się spodoba. Serwer gry (silnik, scenariusz, nagrania narratora) - osobne repo `github.com/jgrynczewski/ap-gra`, kontener Docker na tym komputerze (port 8766, obok huba IoT 8765). W AP: `gra_client.py`, `modules/gra.py` (ekran), `modules/scenka.py` (zegar i ludziki), `modules/board.py` (plansza ze skanowaniem - wspólna z Wicero).
 
 Skanowanie przycisków gry czeka, aż narrator doczyta przycisk, plus przerwa na zastanowienie - **parametr `gameOptionPause` w pliku `parameters`** (ms, domyślnie 1000; bez tej linii - 1 s), nigdy szybciej niż `timeGap`. Po wyborze: „Wybrałeś: <opcja>” (przycisk podświetlony kolorem wyboru), potem następna scena.
 

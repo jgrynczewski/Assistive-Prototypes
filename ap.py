@@ -29,6 +29,13 @@ from pygame import mixer
 from modules import radio, music, audiobook, nowe
 from modules import exercise, tv, new_games
 from modules import wicero
+from modules import background
+
+# Film YouTube w tle (W TLE w odtwarzaczu) czeka, gdy gra albo mowi inny
+# modul - pauza przy otwarciu, wznowienie przy wyjsciu (modules/background.py)
+for _module, _owner in ((music.music, 'muzyka'), (radio.radio, 'radio'),
+                        (audiobook.audiobook, 'audiobook'), (tv.TV, 'tv')):
+    background.guard(_module, _owner)
 
 if (psutil.__version__ < 2):
     print("\nFor properly close PISAK you need newer version of psutil. \nType: sudo pip2 install 'psutil==2.2.1' --upgrade\n")

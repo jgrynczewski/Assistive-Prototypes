@@ -7,7 +7,8 @@ import wx.lib.buttons as bt
 from pymouse import PyMouse
 from pygame import mixer
 
-from modules import at_youtube, youtube2
+from modules import at_youtube, youtube2, background
+from modules.board import say
 
 
 #=============================================================================
@@ -51,7 +52,9 @@ class youtube_menu(wx.Frame):
             except ValueError:
                 setattr(self, item[:item.find('=')], item[item.find('=')+1:])
 
-        self.labels = 'WYSZUKAJ LOSOWE ULUBIONE PUSTE PUSTE EXIT'.split()
+        # ODTWARZACZ - powrot do filmu w tle (modules/background.py); gdy nic
+        # nie gra w tle - wyglada i dziala jak PUSTE (refreshPlayerTile)
+        self.labels = 'WYSZUKAJ LOSOWE ULUBIONE ODTWARZACZ PUSTE EXIT'.split()
 
         self.flag = 'row'
         self.pressFlag = False
@@ -97,7 +100,7 @@ class youtube_menu(wx.Frame):
             'icons/modules/youtube2.png',
             'icons/modules/youtube1.png',
             'icons/modules/youtube_ulubione.png',
-            'icons/modules/puste.png',
+            'icons/modules/youtube_odtwarzacz.png',
             'icons/modules/puste.png',
             'icons/back.png',
         ]]
@@ -106,6 +109,7 @@ class youtube_menu(wx.Frame):
         for index in xrange(len(self.labels)):
             self.labelbitmaps[self.labels[index]] = wx.BitmapFromImage(
                 wx.ImageFromStream(open(labelFiles[index], 'rb')))
+        self.pusteBitmap = self.labelbitmaps['PUSTE']
 
     #-------------------------------------------------------------------------
     def createGui(self):
@@ -122,9 +126,43 @@ class youtube_menu(wx.Frame):
             b = bt.GenBitmapButton(self, -1, bitmap=self.labelbitmaps[i], name=i)
             b.Bind(event, self.onPress)
             self.sizer.Add(b, 0, wx.EXPAND)
+            if i == 'ODTWARZACZ':
+                self.playerTile = b
 
         self.vbox.Add(self.sizer, proportion=2, flag=wx.EXPAND | wx.TOP | wx.BOTTOM | wx.LEFT | wx.RIGHT, border=self.xBorder)
         self.SetSizer(self.vbox)
+        self.refreshPlayerTile()
+
+    #-------------------------------------------------------------------------
+    def refreshPlayerTile(self):
+        """Kafel ODTWARZACZ: ikona, gdy film gra w tle, inaczej puste pole."""
+        bitmap = self.labelbitmaps['ODTWARZACZ'] if background.has() else self.pusteBitmap
+        self.playerTile.SetBitmapLabel(bitmap)
+        self.playerTile.Refresh()
+
+    def Show(self, show=True):
+        # Powrot z odtwarzacza (EXIT / W TLE), galerii albo LOSOWE
+        if show:
+            self.refreshPlayerTile()
+            background.resume('losowe')
+        return wx.Frame.Show(self, show)
+
+    def _openPlayer(self):
+        """ODTWARZACZ: film z tla wraca na ekran (nic w tle - jak PUSTE)."""
+        player = background.take()
+        if player is None:
+            if self.pressSound.lower() == 'voice':
+                self.pusteSound.play()
+            return False
+        player.returnFromBackground(self)
+        return True
+
+    def _openRandom(self):
+        """LOSOWE - osobny odtwarzacz; film w tle czeka (wznowienie w Show)."""
+        background.pause('losowe')
+        self.stoper.Stop()
+        at_youtube.youtube(self, id=-1).Show(True)
+        self.Hide()
 
     #-------------------------------------------------------------------------
     def initializeTimer(self):
@@ -198,13 +236,13 @@ class youtube_menu(wx.Frame):
                     youtube2.youtube2(self, id=-1).Show(True)
                     self.Hide()
                 elif self.label == 'LOSOWE':
-                    self.stoper.Stop()
-                    at_youtube.youtube(self, id=-1).Show(True)
-                    self.Hide()
+                    self._openRandom()
                 elif self.label == 'ULUBIONE':
                     self.stoper.Stop()
                     youtube2.FavouritesPlayer(self).Show(True)
                     self.Hide()
+                elif self.label == 'ODTWARZACZ':
+                    self._openPlayer()
                 elif self.label == 'EXIT':
                     self.onExit()
 
@@ -269,9 +307,10 @@ class youtube_menu(wx.Frame):
                     elif label == 'LOSOWE':
                         if self.pressSound.lower() == 'voice':
                             self.losoweSound.play()
-                        self.stoper.Stop()
-                        at_youtube.youtube(self, id=-1).Show(True)
-                        self.Hide()
+                        self._openRandom()
+
+                    elif label == 'ODTWARZACZ':
+                        self._openPlayer()
 
                     elif label == 'ULUBIONE':
                         if self.pressSound.lower() == 'voice':
@@ -382,6 +421,11 @@ class youtube_menu(wx.Frame):
                                 self.losoweSound.play()
                             elif b.Name == 'ULUBIONE':
                                 self.ulubioneSound.play()
+                            elif b.Name == 'ODTWARZACZ':
+                                if background.has():
+                                    say(u'Odtwarzacz')  # brak nagrania .ogg
+                                else:
+                                    self.pusteSound.play()
                             elif b.Name == 'EXIT':
                                 self.powrotSound.play()
                             elif b.Name == 'PUSTE':

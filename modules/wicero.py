@@ -25,7 +25,7 @@ import wx
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import wicero_client
-from modules import youtube2, board
+from modules import youtube2, board, background
 # Wspolne z modulem Gra (modules/board.py); nazwy zostaja - uzywaja ich
 # nowe.py (wicero.say) i youtube2.py (PRZESLIJ)
 from modules.board import say, say_then, resume as _resume, fill as _fill
@@ -106,6 +106,7 @@ class SendersBoard(Board):
     def __init__(self, parent, senders):
         global ACTIVE
         ACTIVE = True
+        background.pause('wicero')  # film YouTube w tle czeka (wznowienie w onExit)
         self.senders = dict(('S%d' % i, s) for i, s in enumerate(senders[:MAX_SENDERS]))
         buttons = [{'key': 'S%d' % i, 'text': s['name'], 'speech': s.get('say', s['name'])}
                    for i, s in enumerate(senders[:MAX_SENDERS])]
@@ -136,6 +137,7 @@ class SendersBoard(Board):
         global ACTIVE
         ACTIVE = False
         Board.onExit(self)
+        background.resume('wicero')
 
     def onSelect(self, key):
         self.stoper.Stop()
@@ -413,6 +415,8 @@ class WiceroPlayer(youtube2.PlayerFrame):
     Nie zapisuje tabeli seen (stan obejrzenia jest w Wicero); ULUBIONE dziala
     jak w youtube2 (ulubione AP).
     """
+
+    BACKGROUND = False  # bez W TLE - pojedynczy film z ekranem komentarza
 
     def __init__(self, parent, item):
         self.item = item

@@ -38,6 +38,10 @@ LINE_PAUSE = 600            # [ms] przerwa miedzy liniami tekstu (jak miedzy zda
 PARAGRAPH_PAUSE = 1000      # [ms] przed nowym akapitem
 TYPE_TICK = 40              # [ms] krok wypisywania tekstu
 CHARS_PER_SECOND = 14.0     # tempo wypisywania linii bez nagrania
+OPTION_PAUSE = 1000         # [ms] po przeczytaniu przycisku, zanim skanowanie przejdzie dalej
+                            # (parametr gameOptionPause w pliku parameters)
+CONFIRM_PAUSE = 150         # [ms] miedzy "Wybrałeś:" a nazwa opcji
+AFTER_CONFIRM = 500         # [ms] po potwierdzeniu, przed nastepna scena
 
 
 #=============================================================================
@@ -218,6 +222,8 @@ class GameBoard(board.Board):
         self.channel = None
         self.sounds = {}
         self.voicePaths = {}     # klucz przycisku -> nagranie
+        self.voiceDurations = {} # klucz przycisku -> dlugosc nagrania [s]
+        self.voiceDelay = None   # dlugosc wlasnie czytanego przycisku (timerUpdate)
         self.busy = False
 
         buttons = [{'key': 'OPCJA%d' % i, 'text': u''} for i in range(1, MAX_OPTIONS + 1)]
@@ -231,11 +237,19 @@ class GameBoard(board.Board):
         self.typer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self._type, self.typer)
 
+        # Przerwa po przeczytaniu przycisku, zanim skanowanie przejdzie dalej
+        # (czas na zastanowienie): parametr gameOptionPause [ms] w pliku parameters
+        self.optionPause = getattr(self, 'gameOptionPause', OPTION_PAUSE)
+
         for key, name in (('POWTORZ', 'powtorz'), ('WYJDZ', 'wyjdz'),
-                          ('KONTYNUUJ', 'kontynuuj'), ('NOWA_GRA', 'nowa_gra')):
+                          ('KONTYNUUJ', 'kontynuuj'), ('NOWA_GRA', 'nowa_gra'),
+                          ('WYBRALES', 'wybrales')):
             item = self.interface.get(name, {})
             self.voicePaths[key] = item.get('path')
+            self.voiceDurations[key] = (item.get('audio') or {}).get('duration')
             self.speech[key] = item.get('text')
+        # Starszy serwer gry (bez nagrania "Wybrałeś:") - przeczyta milena
+        self.speech['WYBRALES'] = self.speech.get('WYBRALES') or u'Wybrałeś'
 
         self.setSegments([])
         self.setButtons([], repeat=False)  # do czasu pobrania pierwszej sceny
@@ -288,16 +302,18 @@ class GameBoard(board.Board):
 
     #-------------------------------------------------------------------------
     def setButtons(self, options, repeat=True):
-        """options: [(klucz, napis, nagranie)] - na przyciskach opcji, od gory.
-        Skanowanie: opcje, potem POWTORZ (gdy repeat) i WYJDZ."""
+        """options: [(klucz, napis, nagranie, dlugosc nagrania [s])] - na
+        przyciskach opcji, od gory. Skanowanie: opcje, potem POWTORZ (gdy
+        repeat) i WYJDZ."""
         keys, windows = [], []
         for i, b in enumerate(self.optionWindows):
             if i < len(options):
-                key, label, path = options[i]
+                key, label, path, duration = options[i]
                 b.SetName(key)  # Board czyta przycisk po nazwie (_voice)
                 b.SetLabel(label)
                 self.speech[key] = label
                 self.voicePaths[key] = path
+                self.voiceDurations[key] = duration
                 self.vbox.Show(b, True)
                 keys.append(key)
                 windows.append(b)
@@ -318,12 +334,16 @@ class GameBoard(board.Board):
     #-------------------------------------------------------------------------
     # Ekrany
 
+    def _interfaceOption(self, key, label):
+        """Stały przycisk (KONTYNUUJ / NOWA GRA) na miejscu opcji."""
+        return (key, label, self.voicePaths.get(key), self.voiceDurations.get(key))
+
     def showMenu(self):
         """Jest zapis gry: KONTYNUUJ / NOWA GRA."""
         title = self.health.get('title') or u''
         # Najpierw przyciski (uklad), potem tekst - dopasowanie tekstu do pola
-        self.setButtons([('KONTYNUUJ', u'Kontynuuj', self.voicePaths.get('KONTYNUUJ')),
-                         ('NOWA_GRA', u'Nowa gra', self.voicePaths.get('NOWA_GRA'))],
+        self.setButtons([self._interfaceOption('KONTYNUUJ', u'Kontynuuj'),
+                         self._interfaceOption('NOWA_GRA', u'Nowa gra')],
                         repeat=False)
         self.setSegments([(u'', title, None, 0), (u'\n\n', u'Masz zapisaną grę.', None, 0)])
         self.startReading()
@@ -384,9 +404,10 @@ class GameBoard(board.Board):
                  (ending.get('label_audio') or {}).get('duration')),
                 (u'\n', u'Odkryte zakończenia: %d z %d.' % (found, ending['total']), None, 0),
             ]
-            options = [('NOWA_GRA', u'Nowa gra', self.voicePaths.get('NOWA_GRA'))]
+            options = [self._interfaceOption('NOWA_GRA', u'Nowa gra')]
         else:
-            options = [('OPCJA%d' % o['number'], o['text'], o.get('path'))
+            options = [('OPCJA%d' % o['number'], o['text'], o.get('path'),
+                        (o.get('audio') or {}).get('duration'))
                        for o in view['options']]
         self.setButtons(options)  # najpierw uklad, potem dopasowanie tekstu
         self.setSegments(segments)
@@ -495,12 +516,33 @@ class GameBoard(board.Board):
             self.channel = None
 
     def _voice(self, name):
-        """Przycisk przy skanowaniu - glosem narratora; bez nagrania - milena."""
+        """Przycisk przy skanowaniu - glosem narratora; bez nagrania - milena.
+        Zapamietuje dlugosc czytania - timerUpdate czeka, az sie skonczy."""
+        self.voiceDelay = self._speak(name)
+
+    def _speak(self, name):
+        """Przeczytaj przycisk; zwraca dlugosc czytania [s] (dla mileny - szacunek)."""
         path = self.voicePaths.get(name)
         if path and self._play(path):
+            return self.voiceDurations.get(name) or len(self.speech.get(name) or u'') / CHARS_PER_SECOND
+        text = self.speech.get(name)
+        if text:
+            say(text)
+            return 0.5 + len(text) / CHARS_PER_SECOND
+        return 0
+
+    def timerUpdate(self, event):
+        """Jak w Board, ale nastepny krok skanowania dopiero po przeczytaniu
+        przycisku i przerwie na zastanowienie (optionPause) - nigdy szybciej
+        niz zwykle tempo skanowania (timeGap)."""
+        self.voiceDelay = None
+        board.Board.timerUpdate(self, event)
+        if not self or self.control == 'tracker' or not self.stoper.IsRunning():
             return
-        if self.speech.get(name):
-            say(self.speech[name])
+        interval = self.timeGap
+        if self.voiceDelay:
+            interval = max(self.timeGap, int(self.voiceDelay * 1000) + self.optionPause)
+        self.stoper.Start(interval)
 
     #-------------------------------------------------------------------------
     def onSelect(self, key):
@@ -512,13 +554,38 @@ class GameBoard(board.Board):
             self.onExit()
         elif key == 'KONTYNUUJ':
             state = self.save['state']
-            self.load(lambda: gra_client.view(state))
+            self._confirm(key, lambda: self.load(lambda: gra_client.view(state)))
         elif key == 'NOWA_GRA':
-            self.newGame()
+            self._confirm(key, self.newGame)
         elif key.startswith('OPCJA'):
             state = self.view['state']
             number = int(key[len('OPCJA'):])
-            self.load(lambda: gra_client.choose(state, number))
+            self._confirm(key, lambda: self.load(lambda: gra_client.choose(state, number)))
+
+    def _confirm(self, key, then):
+        """"Wybrałeś:" + nazwa wybranego przycisku (podswietlony kolorem wyboru
+        przez Board.onPress), potem then(). Naciśniecia w tym czasie - bez skutku."""
+        self.busy = True
+        self.stoper.Stop()
+        self._stopVoice()
+        self.readId += 1
+        readId = self.readId
+
+        def step(stage):
+            if not self or readId != self.readId:
+                return
+            if stage == 0:
+                delay = self._speak('WYBRALES')
+                self.later = wx.CallLater(int(delay * 1000) + CONFIRM_PAUSE, step, 1)
+            elif stage == 1:
+                delay = self._speak(key)
+                self.later = wx.CallLater(int(delay * 1000) + AFTER_CONFIRM, step, 2)
+            else:
+                self.later = None
+                self.busy = False
+                then()
+
+        step(0)
 
     def onExit(self):
         if not self:

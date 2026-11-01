@@ -146,6 +146,9 @@ class PlayerFrame(wx.Frame):
             self.usypiamSound = mixer.Sound(self.pathToAP + '/sounds/usypiam.ogg')
             self.pusteSound = mixer.Sound(self.pathToAP + '/sounds/puste.ogg')
             self.oneSound = mixer.Sound(self.pathToAP + '/sounds/rows/1.ogg')
+            # W TLE: nagranie, a dopoki go nie ma - glos AP (milena_say)
+            path = self.pathToAP + '/sounds/do_tła.ogg'
+            self.wTleSound = mixer.Sound(path) if os.path.exists(path) else None
 
         self.SetBackgroundColour('black')
 
@@ -514,6 +517,12 @@ class PlayerFrame(wx.Frame):
     #-------------------------------------------------------------------------
     # Film w tle (modules/background.py)
 
+    def _sayBackground(self):
+        if getattr(self, 'wTleSound', None):
+            self.wTleSound.play()
+        else:
+            self._wicero().say(u'Do tła')
+
     def _toBackground(self):
         """W TLE: okno znika, film gra dalej; AP wraca do menu YOUTUBE
         (z galerii fraz - przez jej wyjscie)."""
@@ -659,6 +668,8 @@ class PlayerFrame(wx.Frame):
                         self._share()
 
                     elif label == 'W_TLE':
+                        if self.pressSound.lower() == 'voice':
+                            self._sayBackground()
                         self._toBackground()
 
                     elif label == 'EXIT':
@@ -728,7 +739,7 @@ class PlayerFrame(wx.Frame):
                         elif b.Name == 'PRZESLIJ':
                             self._wicero().say(u'Prześlij')  # brak nagrania .ogg
                         elif b.Name == 'W_TLE':
-                            self._wicero().say(u'W tle')  # brak nagrania .ogg
+                            self._sayBackground()
                         elif b.Name == 'EXIT':
                             self.powrotSound.play()
 

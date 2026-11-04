@@ -1,12 +1,16 @@
 # Moduł GRA - plan i testy
 
-Gra przygodowa czytana na głos - **„Tajemnica zegara”** (przycisk na planszy gier, obok SKOCZKA i ŁAPACZA; nagranie nazwy: `sounds/tajemnica_zegara.ogg`). Pierwsza opowieść: „Sala pod zegarem”.
+Gry przygodowe czytane na głos, na planszy GRY obok SKOCZKA i ŁAPACZA:
+- **„Tajemnica zegara”** (przycisk TAJEMNICA, nagranie nazwy `sounds/tajemnica_zegara.ogg`) - opowieść „Sala pod zegarem” (na serwerze `sala_pod_zegarem`);
+- **„Ostatnia zwrotka”** (przycisk ZWROTKA, od 2026-11-04; nagranie nazwy `sounds/ostatnia_zwrotka.ogg` - **do nagrania**, do tego czasu głos AP) - romans w willi z klubem muzycznym, 9 zakończeń (na serwerze `ostatnia_zwrotka`).
+
+Obie gry działają na jednym serwerze (`?game=` w API), każda ma osobny zapis i licznik zakończeń.
 
 **Stan (2026-11-01):** ekran gry przetestowany (G0-G10 passed). Opowieść kompletna jako PoC: 27 scen, 7 zakończeń, 8-12 minut na rozgrywkę (ap-gra, `docs/fabula.md` → „Wersja PoC”). Nagrania `sounds/gry.ogg` i `sounds/tajemnica_zegara.ogg` zrobione na komputerze użytkownika - **jeszcze nie w repo** (dodać: `git add sounds/gry.ogg sounds/tajemnica_zegara.ogg`). Dalej: granie różnymi ścieżkami i uwagi do fabuły; rozbudowa tylko, jeśli gra się spodoba. Serwer gry (silnik, scenariusz, nagrania narratora) - osobne repo `github.com/jgrynczewski/ap-gra`, kontener Docker na tym komputerze (port 8766, obok huba IoT 8765). W AP: `gra_client.py`, `modules/gra.py` (ekran), `modules/scenka.py` (zegar i ludziki), `modules/board.py` (plansza ze skanowaniem - wspólna z Wicero).
 
 Skanowanie przycisków gry czeka, aż narrator doczyta przycisk, plus przerwa na zastanowienie - **parametr `gameOptionPause` w pliku `parameters`** (ms, domyślnie 1000; bez tej linii - 1 s), nigdy szybciej niż `timeGap`. Po wyborze: „Wybrałeś: <opcja>” (przycisk podświetlony kolorem wyboru), potem następna scena.
 
-Zapis gry: `~/.ap-gra/zapis.json`; nagrania pobrane z serwera: `~/.ap-gra/nagrania/`; log: `gra.log` w katalogu AP.
+Zapis gry: `~/.ap-gra/zapis.json` (Tajemnica zegara), `~/.ap-gra/zapis_ostatnia_zwrotka.json` (Ostatnia zwrotka); nagrania pobrane z serwera: `~/.ap-gra/nagrania/`; log: `gra.log` w katalogu AP.
 
 ## Instalacja serwera gry (raz)
 
@@ -46,5 +50,17 @@ docker ps -a --format '{{.Names}}\t{{.Status}}' | while IFS=$'\t' read n s; do e
 | G9 | Wicero (plansza przeniesiona do `modules/board.py`): nadawcy → FILMY → ekran przed filmem → film → powrót | działa jak wcześniej | passed |
 | G11 | Film YouTube albo Wicero w tle (W TLE), potem gry → TAJEMNICA ZEGARA, chwilę grać, WYJDŹ (od 2026-11-04) | film gra cały czas - razem z narratorem gry (nie milknie przy wejściu do gry) | |
 | G10 | `top` przy otwartej grze | AP nie zjada procesora przez animację (orientacyjnie < 30%) | passed (7-15% CPU, Latitude 7490) |
+
+### Ostatnia zwrotka (2026-11-04)
+
+Przed testami: `cd ~/ap-gra && git pull && docker compose up -d --build` (nagra wszystkie teksty nowej gry - kilka minut), w AP `git pull`.
+
+| # | Test | Oczekiwane | Wynik |
+|---|---|---|---|
+| Z1 | gry → plansza | jeden rząd: SKOCZEK, SKOCZEK2, ŁAPACZ, TAJEMNICA ZEGARA, OSTATNIA ZWROTKA (serce z nutą); przy skanowaniu „Ostatnia zwrotka” (głos AP, dopóki nie ma nagrania) | |
+| Z2 | ZWROTKA (pierwszy raz) | scena na tarasie willi, taksówka, Nina i Bigos; 4 opcje; czyta narrator; cały tekst widoczny | |
+| Z3 | Kilka scen, WYJDŹ, ponownie ZWROTKA → KONTYNUUJ; potem TAJEMNICA | „Ostatnia zwrotka” wraca w tym samym miejscu; Tajemnica zegara ma **swój** zapis (bez zmian) | |
+| Z4 | Gra do końca, przy pisaniu piosenki wybierać wersy | na festiwalu Nina śpiewa **wybrane** wersy (3 linie); zakończenie „… z dziewięciu.”, „Odkryte zakończenia: 1 z 9.” | |
+| Z5 | Druga partia inną ścieżką (np. „Niech Bartas zapowie nową piosenkę”) | inne zakończenie, licznik „2 z 9” | |
 
 Przy błędzie: traceback z terminala AP i `tail -n 20 gra.log`.

@@ -71,19 +71,20 @@ def error_text(error):
     return u'Wystąpił błąd gry.'
 
 
-def open_gra(parent):
-    """Wejscie z planszy gier (new_games.py, przycisk TAJEMNICA): sprawdz serwer,
-    pobierz nagrania przyciskow, pokaz gre.
-    parent.stoper jest zatrzymany przez wywolujacego."""
+def open_gra(parent, game=None):
+    """Wejscie z planszy gier (new_games.py: TAJEMNICA - sala_pod_zegarem,
+    ZWROTKA - ostatnia_zwrotka): sprawdz serwer, pobierz nagrania przyciskow,
+    pokaz gre. Kazda gra ma osobny zapis. parent.stoper jest zatrzymany
+    przez wywolujacego."""
 
     def load():
-        health = gra_client.health()
+        health = gra_client.health(game)
         for item in health.get('interface', {}).values():
             item['path'] = gra_client.audio_file(item.get('audio'))
         return health
 
     def on_success(health):
-        GameBoard(parent, health, gra_client.load_save()).Show(True)
+        GameBoard(parent, health, gra_client.load_save(game), game).Show(True)
         parent.Hide()
 
     def on_error(e):
@@ -213,7 +214,8 @@ class GameBoard(board.Board):
     columnsOnly = True
     title = 'AP Gra'
 
-    def __init__(self, parent, health, save):
+    def __init__(self, parent, health, save, game=None):
+        self.game = game  # None - gra domyslna (Tajemnica zegara)
         self.health = health
         self.interface = health.get('interface', {})
         self.save = save
@@ -354,7 +356,7 @@ class GameBoard(board.Board):
         if not self:  # okno zamkniete w trakcie komunikatu
             return
         self.save['state'] = None
-        self.load(gra_client.start)
+        self.load(lambda: gra_client.start(self.game))
 
     def load(self, request):
         """request() -> widok (w watku), potem pokaz scene."""
@@ -374,7 +376,7 @@ class GameBoard(board.Board):
                 return
             if e.kind == 'state':  # zapis nie pasuje do nowej wersji gry
                 self.save['state'] = None
-                gra_client.write_save(self.save)
+                gra_client.write_save(self.save, self.game)
                 board.say_then(u'Zapis gry nie pasuje do nowej wersji. Zaczynamy od początku.',
                                self.newGame)
             else:
@@ -392,7 +394,7 @@ class GameBoard(board.Board):
                 self.save['endings'].append(ending['id'])
         else:
             self.save['state'] = view['state']
-        gra_client.write_save(self.save)
+        gra_client.write_save(self.save, self.game)
 
         segments = [(line['before'], line['text'], line.get('path'),
                      (line.get('audio') or {}).get('duration'))
@@ -556,13 +558,13 @@ class GameBoard(board.Board):
             self.onExit()
         elif key == 'KONTYNUUJ':
             state = self.save['state']
-            self._confirm(key, lambda: self.load(lambda: gra_client.view(state)))
+            self._confirm(key, lambda: self.load(lambda: gra_client.view(state, self.game)))
         elif key == 'NOWA_GRA':
             self._confirm(key, self.newGame)
         elif key.startswith('OPCJA'):
             state = self.view['state']
             number = int(key[len('OPCJA'):])
-            self._confirm(key, lambda: self.load(lambda: gra_client.choose(state, number)))
+            self._confirm(key, lambda: self.load(lambda: gra_client.choose(state, number, self.game)))
 
     def _confirm(self, key, then):
         """"Wybrałeś:" + nazwa wybranego przycisku (podswietlony kolorem wyboru

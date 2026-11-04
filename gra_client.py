@@ -3,7 +3,8 @@
 
 API: github.com/jgrynczewski/ap-gra, docs/api.md. Serwer niczego nie
 pamieta - stan gry ("state") trzyma klient: zapis w ~/.ap-gra/zapis.json
-(po kazdym wyborze), razem z odkrytymi zakonczeniami.
+(po kazdym wyborze), razem z odkrytymi zakonczeniami; kazda gra osobno
+(save_file). Gra wybierana parametrem game (domyslnie Tajemnica zegara).
 
 Nagrania narratora (WAV) pobierane z serwera do ~/.ap-gra/nagrania/ -
 nazwa pliku zalezy od tekstu i glosu, wiec raz pobrane nie starzeja sie.
@@ -67,22 +68,30 @@ def _request(method, path, body=None):
 
 
 #-----------------------------------------------------------------------------
-def health():
+# Gry na serwerze: identyfikator = nazwa scenariusza (scenariusz/<id>.md w ap-gra)
+DEFAULT_GAME = 'sala_pod_zegarem'   # Tajemnica zegara
+
+
+def _path(path, game):
+    return '%s?game=%s' % (path, game or DEFAULT_GAME)
+
+
+def health(game=None):
     """{"ok", "title", "endings", "recordings", "interface"}"""
-    return _request('GET', '/v1/health')
+    return _request('GET', _path('/v1/health', game))
 
 
-def start():
-    return _request('POST', '/v1/start', {})
+def start(game=None):
+    return _request('POST', _path('/v1/start', game), {})
 
 
-def view(state):
+def view(state, game=None):
     """Widok sceny z zapisu (Kontynuuj)."""
-    return _request('POST', '/v1/view', {'state': state})
+    return _request('POST', _path('/v1/view', game), {'state': state})
 
 
-def choose(state, number):
-    return _request('POST', '/v1/choose', {'state': state, 'option': number})
+def choose(state, number, game=None):
+    return _request('POST', _path('/v1/choose', game), {'state': state, 'option': number})
 
 
 #-----------------------------------------------------------------------------
@@ -110,23 +119,32 @@ def audio_file(audio):
 
 
 #-----------------------------------------------------------------------------
-def load_save():
+def save_file(game=None):
+    """Zapis osobno dla kazdej gry; Tajemnica zegara - dawny zapis.json."""
+    game = game or DEFAULT_GAME
+    if game == DEFAULT_GAME:
+        return SAVE_FILE
+    return os.path.join(DATA_DIR, 'zapis_%s.json' % game)
+
+
+def load_save(game=None):
     """{"state": {...} | None, "endings": [id, ...]} - pusty, gdy brak zapisu."""
     try:
-        with open(SAVE_FILE) as f:
+        with open(save_file(game)) as f:
             save = json.load(f)
         return {'state': save.get('state'), 'endings': list(save.get('endings', []))}
     except (IOError, ValueError):
         return {'state': None, 'endings': []}
 
 
-def write_save(save):
+def write_save(save, game=None):
+    path = save_file(game)
     try:
         if not os.path.isdir(DATA_DIR):
             os.makedirs(DATA_DIR)
-        partial = SAVE_FILE + '.part'
+        partial = path + '.part'
         with open(partial, 'w') as f:
             json.dump(save, f)
-        os.rename(partial, SAVE_FILE)
+        os.rename(partial, path)
     except (IOError, OSError) as e:
         _log.error('zapis gry: %r', e)

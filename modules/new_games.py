@@ -78,7 +78,7 @@ class games( wx.Frame ):
 							
 		self.pressFlag = False
 
-		self.numberOfColumns = 4,
+		self.numberOfColumns = 5,
 		self.numberOfRows = 2,
 		
 		self.columnIteration = 0
@@ -110,6 +110,7 @@ class games( wx.Frame ):
                                 self.skoczek2Sound = mixer.Sound( self.pathToAP + '/sounds/skoczek2.ogg' )
                                 self.lapaczSound = mixer.Sound( self.pathToAP + '/sounds/lapacz.ogg' )
                                 self.tajemnicaSound = optionalSound( self.pathToAP + '/sounds/tajemnica_zegara.ogg' )
+                                self.zwrotkaSound = optionalSound( self.pathToAP + '/sounds/ostatnia_zwrotka.ogg' )
                                 self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
                                 self.usypiamSound = mixer.Sound( self.pathToAP + '/sounds/usypiam.ogg' )
 		
@@ -121,9 +122,9 @@ class games( wx.Frame ):
 		self.panels = { 1 : [ [], [] ] }
 		self.numberOfPanels = 1
 				
-		self.functionButtonPath = [ wx.BitmapFromImage( wx.ImageFromStream( open(self.pathToAP + 'icons/back.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream( open(self.pathToAP + 'icons/new_games/skoczek.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream( open(self.pathToAP + 'icons/new_games/skoczek2.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream(open(self.pathToAP + 'icons/new_games/łapacz.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream(open(self.pathToAP + 'icons/new_games/tajemnica_zegara.png', 'rb' ) ) ) ]
+		self.functionButtonPath = [ wx.BitmapFromImage( wx.ImageFromStream( open(self.pathToAP + 'icons/back.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream( open(self.pathToAP + 'icons/new_games/skoczek.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream( open(self.pathToAP + 'icons/new_games/skoczek2.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream(open(self.pathToAP + 'icons/new_games/łapacz.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream(open(self.pathToAP + 'icons/new_games/tajemnica_zegara.png', 'rb' ) ) ), wx.BitmapFromImage( wx.ImageFromStream(open(self.pathToAP + 'icons/new_games/ostatnia_zwrotka.png', 'rb' ) ) ) ]
 
-		self.labels = [ 'SKOCZEK', 'SKOCZEK2', 'ŁAPACZ', 'TAJEMNICA' ]
+		self.labels = [ 'SKOCZEK', 'SKOCZEK2', 'ŁAPACZ', 'TAJEMNICA', 'ZWROTKA' ]
 		self.functionButtonName = [ 'back' ]
 
 		if self.numberOfPanels == 1:
@@ -237,20 +238,25 @@ class games( wx.Frame ):
 				self.mouseCursor.move( *self.mousePosition )	
 
 	#-------------------------------------------------------------------------
-	def sayGame(self):
-		# Nazwa gry: nagranie sounds/tajemnica_zegara.ogg, a dopoki go nie ma - milena
-		if getattr( self, 'tajemnicaSound', None ):
-			self.tajemnicaSound.play( )
-		else:
-			gra.say( u'Tajemnica zegara' )
+	# Gry z serwera ap-gra: przycisk -> (gra na serwerze, dzwiek nazwy, nazwa dla glosu AP)
+	GAMES = { 'TAJEMNICA': ( 'sala_pod_zegarem', 'tajemnicaSound', u'Tajemnica zegara' ),
+		  'ZWROTKA': ( 'ostatnia_zwrotka', 'zwrotkaSound', u'Ostatnia zwrotka' ) }
 
-	def openGame(self):
+	def sayGame(self, key = 'TAJEMNICA'):
+		# Nazwa gry: nagranie (sounds/tajemnica_zegara.ogg, sounds/ostatnia_zwrotka.ogg), a dopoki go nie ma - glos AP
+		game, sound, name = self.GAMES[ key ]
+		if getattr( self, sound, None ):
+			getattr( self, sound ).play( )
+		else:
+			gra.say( name )
+
+	def openGame(self, key = 'TAJEMNICA'):
 		if self.pressSound.lower( ) == 'voice':
-			self.sayGame( )
+			self.sayGame( key )
 		self.stoper.Stop( )
 		# Sprawdza serwer gry w tle, potem chowa te plansze i pokazuje gre;
 		# powrot z gry - Show i stoper.Start tej planszy (jak z innych modulow)
-		gra.open_gra( self )
+		gra.open_gra( self, self.GAMES[ key ][ 0 ] )
 
 	#-------------------------------------------------------------------------
 	def onExit(self):
@@ -320,8 +326,8 @@ class games( wx.Frame ):
 				self.stoper.Stop( )
 				atgames.games( self, id = -1 ).Show( True )
 				self.Hide( )
-			if self.label == 'TAJEMNICA':
-				self.openGame( )
+			if self.label in self.GAMES:
+				self.openGame( self.label )
 
 			elif self.label == 'writing':
 				self.stoper.Stop( )
@@ -479,7 +485,10 @@ class games( wx.Frame ):
 		                                self.stoper.Start(self.timeGap)
 
 					elif self.position == 3:
-						self.openGame( )
+						self.openGame( 'TAJEMNICA' )
+
+					elif self.position == 4:
+						self.openGame( 'ZWROTKA' )
 
 					if self.numberOfPanels == 1:
 					    self.flag = 'row'
@@ -630,7 +639,9 @@ class games( wx.Frame ):
                                             if (self.columnIteration == 2):
                                                 self.lapaczSound.play()
                                             if (self.columnIteration == 3):
-                                                self.sayGame( )
+                                                self.sayGame( 'TAJEMNICA' )
+                                            if (self.columnIteration == 4):
+                                                self.sayGame( 'ZWROTKA' )
 
 
 					items = self.subSizers[ self.panelIteration ].GetChildren( )

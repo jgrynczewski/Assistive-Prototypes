@@ -2,8 +2,12 @@
 
 Aplikacja dla osób komunikujących się jednym przełącznikiem lub eyetrackerem (interfejs skanujący, komunikaty głosowe). Działa na komputerach użytkowników: **Ubuntu 20.04 bez aktualizacji systemu, Python 2.7, wxPython 2.8**. Kod musi działać w Pythonie 2.7 - bez f-stringów, `print` jako instrukcja lub `from __future__ import print_function`, `unicode` vs `str`.
 
-## Bieżące zadanie: moduł Wicero
-Odbiór filmów YouTube przesyłanych przez bliskich w systemie Wicero. **Zacznij od `WICERO_PLAN.md`** (stan, kontrakt API, testy T1-T13, ryzyka), decyzja: `docs/adr/0001-modul-wicero.md`. Backend jest gotowy w chmurze; kod w AP czeka na pierwsze uruchomienie i poprawki na tym komputerze.
+## Stan i gdzie zacząć (2026-11-04)
+Mapa wszystkich trzech repozytoriów (AP, Wicero, ap-gra), komputery, zasady pracy i pułapki: **`docs/mapa-projektow.md` w repo `wicero`** (`C:\Users\User\PycharmProjects\wicero` na komputerze deweloperskim).
+- **Wicero** (filmy od kontaktów, PRZEŚLIJ): działa i jest przetestowane na komputerze użytkownika. Stan i następne zadanie („nieaktywny kontakt”): `WICERO_PLAN.md` → „▶ Start następnej sesji”; decyzja: `docs/adr/0001-modul-wicero.md`.
+- **Film w tle** (W TLE, kafel ODTWARZACZ w YOUTUBE i NOWE): `AT_YOUTUBE_PROGRESS.md` → „Zgłoszone przez użytkownika”; do testu B11-B12 (LOSOWE).
+- **Gra „Tajemnica zegara”** (plansza GAMES): `GRA_PLAN.md`; serwer gry - repo `ap-gra`.
+- Kod UI pisany na komputerze deweloperskim nie da się tam uruchomić (brak wx 2.8 / VLC) - kompilacja w Pythonie 2.7 w Dockerze, testy ręczne u użytkownika, po jednym; AP z terminala: `python ap.py 2>&1 | tee /tmp/ap.log`.
 
 ## Zasady
 - **Terminologia:** nigdy nie używaj słów "opiekun" ani "niepełnosprawny" (kod, UI, komunikaty, dokumentacja). Osoba korzystająca z AP to **kontakt**, osoba wysyłająca materiały - **nadawca**.
@@ -13,6 +17,8 @@ Odbiór filmów YouTube przesyłanych przez bliskich w systemie Wicero. **Zaczni
 - Rozmowa i dokumentacja po polsku; komentarze w kodzie jak w otaczającym kodzie.
 
 ## Inne dokumenty
-- `AT_YOUTUBE_PLAN.md`, `AT_YOUTUBE_PROGRESS.md` - moduł YouTube (`modules/youtube_menu.py`, `modules/youtube2.py`)
+- `AT_YOUTUBE_PLAN.md`, `AT_YOUTUBE_PROGRESS.md` - moduł YouTube (`modules/youtube_menu.py`, `modules/youtube2.py`, `modules/at_youtube.py`; film w tle - `modules/background.py`)
+- `GRA_PLAN.md` - gra (`gra_client.py`, `modules/gra.py`, `modules/scenka.py`); `modules/board.py` - wspólna plansza ze skanowaniem (Wicero, gra)
+- `SYNTEZATOR.md` - głos AP (`milena_say` → Piper mc_speech)
 - `IOT_INTEGRATION_PLAN.md` - moduł IoT (`iot_client.py`, `modules/iot.py`)
 - `parameters` (przez `reader.py`) - ustawienia użytkownika: `control`, `timeGap`, kolory, dźwięki. Obsługiwany jest tylko `control=switch` (skanowanie). `tracker` jest nieużywany od ok. 10 lat; gałęzie `control == 'tracker'` w modułach to martwa pozostałość - nie testować ani nie rozwijać (szczegóły: T11 w `WICERO_PLAN.md`).

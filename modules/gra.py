@@ -28,7 +28,9 @@ from pygame import mixer
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import gra_client
-from modules import board, scenka, background
+# Film YouTube / Wicero w tle gra dalej w trakcie gry - decyzja uzytkownika
+# 2026-11-04 (bez background.pause)
+from modules import board, scenka
 from modules.board import say, resume
 
 _log = logging.getLogger('gra')
@@ -212,7 +214,6 @@ class GameBoard(board.Board):
     title = 'AP Gra'
 
     def __init__(self, parent, health, save):
-        background.pause('gra')  # film YouTube w tle czeka - narrator mowi (wznowienie w onExit)
         self.health = health
         self.interface = health.get('interface', {})
         self.save = save
@@ -594,7 +595,6 @@ class GameBoard(board.Board):
         self.stopReading()
         self.scenka.stop()
         board.Board.onExit(self)
-        background.resume('gra')
 
 
 #=============================================================================

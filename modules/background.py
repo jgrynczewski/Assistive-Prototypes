@@ -11,8 +11,8 @@ Odtwarzacze z W TLE: youtube2.PlayerFrame (WYSZUKAJ, ULUBIONE, Wicero)
 i at_youtube.youtube (LOSOWE) - wspolny kod w BackgroundPlayer; nowy film
 zamyka ten z tla (jeden naraz).
 
-Moduly, ktore same graja albo mowia (Wicero, gra "Tajemnica zegara",
-MUZYKA, RADIO, AUDIOBOOKI, TV), na czas swojego dzialania pauzuja
+Moduly, ktore same graja albo mowia (Wicero, MUZYKA, RADIO, AUDIOBOOKI,
+TV), na czas swojego dzialania pauzuja
 film w tle i wznawiaja go po wyjsciu - pause(owner) / resume(owner) albo
 guard(klasa, owner). Muzyka, radio i audiobooki graja dalej po wyjsciu
 z modulu (smplayer w tle) - wtedy film w tle sie nie wznawia. W druga

@@ -44,6 +44,7 @@ docker ps -a --format '{{.Names}}\t{{.Status}}' | while IFS=$'\t' read n s; do e
 | G7 | Dwa przejścia skanowania bez naciśnięcia, potem naciśnięcie | „usypiam”, potem skanowanie od początku | passed |
 | G8 | `cd ~/ap-gra && docker compose stop`, wejście w GRA; potem `docker compose start` | milena: „Gra nie jest uruchomiona.”, zostaje menu | passed |
 | G9 | Wicero (plansza przeniesiona do `modules/board.py`): nadawcy → FILMY → ekran przed filmem → film → powrót | działa jak wcześniej | passed |
+| G11 | Film YouTube albo Wicero w tle (W TLE), potem gry → TAJEMNICA ZEGARA, chwilę grać, WYJDŹ (od 2026-11-04) | film gra cały czas - razem z narratorem gry (nie milknie przy wejściu do gry) | |
 | G10 | `top` przy otwartej grze | AP nie zjada procesora przez animację (orientacyjnie < 30%) | passed (7-15% CPU, Latitude 7490) |
 
 Przy błędzie: traceback z terminala AP i `tail -n 20 gra.log`.

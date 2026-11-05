@@ -58,7 +58,7 @@ Przed testami: `cd ~/ap-gra && git pull && docker compose up -d --build` (nagra 
 | # | Test | Oczekiwane | Wynik |
 |---|---|---|---|
 | Z1 | gry → plansza | jeden rząd: SKOCZEK, SKOCZEK2, ŁAPACZ, TAJEMNICA ZEGARA, OSTATNIA ZWROTKA (serce z nutą); przy skanowaniu „Ostatnia zwrotka” (głos AP, dopóki nie ma nagrania) | |
-| Z2 | ZWROTKA (pierwszy raz) | scena na tarasie willi, taksówka, Nina i Bigos; 4 opcje; czyta narrator; cały tekst widoczny | |
+| Z2 | ZWROTKA (pierwszy raz) | scena na tarasie willi, taksówka, Nina i Bigos; 4 opcje; czyta narrator; cały tekst widoczny; **z prawej nowa scenka**: nocny ogród willi - migoczące gwiazdy, okna zapalają się i gasną, lampiony się kołyszą, para nad basenem, unoszące się serduszko, Bigos na brzegu | |
 | Z3 | Kilka scen, WYJDŹ, ponownie ZWROTKA → KONTYNUUJ; potem TAJEMNICA | „Ostatnia zwrotka” wraca w tym samym miejscu; Tajemnica zegara ma **swój** zapis (bez zmian) | |
 | Z4 | Gra do końca, przy pisaniu piosenki wybierać wersy | na festiwalu Nina śpiewa **wybrane** wersy (3 linie); zakończenie „… z dziewięciu.”, „Odkryte zakończenia: 1 z 9.” | |
 | Z5 | Druga partia inną ścieżką (np. „Niech Bartas zapowie nową piosenkę”) | inne zakończenie, licznik „2 z 9” | |

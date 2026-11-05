@@ -271,7 +271,7 @@ class GameBoard(board.Board):
         self.text = TextPanel(self.topPanel, self.tableFontSize * 3 / 5, self.textColour,
                               self.backgroundColour, 2 * self.xBorder)
         # Z prawej scenka (zegar, ludziki) - ok. 1/3 szerokosci, rusza sie caly czas
-        self.scenka = scenka.Scenka(self.topPanel)
+        self.scenka = scenka.Scenka(self.topPanel, scenka.sceneFor(self.game))
         self.scenka.SetMinSize((self.winWidth / 3, -1))
         box = wx.BoxSizer(wx.HORIZONTAL)
         box.Add(self.text, 1, wx.EXPAND)

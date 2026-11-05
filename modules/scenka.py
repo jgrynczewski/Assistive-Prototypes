@@ -1,7 +1,10 @@
 #!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
-"""Scenka na ekranie gry: szkolny zegar z wahadlem i ludziki, ktore sie
-kreca - chodza, staja, czasem podchodza do siebie i "rozmawiaja".
+"""Scenka na ekranie gry - zalezna od gry (sceneFor):
+- Tajemnica zegara: szkolny zegar z wahadlem i ludziki, ktore sie kreca -
+  chodza, staja, czasem podchodza do siebie i "rozmawiaja" (Scene);
+- Ostatnia zwrotka: noc w ogrodzie willi - lampiony, basen, para na brzegu,
+  Bigos (NightScene).
 
 Nic z fabuly nie zalezy od scenki - to tylko zywy podglad, zeby na ekranie
 cos sie dzialo. Rysowane prostymi ksztaltami (bez plikow graficznych).
@@ -230,13 +233,223 @@ class Scene(object):
 
 
 #=============================================================================
+# "Ostatnia zwrotka" (romans): noc w ogrodzie willi - gwiazdy, ksiezyc, okna
+# willi, w ktorych ktos zapala i gasi swiatlo, girlanda lampionow na wietrze,
+# basen z falami, dwie postacie z nogami w wodzie (czasem unosi sie
+# serduszko), swietliki i Bigos na brzegu basenu.
+
+SKY = ['#14213D', '#1B2B4F', '#26396A']
+MOON = '#FFF3C4'
+STAR = '#FFFFFF'
+VILLA = '#0E1628'
+WINDOW_ON = '#FFD27A'
+WINDOW_OFF = '#1F2A44'
+GRASS = '#1E3B2F'
+POOL = '#2BB3C9'
+POOL_EDGE = '#D9D2C3'
+RIPPLE = '#A7EAF2'
+CORD = '#5A5A6E'
+LANTERNS = ['#FF6B6B', '#FFD166', '#06D6A0', '#4CC9F0', '#F78C6B', '#C77DFF', '#FFD166']
+FIREFLY = '#E9FF70'
+HEART = '#FF4D6D'
+DOG = '#B07D4F'
+NINA = '#E85D75'
+HERO = '#3D7DD8'
+
+
+def _heart(dc, x, y, size):
+    """Serduszko: dwa kola i trojkat; (x, y) - srodek gornej czesci."""
+    r = max(2, int(size * 0.3))
+    dc.SetPen(_pen(HEART, 1))
+    dc.SetBrush(_brush(HEART))
+    dc.DrawCircle(int(x - r * 0.8), int(y), r)
+    dc.DrawCircle(int(x + r * 0.8), int(y), r)
+    dc.DrawPolygon([(int(x - r * 1.75), int(y + r * 0.35)), (int(x + r * 1.75), int(y + r * 0.35)),
+                    (int(x), int(y + r * 2.6))])
+
+
+class NightScene(object):
+    """Noc w ogrodzie willi. update(dt) - ruch, draw(dc, w, h) - rysowanie."""
+
+    def __init__(self):
+        self.started = time.time()
+        rnd = random.Random(7)  # te same gwiazdy i okna za kazdym razem
+        self.stars = [(rnd.random(), rnd.random() * 0.33, rnd.uniform(0.7, 2.4), rnd.uniform(0, 6.3))
+                      for i in range(30)]
+        self.windows = [(col, row, rnd.uniform(0, 6.3), rnd.uniform(0.08, 0.25))
+                        for col in range(3) for row in range(3)]
+        self.flies = [(rnd.uniform(0.05, 0.95), rnd.uniform(0.5, 0.68), rnd.uniform(0, 6.3),
+                       rnd.uniform(0.3, 0.7)) for i in range(6)]
+        self.dogX, self.dogDir, self.dogWait = 0.8, -1, 2.0
+        self.hearts = []
+        self.nextHeart = 4.0
+
+    def update(self, dt):
+        # Bigos chodzi po brzegu basenu, czasem przystaje
+        if self.dogWait > 0:
+            self.dogWait -= dt
+        else:
+            self.dogX += self.dogDir * 0.07 * dt
+            if self.dogX < 0.6 or self.dogX > 0.94:
+                self.dogDir = -self.dogDir
+                self.dogX = min(0.94, max(0.6, self.dogX))
+                self.dogWait = random.uniform(1.5, 4.0)
+            elif random.random() < 0.004:
+                self.dogWait = random.uniform(1.0, 3.0)
+        # Serduszko nad para - co kilka sekund
+        self.nextHeart -= dt
+        if self.nextHeart <= 0:
+            self.hearts.append([0.0])
+            self.nextHeart = random.uniform(6.0, 11.0)
+        for heart in self.hearts:
+            heart[0] += dt
+        self.hearts = [heart for heart in self.hearts if heart[0] < 4.0]
+
+    def draw(self, dc, w, h, now=None):
+        if now is None:
+            now = time.time() - self.started
+        k = min(w, h) / 540.0  # skala
+
+        # Niebo w trzech pasach, trawa
+        horizon = int(h * 0.62)
+        for i, colour in enumerate(SKY):
+            dc.SetPen(_pen(colour))
+            dc.SetBrush(_brush(colour))
+            dc.DrawRectangle(0, int(horizon * i / 3.0), w, int(horizon / 3.0) + 2)
+        dc.SetPen(_pen(GRASS))
+        dc.SetBrush(_brush(GRASS))
+        dc.DrawRectangle(0, horizon, w, h - horizon)
+
+        # Gwiazdy migocza
+        dc.SetPen(_pen(STAR))
+        dc.SetBrush(_brush(STAR))
+        for x, y, speed, phase in self.stars:
+            r = (0.6 + 0.9 * (math.sin(now * speed + phase) + 1)) * k
+            dc.DrawCircle(int(x * w), int(y * h), max(1, int(r)))
+
+        # Ksiezyc (sierp: kolo nieba nachodzi na jasne kolo)
+        mr = int(0.065 * min(w, h))
+        mx, my = int(w * 0.84), int(h * 0.11)
+        dc.SetPen(_pen(MOON))
+        dc.SetBrush(_brush(MOON))
+        dc.DrawCircle(mx, my, mr)
+        dc.SetPen(_pen(SKY[0]))
+        dc.SetBrush(_brush(SKY[0]))
+        dc.DrawCircle(int(mx + mr * 0.45), int(my - mr * 0.2), mr)
+
+        # Willa z oknami - ktos zapala i gasi swiatlo
+        vx, vy, vw, vh = int(w * 0.04), int(h * 0.24), int(w * 0.38), horizon - int(h * 0.24)
+        dc.SetPen(_pen(VILLA))
+        dc.SetBrush(_brush(VILLA))
+        dc.DrawRectangle(vx, vy, vw, vh)
+        dc.DrawPolygon([(vx - int(w * 0.02), vy), (vx + vw + int(w * 0.02), vy),
+                        (vx + vw / 2, vy - int(h * 0.09))])
+        ww, wh = vw / 5.0, vh / 6.0
+        for col, row, phase, speed in self.windows:
+            lit = math.sin(now * speed + phase) > -0.35
+            dc.SetPen(_pen(WINDOW_ON if lit else WINDOW_OFF))
+            dc.SetBrush(_brush(WINDOW_ON if lit else WINDOW_OFF))
+            dc.DrawRectangle(int(vx + ww * (0.6 + col * 1.5)), int(vy + wh * (0.6 + row * 1.7)),
+                             int(ww), int(wh))
+
+        # Girlanda lampionow - kolysze sie na wietrze
+        def cord(t):
+            return h * 0.2 + h * 0.03 * t + h * 0.09 * 4 * t * (1 - t)
+        dc.SetPen(_pen(CORD, 2 * k))
+        steps = 24
+        for i in range(steps):
+            t0, t1 = i / float(steps), (i + 1) / float(steps)
+            dc.DrawLine(int(t0 * w), int(cord(t0)), int(t1 * w), int(cord(t1)))
+        for i, colour in enumerate(LANTERNS):
+            t = (i + 1) / float(len(LANTERNS) + 1)
+            swing = math.sin(now * 1.4 + i * 0.9) * 6 * k
+            x, y = t * w, cord(t)
+            dc.SetPen(_pen(CORD, 1))
+            dc.DrawLine(int(x), int(y), int(x + swing), int(y + 14 * k))
+            dc.SetPen(_pen(colour))
+            dc.SetBrush(_brush(colour))
+            dc.DrawCircle(int(x + swing), int(y + 22 * k), max(3, int(11 * k)))
+
+        # Basen z falami
+        px, py, pw, ph = int(w * 0.08), int(h * 0.74), int(w * 0.84), int(h * 0.21)
+        dc.SetPen(_pen(POOL_EDGE, 5 * k))
+        dc.SetBrush(_brush(POOL))
+        dc.DrawRoundedRectangle(px, py, pw, ph, int(12 * k))
+        dc.SetPen(_pen(RIPPLE, 2 * k))
+        for row in range(3):
+            y0 = py + ph * (0.3 + 0.22 * row)
+            segments = 16
+            for i in range(segments):
+                x0 = px + 12 * k + (pw - 24 * k) * i / float(segments)
+                x1 = px + 12 * k + (pw - 24 * k) * (i + 1) / float(segments)
+                f = lambda x: y0 + math.sin(x / (22.0 * k) + now * 1.6 + row) * 3 * k
+                if i % 2 == 0:  # kreskowane fale
+                    dc.DrawLine(int(x0), int(f(x0)), int(x1), int(f(x1)))
+
+        # Para na brzegu, nogi w wodzie (widziana od tylu); Nina czasem opiera glowe
+        lean = max(0.0, math.sin(now * 0.35)) * 7 * k
+        for x, colour, headShift in ((w * 0.44, HERO, 0), (w * 0.53, NINA, -lean)):
+            body = 46 * k
+            dc.SetPen(_pen(SKIN, 4 * k))
+            for dx in (-6 * k, 6 * k):  # nogi do wody
+                dc.DrawLine(int(x + dx), int(py), int(x + dx * 1.3), int(py + 26 * k))
+            dc.SetPen(_pen(colour))
+            dc.SetBrush(_brush(colour))
+            dc.DrawRoundedRectangle(int(x - 13 * k), int(py - body), int(26 * k), int(body),
+                                    int(8 * k))
+            dc.SetPen(_pen(INK, 1))
+            dc.SetBrush(_brush('#3B2A20'))
+            dc.DrawCircle(int(x + headShift), int(py - body - 11 * k), int(12 * k))
+        for heart in self.hearts:
+            age = heart[0]
+            size = 18 * k * min(1.0, 0.4 + age) * (1.0 if age < 3.2 else max(0.2, (4.0 - age) / 0.8))
+            _heart(dc, w * 0.485 + math.sin(age * 2.5) * 6 * k, py - 90 * k - age * 30 * k, size)
+
+        # Swietliki
+        dc.SetPen(_pen(FIREFLY))
+        dc.SetBrush(_brush(FIREFLY))
+        for x, y, phase, speed in self.flies:
+            fx = (x + 0.06 * math.sin(now * speed + phase)) * w
+            fy = (y + 0.04 * math.sin(now * speed * 1.7 + phase)) * h
+            if math.sin(now * 2.3 + phase) > -0.3:  # mrugaja
+                dc.DrawCircle(int(fx), int(fy), max(2, int(3 * k)))
+
+        # Bigos na brzegu basenu, macha ogonem
+        dx, dy = self.dogX * w, py - 4 * k
+        face = self.dogDir if self.dogWait <= 0 else (1 if math.sin(now) > 0 else -1)
+        dc.SetPen(_pen(DOG))
+        dc.SetBrush(_brush(DOG))
+        dc.DrawRoundedRectangle(int(dx - 18 * k), int(dy - 18 * k), int(36 * k), int(16 * k),
+                                int(7 * k))
+        dc.DrawCircle(int(dx + face * 20 * k), int(dy - 20 * k), int(9 * k))
+        dc.SetPen(_pen(DOG, 3 * k))
+        for leg in (-12 * k, 10 * k):
+            dc.DrawLine(int(dx + leg), int(dy - 4 * k), int(dx + leg), int(dy + 4 * k))
+        wag = math.sin(now * 12) * 6 * k
+        dc.DrawLine(int(dx - face * 18 * k), int(dy - 14 * k), int(dx - face * 28 * k),
+                    int(dy - 22 * k + wag))
+        dc.SetPen(_pen(INK, 1))
+        dc.SetBrush(_brush(INK))
+        dc.DrawCircle(int(dx + face * 24 * k), int(dy - 22 * k), max(1, int(2 * k)))
+
+
+# Ktora scenka do ktorej gry (identyfikator gry na serwerze ap-gra)
+SCENES = {'ostatnia_zwrotka': NightScene}
+
+
+def sceneFor(game):
+    """Scenka dla gry; domyslnie zegar z ludzikami (Tajemnica zegara)."""
+    return SCENES.get(game, Scene)()
+
+
+#=============================================================================
 class Scenka(wx.Panel):
     """Panel ze scenka - rusza sie, dopoki nie wywolac stop()."""
 
-    def __init__(self, parent):
+    def __init__(self, parent, scene=None):
         wx.Panel.__init__(self, parent, -1)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)  # bez migotania - tlo rysuje onPaint
-        self.scene = Scene()
+        self.scene = scene or Scene()
         self.last = time.time()
         self.Bind(wx.EVT_PAINT, self.onPaint)
         self.Bind(wx.EVT_SIZE, self.onSize)

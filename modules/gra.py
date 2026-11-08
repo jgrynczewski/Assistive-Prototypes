@@ -8,12 +8,17 @@ gra_client.py (katalog AP).
 
 Ekran (GameBoard):
     tekst sceny - wypisywany w takt czytania (nagrania narratora z serwera)
-    z prawej    - scenka: zegar z wahadlem i krzatajace sie ludziki (modules/scenka.py)
+    z prawej    - scenka (modules/scenka.py): zegar z ludzikami, ogrod willi,
+                  a w grach z kreatora - ich animacja (klatki z serwera)
     opcje 2-4   - szerokie przyciski jeden pod drugim
     POWTORZ / WYJDZ - w rzedzie pod opcjami
 Skanowanie - po przyciskach od gory (jak ekran przed filmem w Wicero),
 dopiero po przeczytaniu tekstu; po dwoch pustych przejsciach - uspienie.
 Opcje i przyciski czyta glos narratora (nie milena).
+
+NarratedBoard - wspolna czesc z plansza rozmowy z AI (modules/kreator.py):
+uklad, czytanie tekstu w takt nagran, skanowanie glosem narratora,
+"Wybrałeś:".
 
 Zapis gry (gra_client): po kazdej scenie; przy wejsciu, gdy jest zapis -
 KONTYNUUJ / NOWA GRA.
@@ -71,20 +76,23 @@ def error_text(error):
     return u'Wystąpił błąd gry.'
 
 
-def open_gra(parent, game=None):
-    """Wejscie z planszy gier (new_games.py: TAJEMNICA - sala_pod_zegarem,
-    ZWROTKA - ostatnia_zwrotka): sprawdz serwer, pobierz nagrania przyciskow,
-    pokaz gre. Kazda gra ma osobny zapis. parent.stoper jest zatrzymany
-    przez wywolujacego."""
+def open_gra(parent, game=None, info=None):
+    """Wejscie z planszy GRY PRZYGODOWE (modules/przygody.py): sprawdz
+    serwer, pobierz nagrania przyciskow (i klatki animacji gry z kreatora -
+    info: wpis z gra_client.games()), pokaz gre. Kazda gra ma osobny zapis.
+    parent.stoper jest zatrzymany przez wywolujacego."""
 
     def load():
         health = gra_client.health(game)
         for item in health.get('interface', {}).values():
             item['path'] = gra_client.audio_file(item.get('audio'))
-        return health
+        frames = gra_client.frame_files(info) if info else []
+        return health, frames
 
-    def on_success(health):
-        GameBoard(parent, health, gra_client.load_save(game), game).Show(True)
+    def on_success(result):
+        health, frames = result
+        fps = ((info or {}).get('animacja') or {}).get('fps')
+        GameBoard(parent, health, gra_client.load_save(game), game, frames, fps).Show(True)
         parent.Hide()
 
     def on_error(e):
@@ -209,17 +217,19 @@ class TextPanel(wx.Panel):
 
 
 #=============================================================================
-class GameBoard(board.Board):
+class NarratedBoard(board.Board):
+    """Plansza z tekstem czytanym przez narratora i opcjami pod nim.
+
+    Podklasa podaje: bottomButtons() - stale przyciski w rzedzie pod opcjami
+    (ostatni dochodzi do prawego marginesu), sidePanel(parent) - panel z prawej
+    strony tekstu albo None, onSelect(key). interface - przyciski z
+    nagraniami ({nazwa: {"text", "audio", "path"}} z serwera), voiceKeys -
+    [(klucz przycisku, nazwa w interface)]."""
 
     columnsOnly = True
-    title = 'AP Gra'
 
-    def __init__(self, parent, health, save, game=None):
-        self.game = game  # None - gra domyslna (Tajemnica zegara)
-        self.health = health
-        self.interface = health.get('interface', {})
-        self.save = save
-        self.view = None
+    def __init__(self, parent, interface, voiceKeys):
+        self.interface = interface
         self.segments = []       # (przed, tekst, sciezka nagrania, dlugosc [s])
         self.readId = 0          # rosnie przy kazdym czytaniu - stare wywolania sie koncza
         self.later = None
@@ -229,12 +239,10 @@ class GameBoard(board.Board):
         self.voiceDurations = {} # klucz przycisku -> dlugosc nagrania [s]
         self.voiceDelay = None   # dlugosc wlasnie czytanego przycisku (timerUpdate)
         self.busy = False
+        self.side = None
 
         buttons = [{'key': 'OPCJA%d' % i, 'text': u''} for i in range(1, MAX_OPTIONS + 1)]
-        buttons += [
-            {'key': 'POWTORZ', 'bitmap': 'icons/pilots/musicPilot/10_repeat.png'},
-            {'key': 'WYJDZ', 'bitmap': 'icons/back.png'},
-        ]
+        buttons += self.bottomButtons()
         board.Board.__init__(self, parent, buttons, rows=1, columns=len(buttons))
         self.stoper.Stop()  # skanowanie - dopiero po przeczytaniu tekstu
 
@@ -245,22 +253,19 @@ class GameBoard(board.Board):
         # (czas na zastanowienie): parametr gameOptionPause [ms] w pliku parameters
         self.optionPause = getattr(self, 'gameOptionPause', OPTION_PAUSE)
 
-        for key, name in (('POWTORZ', 'powtorz'), ('WYJDZ', 'wyjdz'),
-                          ('KONTYNUUJ', 'kontynuuj'), ('NOWA_GRA', 'nowa_gra'),
-                          ('WYBRALES', 'wybrales')):
+        for key, name in voiceKeys:
             item = self.interface.get(name, {})
             self.voicePaths[key] = item.get('path')
             self.voiceDurations[key] = (item.get('audio') or {}).get('duration')
             self.speech[key] = item.get('text')
-        # Starszy serwer gry (bez nagrania "Wybrałeś:") - przeczyta milena
+        # Starszy serwer (bez nagrania "Wybrałeś:") - przeczyta milena
         self.speech['WYBRALES'] = self.speech.get('WYBRALES') or u'Wybrałeś'
 
-        self.setSegments([])
-        self.setButtons([], repeat=False)  # do czasu pobrania pierwszej sceny
-        if self.save.get('state'):
-            self.showMenu()
-        else:
-            self.newGame()
+    def bottomButtons(self):
+        return []
+
+    def sidePanel(self, parent):
+        return None
 
     #-------------------------------------------------------------------------
     def createGui(self):
@@ -270,12 +275,13 @@ class GameBoard(board.Board):
         self.topPanel.SetBackgroundColour(self.backgroundColour)
         self.text = TextPanel(self.topPanel, self.tableFontSize * 3 / 5, self.textColour,
                               self.backgroundColour, 2 * self.xBorder)
-        # Z prawej scenka (zegar, ludziki) - ok. 1/3 szerokosci, rusza sie caly czas
-        self.scenka = scenka.Scenka(self.topPanel, scenka.sceneFor(self.game))
-        self.scenka.SetMinSize((self.winWidth / 3, -1))
         box = wx.BoxSizer(wx.HORIZONTAL)
         box.Add(self.text, 1, wx.EXPAND)
-        box.Add(self.scenka, 0, wx.EXPAND)
+        # Z prawej scenka - ok. 1/3 szerokosci, rusza sie caly czas
+        self.side = self.sidePanel(self.topPanel)
+        if self.side is not None:
+            self.side.SetMinSize((self.winWidth / 3, -1))
+            box.Add(self.side, 0, wx.EXPAND)
         self.topPanel.SetSizer(box)
         # Tekst wyzszy niz opcje razem (6 : 4 + 1) - limit dlugosci sceny w ap-gra
         # (engine/screen.py) jest liczony dla tego ukladu
@@ -290,7 +296,7 @@ class GameBoard(board.Board):
             self.optionWindows.append(b)
             self.vbox.Add(b, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, self.xBorder)
 
-        # POWTORZ / WYJDZ na cala szerokosc, ostatni przycisk dochodzi do prawego
+        # Stale przyciski na cala szerokosc, ostatni dochodzi do prawego
         # marginesu jak w innych planszach - przy sterowaniu przelacznikiem kursor
         # myszy stoi w prawym dolnym rogu i klikniecie musi trafic w przycisk
         bottom = wx.BoxSizer(wx.HORIZONTAL)
@@ -305,10 +311,10 @@ class GameBoard(board.Board):
         self.SetSizer(self.vbox)
 
     #-------------------------------------------------------------------------
-    def setButtons(self, options, repeat=True):
+    def setButtons(self, options, bottom):
         """options: [(klucz, napis, nagranie, dlugosc nagrania [s])] - na
-        przyciskach opcji, od gory. Skanowanie: opcje, potem POWTORZ (gdy
-        repeat) i WYJDZ."""
+        przyciskach opcji, od gory; bottom - klucze stalych przyciskow
+        widocznych pod opcjami. Skanowanie: opcje, potem stale przyciski."""
         keys, windows = [], []
         for i, b in enumerate(self.optionWindows):
             if i < len(options):
@@ -323,10 +329,12 @@ class GameBoard(board.Board):
                 windows.append(b)
             else:
                 self.vbox.Show(b, False)
-        self.windows['POWTORZ'].Show(repeat)
-        for key in (['POWTORZ'] if repeat else []) + ['WYJDZ']:
-            keys.append(key)
-            windows.append(self.windows[key])
+        for button in self.buttons[MAX_OPTIONS:]:
+            key = button['key']
+            self.windows[key].Show(key in bottom)
+            if key in bottom:
+                keys.append(key)
+                windows.append(self.windows[key])
 
         self.labels = keys
         self.buttonWindows = windows
@@ -335,87 +343,9 @@ class GameBoard(board.Board):
         self._clearHighlight()
         self.Layout()
 
-    #-------------------------------------------------------------------------
-    # Ekrany
-
     def _interfaceOption(self, key, label):
-        """Stały przycisk (KONTYNUUJ / NOWA GRA) na miejscu opcji."""
+        """Staly przycisk (np. KONTYNUUJ / NOWA GRA) na miejscu opcji."""
         return (key, label, self.voicePaths.get(key), self.voiceDurations.get(key))
-
-    def showMenu(self):
-        """Jest zapis gry: KONTYNUUJ / NOWA GRA."""
-        title = self.health.get('title') or u''
-        # Najpierw przyciski (uklad), potem tekst - dopasowanie tekstu do pola
-        self.setButtons([self._interfaceOption('KONTYNUUJ', u'Kontynuuj'),
-                         self._interfaceOption('NOWA_GRA', u'Nowa gra')],
-                        repeat=False)
-        self.setSegments([(u'', title, None, 0), (u'\n\n', u'Masz zapisaną grę.', None, 0)])
-        self.startReading()
-
-    def newGame(self):
-        if not self:  # okno zamkniete w trakcie komunikatu
-            return
-        self.save['state'] = None
-        self.load(lambda: gra_client.start(self.game))
-
-    def load(self, request):
-        """request() -> widok (w watku), potem pokaz scene."""
-        if self.busy:
-            return
-        self.busy = True
-        self.stopReading()
-
-        def on_success(view):
-            self.busy = False
-            if self:
-                self.showView(view)
-
-        def on_error(e):
-            self.busy = False
-            if not self:
-                return
-            if e.kind == 'state':  # zapis nie pasuje do nowej wersji gry
-                self.save['state'] = None
-                gra_client.write_save(self.save, self.game)
-                board.say_then(u'Zapis gry nie pasuje do nowej wersji. Zaczynamy od początku.',
-                               self.newGame)
-            else:
-                board.say_then(error_text(e), self.onExit)
-
-        run_in_thread(lambda: prepare(request()), on_success, on_error)
-
-    def showView(self, view):
-        self.view = view
-        ending = view.get('ending')
-
-        if ending:
-            self.save['state'] = None
-            if ending['id'] not in self.save['endings']:
-                self.save['endings'].append(ending['id'])
-        else:
-            self.save['state'] = view['state']
-        gra_client.write_save(self.save, self.game)
-
-        segments = [(line['before'], line['text'], line.get('path'),
-                     (line.get('audio') or {}).get('duration'))
-                    for line in view['lines']]
-        if ending:
-            found = len(self.save['endings'])
-            segments += [
-                (u'\n\n', ending['title'], ending.get('path'),
-                 (ending.get('audio') or {}).get('duration')),
-                (u'\n', ending['label'], ending.get('label_path'),
-                 (ending.get('label_audio') or {}).get('duration')),
-                (u'\n', u'Odkryte zakończenia: %d z %d.' % (found, ending['total']), None, 0),
-            ]
-            options = [self._interfaceOption('NOWA_GRA', u'Nowa gra')]
-        else:
-            options = [('OPCJA%d' % o['number'], o['text'], o.get('path'),
-                        (o.get('audio') or {}).get('duration'))
-                       for o in view['options']]
-        self.setButtons(options)  # najpierw uklad, potem dopasowanie tekstu
-        self.setSegments(segments)
-        self.startReading()
 
     #-------------------------------------------------------------------------
     # Czytanie i wypisywanie tekstu
@@ -549,23 +479,6 @@ class GameBoard(board.Board):
         self.stoper.Start(interval)
 
     #-------------------------------------------------------------------------
-    def onSelect(self, key):
-        if self.busy:
-            return
-        if key == 'POWTORZ':
-            self.startReading()
-        elif key == 'WYJDZ':
-            self.onExit()
-        elif key == 'KONTYNUUJ':
-            state = self.save['state']
-            self._confirm(key, lambda: self.load(lambda: gra_client.view(state, self.game)))
-        elif key == 'NOWA_GRA':
-            self._confirm(key, self.newGame)
-        elif key.startswith('OPCJA'):
-            state = self.view['state']
-            number = int(key[len('OPCJA'):])
-            self._confirm(key, lambda: self.load(lambda: gra_client.choose(state, number, self.game)))
-
     def _confirm(self, key, then):
         """"Wybrałeś:" + nazwa wybranego przycisku (podswietlony kolorem wyboru
         przez Board.onPress), potem then(). Naciśniecia w tym czasie - bez skutku."""
@@ -595,8 +508,142 @@ class GameBoard(board.Board):
         if not self:
             return
         self.stopReading()
-        self.scenka.stop()
+        if self.side is not None:
+            self.side.stop()
         board.Board.onExit(self)
+
+
+#=============================================================================
+class GameBoard(NarratedBoard):
+
+    title = 'AP Gra'
+
+    def __init__(self, parent, health, save, game=None, frames=None, fps=None):
+        self.game = game  # None - gra domyslna (Tajemnica zegara)
+        self.frames = frames or []  # klatki animacji gry z kreatora (sciezki)
+        self.fps = fps
+        self.health = health
+        self.save = save
+        self.view = None
+
+        NarratedBoard.__init__(self, parent, health.get('interface', {}),
+                               [('POWTORZ', 'powtorz'), ('WYJDZ', 'wyjdz'),
+                                ('KONTYNUUJ', 'kontynuuj'), ('NOWA_GRA', 'nowa_gra'),
+                                ('WYBRALES', 'wybrales')])
+
+        self.setSegments([])
+        self.setButtons([], repeat=False)  # do czasu pobrania pierwszej sceny
+        if self.save.get('state'):
+            self.showMenu()
+        else:
+            self.newGame()
+
+    def bottomButtons(self):
+        return [{'key': 'POWTORZ', 'bitmap': 'icons/pilots/musicPilot/10_repeat.png'},
+                {'key': 'WYJDZ', 'bitmap': 'icons/back.png'}]
+
+    def sidePanel(self, parent):
+        return scenka.Scenka(parent, scenka.sceneFor(self.game, self.frames, self.fps))
+
+    def setButtons(self, options, repeat=True):
+        """Skanowanie: opcje, potem POWTORZ (gdy repeat) i WYJDZ."""
+        NarratedBoard.setButtons(self, options, ['POWTORZ', 'WYJDZ'] if repeat else ['WYJDZ'])
+
+    #-------------------------------------------------------------------------
+    # Ekrany
+
+    def showMenu(self):
+        """Jest zapis gry: KONTYNUUJ / NOWA GRA."""
+        title = self.health.get('title') or u''
+        # Najpierw przyciski (uklad), potem tekst - dopasowanie tekstu do pola
+        self.setButtons([self._interfaceOption('KONTYNUUJ', u'Kontynuuj'),
+                         self._interfaceOption('NOWA_GRA', u'Nowa gra')],
+                        repeat=False)
+        self.setSegments([(u'', title, None, 0), (u'\n\n', u'Masz zapisaną grę.', None, 0)])
+        self.startReading()
+
+    def newGame(self):
+        if not self:  # okno zamkniete w trakcie komunikatu
+            return
+        self.save['state'] = None
+        self.load(lambda: gra_client.start(self.game))
+
+    def load(self, request):
+        """request() -> widok (w watku), potem pokaz scene."""
+        if self.busy:
+            return
+        self.busy = True
+        self.stopReading()
+
+        def on_success(view):
+            self.busy = False
+            if self:
+                self.showView(view)
+
+        def on_error(e):
+            self.busy = False
+            if not self:
+                return
+            if e.kind == 'state':  # zapis nie pasuje do nowej wersji gry
+                self.save['state'] = None
+                gra_client.write_save(self.save, self.game)
+                board.say_then(u'Zapis gry nie pasuje do nowej wersji. Zaczynamy od początku.',
+                               self.newGame)
+            else:
+                board.say_then(error_text(e), self.onExit)
+
+        run_in_thread(lambda: prepare(request()), on_success, on_error)
+
+    def showView(self, view):
+        self.view = view
+        ending = view.get('ending')
+
+        if ending:
+            self.save['state'] = None
+            if ending['id'] not in self.save['endings']:
+                self.save['endings'].append(ending['id'])
+        else:
+            self.save['state'] = view['state']
+        gra_client.write_save(self.save, self.game)
+
+        segments = [(line['before'], line['text'], line.get('path'),
+                     (line.get('audio') or {}).get('duration'))
+                    for line in view['lines']]
+        if ending:
+            found = len(self.save['endings'])
+            segments += [
+                (u'\n\n', ending['title'], ending.get('path'),
+                 (ending.get('audio') or {}).get('duration')),
+                (u'\n', ending['label'], ending.get('label_path'),
+                 (ending.get('label_audio') or {}).get('duration')),
+                (u'\n', u'Odkryte zakończenia: %d z %d.' % (found, ending['total']), None, 0),
+            ]
+            options = [self._interfaceOption('NOWA_GRA', u'Nowa gra')]
+        else:
+            options = [('OPCJA%d' % o['number'], o['text'], o.get('path'),
+                        (o.get('audio') or {}).get('duration'))
+                       for o in view['options']]
+        self.setButtons(options)  # najpierw uklad, potem dopasowanie tekstu
+        self.setSegments(segments)
+        self.startReading()
+
+    #-------------------------------------------------------------------------
+    def onSelect(self, key):
+        if self.busy:
+            return
+        if key == 'POWTORZ':
+            self.startReading()
+        elif key == 'WYJDZ':
+            self.onExit()
+        elif key == 'KONTYNUUJ':
+            state = self.save['state']
+            self._confirm(key, lambda: self.load(lambda: gra_client.view(state, self.game)))
+        elif key == 'NOWA_GRA':
+            self._confirm(key, self.newGame)
+        elif key.startswith('OPCJA'):
+            state = self.view['state']
+            number = int(key[len('OPCJA'):])
+            self._confirm(key, lambda: self.load(lambda: gra_client.choose(state, number, self.game)))
 
 
 #=============================================================================

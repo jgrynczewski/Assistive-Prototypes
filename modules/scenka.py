@@ -4,7 +4,8 @@
 - Tajemnica zegara: szkolny zegar z wahadlem i ludziki, ktore sie kreca -
   chodza, staja, czasem podchodza do siebie i "rozmawiaja" (Scene);
 - Ostatnia zwrotka: noc w ogrodzie willi - lampiony, basen, para na brzegu,
-  Bigos (NightScene).
+  Bigos (NightScene);
+- gry z kreatora gier: ich animacja - klatki z serwera ap-gra (FramesScene).
 
 Nic z fabuly nie zalezy od scenki - to tylko zywy podglad, zeby na ekranie
 cos sie dzialo. Rysowane prostymi ksztaltami (bez plikow graficznych).
@@ -18,6 +19,7 @@ from __future__ import division
 import math
 import random
 import time
+from cStringIO import StringIO
 
 import wx
 
@@ -433,12 +435,64 @@ class NightScene(object):
         dc.DrawCircle(int(dx + face * 24 * k), int(dy - 22 * k), max(1, int(2 * k)))
 
 
+#=============================================================================
+class FramesScene(object):
+    """Animacja gry z kreatora gier (ap-gra, docs/kreator-gier.md): klatki PNG
+    z serwera w petli, fps klatek na sekunde; jedna klatka - nieruchomy
+    obrazek. W pamieci tylko pliki (kilka-kilkanascie KB kazdy) - biezaca
+    klatka jest dekodowana i skalowana przy zmianie klatki albo rozmiaru
+    panelu (96 gotowych bitmap ekranowych zajeloby ok. 150 MB). Proporcje
+    klatki zachowane; pasy po bokach w kolorze rogu klatki."""
+
+    def __init__(self, paths, fps=None):
+        self.data = []
+        for path in paths:
+            with open(path, 'rb') as f:
+                self.data.append(f.read())
+        self.fps = fps or 12
+        self.started = time.time()
+        self.key = None       # (klatka, w, h) obecnej bitmapy
+        self.bitmap = None
+        self.edge = '#000000'
+
+    def update(self, dt):
+        pass
+
+    def _frame(self, index, w, h):
+        image = wx.ImageFromStream(StringIO(self.data[index]), wx.BITMAP_TYPE_PNG)
+        if index == 0:
+            self.edge = wx.Colour(image.GetRed(0, 0), image.GetGreen(0, 0), image.GetBlue(0, 0))
+        scale = min(w / float(image.GetWidth()), h / float(image.GetHeight()))
+        size = (max(1, int(image.GetWidth() * scale)), max(1, int(image.GetHeight() * scale)))
+        return wx.BitmapFromImage(image.Scale(size[0], size[1], wx.IMAGE_QUALITY_NORMAL))
+
+    def draw(self, dc, w, h, now=None):
+        if now is None:
+            now = time.time() - self.started
+        index = int(now * self.fps) % len(self.data)
+        if self.key != (index, w, h):
+            if self.bitmap is None and index != 0:
+                self._frame(0, w, h)  # kolor pasow - z pierwszej klatki
+            self.bitmap = self._frame(index, w, h)
+            self.key = (index, w, h)
+        dc.SetBackground(wx.Brush(self.edge))
+        dc.Clear()
+        dc.DrawBitmap(self.bitmap, (w - self.bitmap.GetWidth()) // 2, (h - self.bitmap.GetHeight()) // 2)
+
+
 # Ktora scenka do ktorej gry (identyfikator gry na serwerze ap-gra)
 SCENES = {'ostatnia_zwrotka': NightScene}
 
 
-def sceneFor(game):
-    """Scenka dla gry; domyslnie zegar z ludzikami (Tajemnica zegara)."""
+def sceneFor(game, frames=None, fps=None):
+    """Scenka dla gry: gra z kreatora - jej klatki; Ostatnia zwrotka - ogrod;
+    domyslnie zegar z ludzikami (Tajemnica zegara)."""
+    if frames:
+        try:
+            return FramesScene(frames, fps)
+        except (IOError, OSError) as e:  # klatki zniknely z dysku - scenka zastepcza
+            import logging
+            logging.getLogger('gra').error('klatki animacji: %r', e)
     return SCENES.get(game, Scene)()
 
 

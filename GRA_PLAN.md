@@ -1,6 +1,8 @@
 # Moduł GRA - plan i testy
 
-Gry przygodowe czytane na głos, na planszy GRY obok SKOCZKA i ŁAPACZA:
+**Od 2026-11-08: plansza GRY PRZYGODOWE** (kafelek na planszy gier zamiast TAJEMNICY i ZWROTKI) - obie gry i gry tworzone przez użytkownika z AI (kreator gier, ap-gra `docs/kreator-gier.md`). Testy: sekcja „Gry przygodowe i kreator” niżej.
+
+Gry przygodowe czytane na głos (do 2026-11-08 na planszy GRY obok SKOCZKA i ŁAPACZA):
 - **„Tajemnica zegara”** (przycisk TAJEMNICA, nagranie nazwy `sounds/tajemnica_zegara.ogg`) - opowieść „Sala pod zegarem” (na serwerze `sala_pod_zegarem`);
 - **„Ostatnia zwrotka”** (przycisk ZWROTKA, od 2026-11-04; nagranie nazwy `sounds/ostatnia_zwrotka.ogg` - **do nagrania**, do tego czasu głos AP) - romans w willi z klubem muzycznym, 9 zakończeń (na serwerze `ostatnia_zwrotka`).
 
@@ -62,5 +64,39 @@ Przed testami: `cd ~/ap-gra && git pull && docker compose up -d --build` (nagra 
 | Z3 | Kilka scen, WYJDŹ, ponownie ZWROTKA → KONTYNUUJ; potem TAJEMNICA | „Ostatnia zwrotka” wraca w tym samym miejscu; Tajemnica zegara ma **swój** zapis (bez zmian) | |
 | Z4 | Gra do końca, przy pisaniu piosenki wybierać wersy | na festiwalu Nina śpiewa **wybrane** wersy (3 linie); zakończenie „… z dziewięciu.”, „Odkryte zakończenia: 1 z 9.” | |
 | Z5 | Druga partia inną ścieżką (np. „Niech Bartas zapowie nową piosenkę”) | inne zakończenie, licznik „2 z 9” | |
+
+### Gry przygodowe i kreator (2026-11-08)
+
+Pliki: `modules/przygody.py` (plansza GRY PRZYGODOWE), `modules/kreator.py` (rozmowa z AI), `kreator_client.py` (usługa `ap-gra-kreator`, port 8767), `modules/gra.py` (wspólna część planszy gry i rozmowy - `NarratedBoard`), `modules/scenka.py` (`FramesScene` - animacja gier z kreatora), ikona `icons/new_games/gry_przygodowe.png`. Nagranie nazwy `sounds/gry_przygodowe.ogg` - **do nagrania**, do tego czasu głos AP. Kafelki i klatki gier z kreatora: `~/.ap-gra/gry/<id>/`.
+
+Przed testami (komputer z AP):
+
+```bash
+cd ~/ap-gra && git pull
+docker compose version                 # co najmniej 2.24 (opcjonalny plik .env)
+cp .env.example .env && nano .env      # ANTHROPIC_API_KEY=... (klucz z konsoli Anthropic; limit kosztów ustawiony na koncie)
+docker compose up -d --build           # trzy kontenery: ap-gra, ap-gra-kreator, ap-gra-rysownik
+curl -s localhost:8767/v1/kreator/health   # "ai": true, "nagrania": true
+```
+
+W AP: `git pull`.
+
+| # | Test | Oczekiwane | Wynik |
+|---|---|---|---|
+| P1 | gry → plansza | SKOCZEK, SKOCZEK2, ŁAPACZ, GRY PRZYGODOWE (książka z górami), puste pole; POWRÓT pod nimi; przy skanowaniu „Gry przygodowe” (głos AP) | |
+| P2 | GRY PRZYGODOWE | plansza 3 x 5: NOWA GRA, TAJEMNICA ZEGARA, OSTATNIA ZWROTKA (ich ikony), puste pola, POWRÓT w prawym dolnym rogu; skanowanie wierszami, potem przyciskami; tytuły czyta narrator | |
+| P3 | TAJEMNICA ZEGARA, kilka scen, WYJDŹ; to samo z ZWROTKĄ | gry jak wcześniej (zegar z ludzikami, ogród), zapisy zachowane - KONTYNUUJ wraca tam, gdzie przed aktualizacją; WYJDŹ wraca na planszę GRY PRZYGODOWE | |
+| P4 | `cd ~/ap-gra && docker compose stop ap-gra-kreator`, potem NOWA GRA; potem `docker compose start ap-gra-kreator` | „Tworzenie gier nie jest uruchomione.”, zostaje plansza | |
+| P5 | NOWA GRA | „Myślę...”, po kilku sekundach pierwsze pytanie AI czytane przez narratora; pod nim 2-3 odpowiedzi i „Inne propozycje”, na dole WRÓĆ (od drugiego pytania) i PRZERWIJ | |
+| P6 | Odpowiedź, potem „Inne propozycje”, potem WRÓĆ | „Wybrałeś: …”, „Myślę...”, następne pytanie; „Inne propozycje” - to samo pytanie z innymi odpowiedziami; WRÓĆ - od razu poprzednie odpowiedzi (bez „Myślę...”) | |
+| P7 | Odpowiadać do końca rozmowy | tytuł i streszczenie pomysłu; ROZPOCZNIJ / INNY POMYSŁ; INNY POMYSŁ - nowe streszczenie | |
+| P8 | ROZPOCZNIJ | „Tworzę grę. To potrwa kilkanaście minut…”, powrót na planszę; nowy kafelek z tytułem i „(tworzy się)”; po wybraniu: „Ta gra jeszcze się tworzy.” | |
+| P9 | Po kilkunastu minutach: POWRÓT i ponownie GRY PRZYGODOWE (zanotować, ile trwało tworzenie: `curl -s localhost:8767/v1/kreator/gry`) | kafelek z obrazkiem i tytułem; tytuł czyta narrator | |
+| P10 | Nowa gra: kilka scen, WYJDŹ, ponownie → KONTYNUUJ, gra do końca | z prawej animacja gry (płynna, w pętli); tekst czyta narrator; zapis i zakończenia jak w innych grach | |
+| P11 | `top` przy otwartej nowej grze | AP < 30% CPU (jak G10); pamięć AP nie rośnie z czasem | |
+| P12 | NOWA GRA, kilka odpowiedzi, PRZERWIJ | powrót na planszę, bez nowego kafelka | |
+| P13 | Gier więcej niż 12 (tworzyć kolejne albo skopiować katalog gry w `~/ap-gra/dane/gry/` pod inną nazwą) | DALEJ w dolnym rzędzie; DALEJ - następna strona; z ostatniej - pierwsza | |
+
+Historia rozmów i tworzenia: `~/ap-gra/dane/rozmowy/<id>/log.jsonl`; rozgrywki: `docker exec ap-gra python -m tools.statystyki`.
 
 Przy błędzie: traceback z terminala AP i `tail -n 20 gra.log`.

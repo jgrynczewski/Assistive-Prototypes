@@ -8,6 +8,8 @@ pamieta - stan gry ("state") trzyma klient: zapis w ~/.ap-gra/zapis.json
 
 Nagrania narratora (WAV) pobierane z serwera do ~/.ap-gra/nagrania/ -
 nazwa pliku zalezy od tekstu i glosu, wiec raz pobrane nie starzeja sie.
+Kafelki i klatki animacji gier z kreatora - do ~/.ap-gra/gry/<id>/ (gra
+z kreatora sie nie zmienia, wiec tez pobierane raz).
 
 Bledy: GraError(kind)
   'offline' - serwer gry nie odpowiada (kontener nie dziala)
@@ -28,6 +30,7 @@ LOG_FILE = os.path.join(AP_DIR, 'gra.log')
 DATA_DIR = os.path.join(os.path.expanduser('~'), '.ap-gra')
 SAVE_FILE = os.path.join(DATA_DIR, 'zapis.json')
 AUDIO_DIR = os.path.join(DATA_DIR, 'nagrania')
+GAMES_DIR = os.path.join(DATA_DIR, 'gry')
 
 _log = logging.getLogger('gra')
 if not _log.handlers:
@@ -81,6 +84,12 @@ def health(game=None):
     return _request('GET', _path('/v1/health', game))
 
 
+def games():
+    """[{"id", "title", "endings", "builtin", "title_audio", "kafelek", "animacja"}]
+    - gry wbudowane i gotowe gry z kreatora."""
+    return _request('GET', '/v1/games')['games']
+
+
 def start(game=None):
     return _request('POST', _path('/v1/start', game), {})
 
@@ -95,27 +104,58 @@ def choose(state, number, game=None):
 
 
 #-----------------------------------------------------------------------------
-def audio_file(audio):
-    """Lokalna sciezka nagrania ({"url", "duration"} z widoku) albo None.
-    Pobiera, jesli jeszcze go nie ma. Wywolywac poza watkiem GUI."""
-    if not audio:
-        return None
-    name = str(audio['url'].rsplit('/', 1)[-1])  # <skrot>.wav - ASCII; str dla pygame
-    path = os.path.join(AUDIO_DIR, name)
+def fetch_file(url, path):
+    """Plik z serwera (url - pelny adres) do path, jesli jeszcze go nie ma;
+    zwraca path albo None. Wywolywac poza watkiem GUI."""
     if os.path.exists(path):
         return path
     try:
-        if not os.path.isdir(AUDIO_DIR):
-            os.makedirs(AUDIO_DIR)
-        data = urllib2.urlopen(BASE_URL + audio['url'], timeout=TIMEOUT).read()
+        directory = os.path.dirname(path)
+        if not os.path.isdir(directory):
+            os.makedirs(directory)
+        data = urllib2.urlopen(url, timeout=TIMEOUT).read()
         partial = path + '.part'
         with open(partial, 'wb') as f:
             f.write(data)
         os.rename(partial, path)
         return path
     except Exception as e:
-        _log.error('nagranie %s -> %r', audio['url'], e)
+        _log.error('plik %s -> %r', url, e)
         return None
+
+
+def audio_file(audio, base=None):
+    """Lokalna sciezka nagrania ({"url", "duration"} z widoku) albo None.
+    base - adres serwera (domyslnie serwer gry; kreator - kreator_client).
+    Pobiera, jesli jeszcze go nie ma. Wywolywac poza watkiem GUI."""
+    if not audio:
+        return None
+    name = str(audio['url'].rsplit('/', 1)[-1])  # <skrot>.wav - ASCII; str dla pygame
+    return fetch_file((base or BASE_URL) + audio['url'], os.path.join(AUDIO_DIR, name))
+
+
+def tile_file(game):
+    """Kafelek gry z kreatora (wpis z games()) - lokalna sciezka albo None."""
+    if not game.get('kafelek'):
+        return None
+    return fetch_file(BASE_URL + game['kafelek'], os.path.join(GAMES_DIR, str(game['id']), 'kafelek.png'))
+
+
+def frame_files(game):
+    """Klatki animacji gry z kreatora (wpis z games()) - lista lokalnych
+    sciezek (pusta, gdy animacji nie ma albo brakuje klatki)."""
+    animation = game.get('animacja')
+    if not animation:
+        return []
+    directory = os.path.join(GAMES_DIR, str(game['id']), 'animacja')
+    paths = []
+    for number in range(int(animation['klatki'])):
+        name = '%04d.png' % number
+        path = fetch_file(BASE_URL + animation['adres'] + name, os.path.join(directory, name))
+        if path is None:
+            return []
+        paths.append(path)
+    return paths
 
 
 #-----------------------------------------------------------------------------

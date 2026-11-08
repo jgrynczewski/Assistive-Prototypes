@@ -6,7 +6,7 @@ Aplikacja dla osób komunikujących się jednym przełącznikiem lub eyetrackere
 Mapa wszystkich trzech repozytoriów (AP, Wicero, ap-gra), komputery, zasady pracy i pułapki: **`docs/mapa-projektow.md` w repo `wicero`** (`C:\Users\User\PycharmProjects\wicero` na komputerze deweloperskim).
 - **Wicero** (filmy od kontaktów, PRZEŚLIJ): działa i jest przetestowane na komputerze użytkownika. Stan i następne zadanie („nieaktywny kontakt”): `WICERO_PLAN.md` → „▶ Start następnej sesji”; decyzja: `docs/adr/0001-modul-wicero.md`.
 - **Film w tle** (W TLE, kafel ODTWARZACZ w YOUTUBE i NOWE): `AT_YOUTUBE_PROGRESS.md` → „Zgłoszone przez użytkownika”; do testu B11-B12 (LOSOWE).
-- **Gra „Tajemnica zegara”** (plansza GAMES): `GRA_PLAN.md`; serwer gry - repo `ap-gra`.
+- **Gry przygodowe** (plansza GAMES → GRY PRZYGODOWE: Tajemnica zegara, Ostatnia zwrotka i gry tworzone przez użytkownika z AI): `GRA_PLAN.md` (testy P1-P13 od 2026-11-08 - do zrobienia); serwer gry i kreator - repo `ap-gra` (`docs/kreator-gier.md`).
 - Kod UI pisany na komputerze deweloperskim nie da się tam uruchomić (brak wx 2.8 / VLC) - kompilacja w Pythonie 2.7 w Dockerze, testy ręczne u użytkownika, po jednym; AP z terminala: `python ap.py 2>&1 | tee /tmp/ap.log`.
 
 ## Zasady
@@ -18,7 +18,7 @@ Mapa wszystkich trzech repozytoriów (AP, Wicero, ap-gra), komputery, zasady pra
 
 ## Inne dokumenty
 - `AT_YOUTUBE_PLAN.md`, `AT_YOUTUBE_PROGRESS.md` - moduł YouTube (`modules/youtube_menu.py`, `modules/youtube2.py`, `modules/at_youtube.py`; film w tle - `modules/background.py`)
-- `GRA_PLAN.md` - gra (`gra_client.py`, `modules/gra.py`, `modules/scenka.py`); `modules/board.py` - wspólna plansza ze skanowaniem (Wicero, gra)
+- `GRA_PLAN.md` - gry (`gra_client.py`, `modules/gra.py`, `modules/scenka.py`, `modules/przygody.py` - plansza GRY PRZYGODOWE; `kreator_client.py`, `modules/kreator.py` - rozmowa z AI o nowej grze); `modules/board.py` - wspólna plansza ze skanowaniem (Wicero, gra)
 - `SYNTEZATOR.md` - głos AP (`milena_say` → Piper mc_speech)
 - `IOT_INTEGRATION_PLAN.md` - moduł IoT (`iot_client.py`, `modules/iot.py`)
 - `parameters` (przez `reader.py`) - ustawienia użytkownika: `control`, `timeGap`, kolory, dźwięki. Obsługiwany jest tylko `control=switch` (skanowanie). `tracker` jest nieużywany od ok. 10 lat; gałęzie `control == 'tracker'` w modułach to martwa pozostałość - nie testować ani nie rozwijać (szczegóły: T11 w `WICERO_PLAN.md`).

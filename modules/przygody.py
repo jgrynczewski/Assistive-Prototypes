@@ -6,10 +6,10 @@ zwrotka) i stworzone przez uzytkownika z AI (kreator gier,
 docs/kreator-gier.md w ap-gra).
 
 Uklad 3 x 5, skanowanie jak na innych planszach (wiersze -> przyciski):
-    NOWA GRA | gra | gra | gra | gra
+    STWÓRZ GRĘ | gra | gra | gra | gra
     gra      | gra | gra | gra | gra
     gra      | gra | gra | DALEJ | POWRÓT
-NOWA GRA - rozmowa z AI o nowej grze (modules/kreator.py). Gier na strone
+STWÓRZ GRĘ - rozmowa z AI o nowej grze (modules/kreator.py). Gier na strone
 jest PER_PAGE; wiecej - DALEJ przechodzi na nastepna strone (z ostatniej na
 pierwsza). Lista jest budowana z serwera przy kazdym powrocie na plansze -
 nowa gra pojawia sie bez zmiany kodu AP.
@@ -34,12 +34,16 @@ from modules.board import say, resume
 _log = logging.getLogger('gra')
 
 ROWS, COLUMNS = 3, 5
-PER_PAGE = ROWS * COLUMNS - 3   # bez NOWA GRA, DALEJ i POWRÓT
+PER_PAGE = ROWS * COLUMNS - 3   # bez STWÓRZ GRĘ, DALEJ i POWRÓT
 FAILED_DAYS = 3                 # nieudana gra widoczna (z komunikatem) tyle dni
 
 # Ikony gier wbudowanych, w tej kolejnosci na poczatku listy
 BUILTIN = [('sala_pod_zegarem', 'icons/new_games/tajemnica_zegara.png'),
            ('ostatnia_zwrotka', 'icons/new_games/ostatnia_zwrotka.png')]
+# Nazwy gier wbudowanych w AP (inne niz tytul scenariusza: "Sala pod zegarem")
+# i ich nagrania w AP - czytane przy skanowaniu kafelka zamiast tytulu z serwera
+BUILTIN_NAMES = {'sala_pod_zegarem': (u'Tajemnica zegara', 'sounds/tajemnica_zegara.ogg'),
+                 'ostatnia_zwrotka': (u'Ostatnia zwrotka', 'sounds/ostatnia_zwrotka.ogg')}
 
 
 #=============================================================================
@@ -61,7 +65,7 @@ def _recent(created):
 def load_tiles():
     """W watku: kafelki z serwera gry i kreatora, z nagraniami tytulow i
     obrazkami. Serwer gry nie dziala - GraError; kreator nie dziala - bez
-    gier w trakcie tworzenia i bez NOWA GRA (komunikat po wybraniu)."""
+    gier w trakcie tworzenia i bez STWÓRZ GRĘ (komunikat po wybraniu)."""
     health = gra_client.health()
     interface = health.get('interface', {})
     for item in interface.values():
@@ -206,11 +210,12 @@ class AdventuresBoard(board.Board):
         return max(1, (len(self.data['tiles']) + PER_PAGE - 1) // PER_PAGE)
 
     def showPage(self, page):
-        """Kafelki strony: NOWA GRA, gry strony, puste pola, DALEJ (gdy jest
+        """Kafelki strony: STWÓRZ GRĘ, gry strony, puste pola, DALEJ (gdy jest
         wiecej stron), POWRÓT."""
         self.page = page % self.pages()
         interface = self.data['interface']
-        text, path, duration = _voice(interface, 'nowa_gra', u'Nowa gra')
+        # STWORZ GRE - rozmowa z AI (nagranie z kreatora; kreator nie dziala - milena)
+        text, path, duration = _voice(self.data['creator'], 'stworz_gre', u'Stwórz grę')
         slots = [{'key': 'NOWA', 'kind': 'przycisk', 'title': text.upper(), 'path': path, 'duration': duration}]
         slots += self.data['tiles'][self.page * PER_PAGE:(self.page + 1) * PER_PAGE]
         while len(slots) < ROWS * COLUMNS - 2:
@@ -235,6 +240,11 @@ class AdventuresBoard(board.Board):
                 b.SetBitmapLabel(self._bitmap(slot))
                 self.speech[key] = slot['title']
                 self.voicePaths[key] = slot.get('path')
+                name = BUILTIN_NAMES.get((slot.get('info') or {}).get('id'))
+                if name:  # gra wbudowana: nazwa z AP - nagranie AP, bez niego milena
+                    sound = self.pathToAP + name[1]
+                    self.speech[key] = name[0]
+                    self.voicePaths[key] = sound if os.path.exists(sound) else None
             b.SetName(key)
             b.Refresh()
             self.labels.append(key)

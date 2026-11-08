@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
 """Plansza rozmowy z AI o nowej grze (kreator gier, repo ap-gra:
-docs/kreator-gier.md). Wejscie: NOWA GRA na planszy GRY PRZYGODOWE.
+docs/kreator-gier.md). Wejscie: STWÓRZ GRĘ na planszy GRY PRZYGODOWE.
 
 Ekran jak w grze (gra.NarratedBoard): u gory pytanie AI czytane glosem
 narratora, pod nim odpowiedzi (2-3 od AI i "Inne propozycje"), na dole
@@ -40,7 +40,7 @@ def error_text(error):
 
 
 def open_kreator(parent):
-    """NOWA GRA: sprawdz kreator, pobierz nagrania przyciskow, pokaz plansze
+    """STWÓRZ GRĘ: sprawdz kreator, pobierz nagrania przyciskow, pokaz plansze
     rozmowy. parent.stoper jest zatrzymany przez wywolujacego."""
 
     def load():

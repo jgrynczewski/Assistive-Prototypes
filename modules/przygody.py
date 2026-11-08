@@ -12,7 +12,9 @@ Uklad 3 x 5, skanowanie jak na innych planszach (wiersze -> przyciski):
 STWÓRZ GRĘ - rozmowa z AI o nowej grze (modules/kreator.py). Gier na strone
 jest PER_PAGE; wiecej - DALEJ przechodzi na nastepna strone (z ostatniej na
 pierwsza). Lista jest budowana z serwera przy kazdym powrocie na plansze -
-nowa gra pojawia sie bez zmiany kodu AP.
+nowa gra pojawia sie bez zmiany kodu AP. Gdy jakas gra sie tworzy, plansza
+sprawdza co REFRESH ms, czy juz gotowa, i sama podmienia kafelek (bez
+przerywania skanowania).
 
 Kafelki: gry wbudowane - ich ikony; gry z kreatora - obrazek z serwera
 (pierwsza klatka animacji) z tytulem; gra w trakcie tworzenia i nieudana -
@@ -36,6 +38,7 @@ _log = logging.getLogger('gra')
 ROWS, COLUMNS = 3, 5
 PER_PAGE = ROWS * COLUMNS - 3   # bez STWÓRZ GRĘ, DALEJ i POWRÓT
 FAILED_DAYS = 3                 # nieudana gra widoczna (z komunikatem) tyle dni
+REFRESH = 30000                 # [ms] co ile sprawdzac, czy tworzona gra jest gotowa
 
 # Ikony gier wbudowanych, w tej kolejnosci na poczatku listy
 BUILTIN = [('sala_pod_zegarem', 'icons/new_games/tajemnica_zegara.png'),
@@ -60,6 +63,11 @@ def _recent(created):
     except (TypeError, ValueError):
         return False
     return datetime.datetime.now() - when < datetime.timedelta(days=FAILED_DAYS)
+
+
+def _tiles_view(data):
+    """Co widac na kafelkach - czy odswiezona lista cos zmienia."""
+    return [(tile['key'], tile['kind'], tile['title']) for tile in data['tiles']]
 
 
 def load_tiles():
@@ -132,6 +140,9 @@ class AdventuresBoard(board.Board):
         buttons = [{'key': 'POLE%d' % i, 'text': u''} for i in range(ROWS * COLUMNS)]
         board.Board.__init__(self, parent, buttons, rows=ROWS, columns=COLUMNS)
         self.showPage(0)
+        self.refresher = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self._checkMade, self.refresher)
+        self.refresher.Start(REFRESH)
 
     #-------------------------------------------------------------------------
     def _tileSize(self):
@@ -209,9 +220,10 @@ class AdventuresBoard(board.Board):
     def pages(self):
         return max(1, (len(self.data['tiles']) + PER_PAGE - 1) // PER_PAGE)
 
-    def showPage(self, page):
+    def showPage(self, page, keepScanning=False):
         """Kafelki strony: STWÓRZ GRĘ, gry strony, puste pola, DALEJ (gdy jest
-        wiecej stron), POWRÓT."""
+        wiecej stron), POWRÓT. keepScanning - skanowanie idzie dalej bez zmian
+        (podmiana kafelka, gdy gra sie stworzyla)."""
         self.page = page % self.pages()
         interface = self.data['interface']
         # STWORZ GRE - rozmowa z AI (nagranie z kreatora; kreator nie dziala - milena)
@@ -248,8 +260,9 @@ class AdventuresBoard(board.Board):
             b.SetName(key)
             b.Refresh()
             self.labels.append(key)
-        self.resetScanning()
-        self._clearHighlight()
+        if not keepScanning:
+            self.resetScanning()
+            self._clearHighlight()
         self.Layout()
 
     def _file(self, path):
@@ -258,8 +271,9 @@ class AdventuresBoard(board.Board):
         return self.bitmaps[path]
 
     #-------------------------------------------------------------------------
-    def refresh(self):
-        """Lista gier od nowa (powrot z gry albo z rozmowy) - w tle."""
+    def refresh(self, automatic=False):
+        """Lista gier od nowa (powrot z gry albo z rozmowy) - w tle.
+        automatic - sprawdzenie w trakcie tworzenia gry (_checkMade)."""
         if self.loading:
             return
         self.loading = True
@@ -268,14 +282,25 @@ class AdventuresBoard(board.Board):
             self.loading = False
             if not self:
                 return
+            # Bez zmian na planszy, gdy: nic nowego; kreator chwilowo nie odpowiada
+            # (kafelek tworzonej gry by zniknal); skanowanie idzie po przyciskach -
+            # nacisniecie mogloby wybrac inna gre niz przeczytana. Kolejna proba za REFRESH.
+            if automatic and (_tiles_view(data) == _tiles_view(self.data)
+                              or not data['creator'] or self.flag == 'columns'):
+                return
             self.data = data
             self.bitmaps = dict((k, v) for k, v in self.bitmaps.items() if k.startswith('icons/'))
-            self.showPage(self.page)
+            self.showPage(self.page, keepScanning=automatic)
 
         def on_error(e):
             self.loading = False  # zostaje stara lista; gra sama powie, gdy serwer nie dziala
 
         gra.run_in_thread(load_tiles, on_success, on_error)
+
+    def _checkMade(self, event):
+        """Co REFRESH ms: serwery pytane tylko, gdy plansza jest widoczna i jakas gra sie tworzy."""
+        if self.IsShown() and any(tile['kind'] == 'w_toku' for tile in self.data['tiles']):
+            self.refresh(automatic=True)
 
     def Show(self, show=True):
         result = board.Board.Show(self, show)
@@ -283,6 +308,10 @@ class AdventuresBoard(board.Board):
             self.refresh()
         self.shownOnce = self.shownOnce or show
         return result
+
+    def onExit(self):
+        self.refresher.Stop()
+        board.Board.onExit(self)
 
     #-------------------------------------------------------------------------
     def _voice(self, name):

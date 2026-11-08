@@ -84,14 +84,14 @@ W AP: `git pull`.
 | # | Test | Oczekiwane | Wynik |
 |---|---|---|---|
 | P1 | gry → plansza | SKOCZEK, SKOCZEK2, ŁAPACZ, GRY PRZYGODOWE (książka z górami), puste pole; POWRÓT pod nimi; przy skanowaniu „Gry przygodowe” (głos AP) | passed (nagranie `sounds/gry_przygodowe.ogg` zrobione na komputerze z AP - dodać do repo) |
-| P2 | GRY PRZYGODOWE | plansza 3 x 5: STWÓRZ GRĘ, TAJEMNICA ZEGARA, OSTATNIA ZWROTKA (ich ikony), puste pola, POWRÓT w prawym dolnym rogu; skanowanie wierszami, potem przyciskami; tytuły czyta narrator; Tajemnica zegara - jej nagranie z AP (`sounds/tajemnica_zegara.ogg`), STWÓRZ GRĘ - narrator | 1. próba: czytało „Sala pod zegarem” (tytuł scenariusza), kafelek nazywał się NOWA GRA - poprawione, do powtórzenia |
-| P3 | TAJEMNICA ZEGARA, kilka scen, WYJDŹ; to samo z ZWROTKĄ | gry jak wcześniej (zegar z ludzikami, ogród), zapisy zachowane - KONTYNUUJ wraca tam, gdzie przed aktualizacją; WYJDŹ wraca na planszę GRY PRZYGODOWE | |
-| P4 | `cd ~/ap-gra && docker compose stop ap-gra-kreator`, potem STWÓRZ GRĘ; potem `docker compose start ap-gra-kreator` | „Tworzenie gier nie jest uruchomione.”, zostaje plansza | |
+| P2 | GRY PRZYGODOWE | plansza 3 x 5: STWÓRZ GRĘ, TAJEMNICA ZEGARA, OSTATNIA ZWROTKA (ich ikony), puste pola, POWRÓT w prawym dolnym rogu; skanowanie wierszami, potem przyciskami; tytuły czyta narrator; Tajemnica zegara - jej nagranie z AP (`sounds/tajemnica_zegara.ogg`), STWÓRZ GRĘ - narrator | passed (2. próba; w 1. czytało „Sala pod zegarem”, kafelek nazywał się NOWA GRA - poprawione; nagranie `sounds/tajemnica_zegara.ogg` zrobione na komputerze z AP - dodać do repo) |
+| P3 | TAJEMNICA ZEGARA, kilka scen, WYJDŹ; to samo z ZWROTKĄ | gry jak wcześniej (zegar z ludzikami, ogród), zapisy zachowane - KONTYNUUJ wraca tam, gdzie przed aktualizacją; WYJDŹ wraca na planszę GRY PRZYGODOWE | passed |
+| P4 | `cd ~/ap-gra && docker compose stop ap-gra-kreator`, potem STWÓRZ GRĘ; potem `docker compose start ap-gra-kreator` | „Tworzenie gier nie jest uruchomione.”, zostaje plansza | passed |
 | P5 | STWÓRZ GRĘ | „Myślę...”, po kilku sekundach pierwsze pytanie AI czytane przez narratora; pod nim 2-3 odpowiedzi i „Inne propozycje”, na dole WRÓĆ (od drugiego pytania) i PRZERWIJ | |
 | P6 | Odpowiedź, potem „Inne propozycje”, potem WRÓĆ | „Wybrałeś: …”, „Myślę...”, następne pytanie; „Inne propozycje” - to samo pytanie z innymi odpowiedziami; WRÓĆ - od razu poprzednie odpowiedzi (bez „Myślę...”) | |
 | P7 | Odpowiadać do końca rozmowy | tytuł i streszczenie pomysłu; ROZPOCZNIJ / INNY POMYSŁ; INNY POMYSŁ - nowe streszczenie | |
 | P8 | ROZPOCZNIJ | „Tworzę grę. To potrwa kilkanaście minut…”, powrót na planszę; nowy kafelek z tytułem i „(tworzy się)”; po wybraniu: „Ta gra jeszcze się tworzy.” | |
-| P9 | Po kilkunastu minutach: POWRÓT i ponownie GRY PRZYGODOWE (zanotować, ile trwało tworzenie: `curl -s localhost:8767/v1/kreator/gry`) | kafelek z obrazkiem i tytułem; tytuł czyta narrator | |
+| P9 | Zostać na planszy GRY PRZYGODOWE i poczekać kilkanaście minut (zanotować, ile trwało tworzenie: `curl -s localhost:8767/v1/kreator/gry`) | kafelek sam zmienia się na obrazek z tytułem, zwykle do około 30 s po skończeniu (dłużej, gdy skanowanie jest akurat w wierszu, po przyciskach); skanowanie nie zaczyna się od nowa; tytuł czyta narrator | |
 | P10 | Nowa gra: kilka scen, WYJDŹ, ponownie → KONTYNUUJ, gra do końca | z prawej animacja gry (płynna, w pętli); tekst czyta narrator; zapis i zakończenia jak w innych grach | |
 | P11 | `top` przy otwartej nowej grze | AP < 30% CPU (jak G10); pamięć AP nie rośnie z czasem | |
 | P12 | STWÓRZ GRĘ, kilka odpowiedzi, PRZERWIJ | powrót na planszę, bez nowego kafelka | |

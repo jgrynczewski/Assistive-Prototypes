@@ -6,7 +6,7 @@ Aplikacja dla osób komunikujących się jednym przełącznikiem lub eyetrackere
 Mapa wszystkich trzech repozytoriów (AP, Wicero, ap-gra), komputery, zasady pracy i pułapki: **`docs/mapa-projektow.md` w repo `wicero`** (`C:\Users\User\PycharmProjects\wicero` na komputerze deweloperskim).
 - **Wicero** (filmy od kontaktów, PRZEŚLIJ): działa i jest przetestowane na komputerze użytkownika. Stan i następne zadanie („nieaktywny kontakt”): `WICERO_PLAN.md` → „▶ Start następnej sesji”; decyzja: `docs/adr/0001-modul-wicero.md`.
 - **Film w tle** (W TLE, kafel ODTWARZACZ w YOUTUBE i NOWE): `AT_YOUTUBE_PROGRESS.md` → „Zgłoszone przez użytkownika”; do testu B11-B12 (LOSOWE).
-- **Gry przygodowe** (plansza GAMES → GRY PRZYGODOWE: Tajemnica zegara, Ostatnia zwrotka i gry tworzone przez użytkownika z AI): `GRA_PLAN.md` (testy P1-P13 od 2026-11-08 - do zrobienia); serwer gry i kreator - repo `ap-gra` (`docs/kreator-gier.md`).
+- **Gry przygodowe** (plansza GAMES → GRY PRZYGODOWE: Tajemnica zegara, Ostatnia zwrotka i gry tworzone przez użytkownika z AI): `GRA_PLAN.md` (testy P1-P11 zaliczone 2026-11-08, zostały P12 i P13); serwer gry i kreator - repo `ap-gra` (`docs/kreator-gier.md`).
 - Kod UI pisany na komputerze deweloperskim nie da się tam uruchomić (brak wx 2.8 / VLC) - kompilacja w Pythonie 2.7 w Dockerze, testy ręczne u użytkownika, po jednym; AP z terminala: `python ap.py 2>&1 | tee /tmp/ap.log`.
 
 ## Zasady

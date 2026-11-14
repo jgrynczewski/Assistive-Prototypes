@@ -11,7 +11,8 @@ Kompan zapamietal, po jednym: Dalej, To nieprawda, usuń, Wystarczy).
 
 Od czasu do czasu, w przerwie w rozmowie, serwer pokazuje przeglad nowych
 wpisow (status "przeglad"): ekran jak pytanie, ale bez stalych odpowiedzi i
-bez WRÓĆ.
+bez WRÓĆ. Tak samo przekazanie czegos bliskim (status "przekaz"): komu, potem
+Wyślij / Popraw / Nie wysyłaj; wysyla serwer.
 
 Tak samo jak w rozmowie o grze (modules/kreator.py): AP nie czeka na AI, tylko
 mowi "Myślę..." i co sekunde pyta o stan; WRÓĆ nie pyta AI. Inaczej niz tam:
@@ -36,7 +37,7 @@ MAX_POLL_ERRORS = 10   # tyle nieudanych pytan pod rzad - Kompan przestal dziala
 MIN_FONT = 8
 
 # Stany rozmowy (kompan/rozmowa.py w ap-gra)
-MYSLI, PYTANIE, BLAD, LIMIT, PRZEGLAD = 'mysli', 'pytanie', 'blad', 'limit', 'przeglad'
+MYSLI, PYTANIE, BLAD, LIMIT, PRZEGLAD, PRZEKAZ = 'mysli', 'pytanie', 'blad', 'limit', 'przeglad', 'przekaz'
 
 # Stale odpowiedzi w dolnym rzedzie, w kolejnosci z serwera (pole "stale")
 FIXED = ['BLISKO', 'INNE', 'ZMIEN']
@@ -105,7 +106,7 @@ class KompanBoard(gra.NarratedBoard):
     def __init__(self, parent, health):
         self.latest = health.get('ostatnia')
         self.cid = None          # identyfikator rozmowy na serwerze
-        self.shown = None        # (status, tekst) pokazane na ekranie
+        self.shown = None        # (status, tekst, opcje) pokazane na ekranie
         self.numbers = {}        # klucz stalej odpowiedzi -> numer dla serwera
         self.notes = []          # CO O MNIE WIESZ: wpisy z serwera
         self.noteIndex = 0
@@ -248,14 +249,16 @@ class KompanBoard(gra.NarratedBoard):
                 self.poller.Start(POLL)
             return
         self.poller.Stop()
-        if (status, view['tekst']) == self.shown:
+        # Z opcjami: przy wyborze osob ten sam tekst ma kolejne strony (Inne osoby)
+        shown = (status, view['tekst'], tuple(o['tekst'] for o in view['opcje']))
+        if shown == self.shown:
             return
-        self.shown = (status, view['tekst'])
-        if status in (PYTANIE, PRZEGLAD):
+        self.shown = shown
+        if status in (PYTANIE, PRZEGLAD, PRZEKAZ):
             # Rozmowa moze trwac godzinami, a kazde pytanie to nowe nagrania - w
             # pamieci tylko te z biezacego ekranu. Nic teraz nie gra (stopReading)
             self.sounds = {}
-            # Stale odpowiedzi tylko te, ktore podal serwer (w przegladzie - zadne)
+            # Stale odpowiedzi tylko te, ktore podal serwer (w przegladzie i przekazaniu - zadne)
             fixed = [key for key, item in zip(FIXED, view['stale'])]
             self.numbers = dict((key, item['numer']) for key, item in zip(FIXED, view['stale']))
             options = [('OPCJA%d' % o['numer'], o['tekst'], o.get('path'),

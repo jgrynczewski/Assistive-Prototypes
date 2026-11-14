@@ -52,5 +52,15 @@ def leave(cid):
     return _request('POST', '/v1/kompan/rozmowy/%s/wyjscie' % cid)
 
 
+def notes():
+    """CO O MNIE WIESZ: {"wpisy": [{"id", "tekst", "przypuszczenie", "audio"}]}."""
+    return _request('GET', '/v1/kompan/notatki')
+
+
+def remove_note(nid):
+    """To nieprawda, usuń - zwraca liste jak notes()."""
+    return _request('POST', '/v1/kompan/notatki/%s/usun' % nid)
+
+
 def audio_file(audio):
     return gra_client.audio_file(audio, BASE_URL)

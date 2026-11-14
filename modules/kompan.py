@@ -6,7 +6,12 @@ ap-gra-kompan, docs/kompan.md). Wejscie: kafelek KOMPAN na planszy NOWE.
 Ekran jak w grze (gra.NarratedBoard): u gory wypowiedz czytana glosem
 narratora, pod nia 2-4 odpowiedzi od AI, na dole Blisko, Inne propozycje, Zmień
 temat, WRÓĆ, ZAKOŃCZ. Pierwsze wejscie - od razu nowa rozmowa; potem najpierw
-WRÓĆ DO ROZMOWY (z tematem) albo NOWA ROZMOWA.
+WRÓĆ DO ROZMOWY (z tematem), NOWA ROZMOWA albo CO O MNIE WIESZ (wpisy, ktore
+Kompan zapamietal, po jednym: Dalej, To nieprawda, usuń, Wystarczy).
+
+Od czasu do czasu, w przerwie w rozmowie, serwer pokazuje przeglad nowych
+wpisow (status "przeglad"): ekran jak pytanie, ale bez stalych odpowiedzi i
+bez WRÓĆ.
 
 Tak samo jak w rozmowie o grze (modules/kreator.py): AP nie czeka na AI, tylko
 mowi "Myślę..." i co sekunde pyta o stan; WRÓĆ nie pyta AI. Inaczej niz tam:
@@ -31,7 +36,7 @@ MAX_POLL_ERRORS = 10   # tyle nieudanych pytan pod rzad - Kompan przestal dziala
 MIN_FONT = 8
 
 # Stany rozmowy (kompan/rozmowa.py w ap-gra)
-MYSLI, PYTANIE, BLAD, LIMIT = 'mysli', 'pytanie', 'blad', 'limit'
+MYSLI, PYTANIE, BLAD, LIMIT, PRZEGLAD = 'mysli', 'pytanie', 'blad', 'limit', 'przeglad'
 
 # Stale odpowiedzi w dolnym rzedzie, w kolejnosci z serwera (pole "stale")
 FIXED = ['BLISKO', 'INNE', 'ZMIEN']
@@ -80,6 +85,18 @@ def prepare(view):
     return view
 
 
+def prepare_notes(data):
+    """W watku: nagrania wpisow (dopisuje 'path'); zwraca liste wpisow."""
+    for entry in data['wpisy']:
+        entry['path'] = kompan_client.audio_file(entry.get('audio'))
+    return data['wpisy']
+
+
+def paragraphs(segments):
+    """Segmenty jako osobne akapity."""
+    return [((u'' if i == 0 else u'\n\n'),) + tuple(segment[1:]) for i, segment in enumerate(segments)]
+
+
 #=============================================================================
 class KompanBoard(gra.NarratedBoard):
 
@@ -90,6 +107,8 @@ class KompanBoard(gra.NarratedBoard):
         self.cid = None          # identyfikator rozmowy na serwerze
         self.shown = None        # (status, tekst) pokazane na ekranie
         self.numbers = {}        # klucz stalej odpowiedzi -> numer dla serwera
+        self.notes = []          # CO O MNIE WIESZ: wpisy z serwera
+        self.noteIndex = 0
         self.seq = 0             # rosnie przy kazdym zapytaniu - stare odpowiedzi pomijane
         self.polling = False
         self.pollErrors = 0
@@ -100,7 +119,12 @@ class KompanBoard(gra.NarratedBoard):
                                     ('ZAKONCZ', 'zakoncz'), ('KOMPAN', 'kompan'),
                                     ('DO_ROZMOWY', 'wroc_do_rozmowy'), ('NOWA', 'nowa_rozmowa'),
                                     ('WYBRALES', 'wybrales'), ('MYSLE', 'mysle'),
-                                    ('BLAD', 'blad'), ('LIMIT', 'limit')])
+                                    ('BLAD', 'blad'), ('LIMIT', 'limit'),
+                                    ('CO_WIESZ', 'co_o_mnie_wiesz'), ('DALEJ', 'dalej'),
+                                    ('USUN', 'usun'), ('WYSTARCZY', 'wystarczy'),
+                                    ('PRZYPUSZCZENIE', 'przypuszczenie'),
+                                    ('KONIEC_NOTATEK', 'koniec_notatek'),
+                                    ('BRAK_NOTATEK', 'brak_notatek'), ('USUNALEM', 'usunalem')])
         self.poller = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self._poll, self.poller)
 
@@ -157,14 +181,59 @@ class KompanBoard(gra.NarratedBoard):
         self.setSegments([self._line('MYSLE', u'Myślę...')])
         self.startReading()
 
-    def showEntry(self):
-        """Jest rozmowa, do ktorej mozna wrocic."""
+    def showEntry(self, segments=None):
+        """Jest rozmowa, do ktorej mozna wrocic. segments - tekst zamiast
+        "Kompan" (np. po przejrzeniu wpisow)."""
         self.setButtons([('DO_ROZMOWY', self.latest['etykieta'], self.latest.get('path'),
                           (self.latest.get('audio') or {}).get('duration')),
-                         self._interfaceOption('NOWA', u'Nowa rozmowa')],
+                         self._interfaceOption('NOWA', u'Nowa rozmowa'),
+                         self._interfaceOption('CO_WIESZ', u'Co o mnie wiesz')],
                         ['ZAKONCZ'])
-        self.setSegments([self._line('KOMPAN', u'Kompan')])
+        self.setSegments(paragraphs(segments or [self._line('KOMPAN', u'Kompan')]))
         self.startReading()
+
+    def showNote(self, index, before=None):
+        """CO O MNIE WIESZ: wpis numer index (od 0); po ostatnim - ekran wejscia.
+        before - segmenty przed wpisem (np. "Usunąłem.")."""
+        before = before or []
+        self.noteIndex = index
+        if index >= len(self.notes):
+            if self.notes:
+                end = self._line('KONIEC_NOTATEK', u'To wszystko, co zapamiętałem.')
+            else:
+                end = self._line('BRAK_NOTATEK', u'Jeszcze nic o Tobie nie zapamiętałem.')
+            self.showEntry(before + [end])
+            return
+        note = self.notes[index]
+        segments = before + [(u'', note['tekst'], note.get('path'), (note.get('audio') or {}).get('duration'))]
+        if note.get('przypuszczenie'):
+            segments.append(self._line('PRZYPUSZCZENIE', u'To moje przypuszczenie.'))
+        self.setButtons([self._interfaceOption('DALEJ', u'Dalej'),
+                         self._interfaceOption('USUN', u'To nieprawda, usuń'),
+                         self._interfaceOption('WYSTARCZY', u'Wystarczy')],
+                        ['ZAKONCZ'])
+        self.setSegments(paragraphs(segments))
+        self.startReading()
+
+    def notesRequest(self, call, index, before=None):
+        """call() -> wpisy (w watku), potem showNote(index)."""
+        if self.busy:
+            return
+        self.busy = True
+        self.stopReading()
+
+        def on_success(notes):
+            self.busy = False
+            if self:
+                self.notes = notes
+                self.showNote(index, before)
+
+        def on_error(e):
+            self.busy = False
+            if self:
+                board.say_then(error_text(e), self.onExit)
+
+        gra.run_in_thread(lambda: prepare_notes(call()), on_success, on_error)
 
     def apply(self, view):
         """Pokaz stan rozmowy z serwera."""
@@ -182,15 +251,17 @@ class KompanBoard(gra.NarratedBoard):
         if (status, view['tekst']) == self.shown:
             return
         self.shown = (status, view['tekst'])
-        if status == PYTANIE:
+        if status in (PYTANIE, PRZEGLAD):
             # Rozmowa moze trwac godzinami, a kazde pytanie to nowe nagrania - w
             # pamieci tylko te z biezacego ekranu. Nic teraz nie gra (stopReading)
             self.sounds = {}
+            # Stale odpowiedzi tylko te, ktore podal serwer (w przegladzie - zadne)
+            fixed = [key for key, item in zip(FIXED, view['stale'])]
             self.numbers = dict((key, item['numer']) for key, item in zip(FIXED, view['stale']))
             options = [('OPCJA%d' % o['numer'], o['tekst'], o.get('path'),
                         (o.get('audio') or {}).get('duration'))
                        for o in view['opcje']]
-            self.setButtons(options, FIXED + self._bottom(canGoBack))
+            self.setButtons(options, fixed + self._bottom(canGoBack))
             self.setSegments([(u'', view['tekst'], view.get('path'),
                                (view.get('audio') or {}).get('duration'))])
         elif status == LIMIT:
@@ -271,6 +342,17 @@ class KompanBoard(gra.NarratedBoard):
             self._confirm(key, lambda: self.request(lambda: kompan_client.come_back(latest)))
         elif key == 'NOWA':
             self._confirm(key, lambda: self.request(kompan_client.start))
+        elif key == 'CO_WIESZ':
+            self._confirm(key, lambda: self.notesRequest(kompan_client.notes, 0))
+        elif key == 'DALEJ':
+            self.showNote(self.noteIndex + 1)
+        elif key == 'USUN' and self.noteIndex < len(self.notes):
+            nid, index = self.notes[self.noteIndex]['id'], self.noteIndex
+            self._confirm(key, lambda: self.notesRequest(
+                lambda: kompan_client.remove_note(nid), index,
+                [self._line('USUNALEM', u'Usunąłem.')]))
+        elif key == 'WYSTARCZY':
+            self.showEntry()
         elif key == 'WROC' and cid:
             self.shown = None
             self.request(lambda: kompan_client.back(cid))

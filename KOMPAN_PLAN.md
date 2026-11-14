@@ -2,12 +2,21 @@
 
 Rozmowa z AI na dowolny temat: Kompan z czasem coraz lepiej zna użytkownika, może dowiedzieć się czegoś na prośbę innej osoby i przekazać to, co ważne, za zgodą użytkownika.
 
-**Stan (2026-11-08):** kod serwera (etap 1) i modułu w AP (etap 2) gotowy, jeszcze bez prawdziwego AI i bez testów na komputerze z AP. Następny krok: uruchomienie i test K1.
+**Stan (2026-11-09):** kod etapów 1-3 gotowy (serwer, moduł w AP, pamięć), jeszcze bez prawdziwego AI i bez testów na komputerze z AP. Następny krok: uruchomienie i test K1.
 
 - Wszystkie ustalenia, architektura i plan etapów do odhaczania: `docs/kompan.md` w repo `ap-gra`
 - Serwer: usługa `ap-gra-kompan` w `ap-gra`, port 8768
 - W tym repozytorium: `kompan_client.py`, `modules/kompan.py`, kafelek KOMPAN na planszy NOWE (zamiast pustego pola), ikona. Brakuje nagrania `sounds/kompan.ogg` (do tego czasu głos AP)
 - Plansza jak rozmowa o grze (`modules/kreator.py`, `gra.NarratedBoard`)
+
+## Do zrobienia przez Ciebie
+
+Po kolei, każde wtedy, gdy będzie potrzebne:
+- [ ] Teraz: klucz API `ap-kompan` i uruchomienie (poniżej), potem testy K1-K5 po jednym
+- [ ] Kiedy chcesz: notatki startowe w `~/ap-gra/dane-kompan/notatki_startowe.txt`
+- [ ] Kiedy chcesz: nagranie `sounds/kompan.ogg` (nazwa kafelka; do tego czasu głos AP)
+- [ ] Przed etapem 4: konto Gmail dla Kompana i hasło aplikacji (tylko w `.env.kompan`), lista osób
+- [ ] Przed etapem 5: dostęp SSH do komputera z AP
 
 ## Uruchomienie na komputerze z AP
 
@@ -41,7 +50,7 @@ Po jednym, z oczekiwanym wynikiem. Szczegóły dopiszemy przy każdym etapie.
 | K3 | 2 | ZAKOŃCZ, wejście ponownie: WRÓĆ DO ROZMOWY z tematem, NOWA ROZMOWA | |
 | K4 | 2 | **Czy dobrze się rozmawia:** jedno pytanie naraz, bez ślepych uliczek, Kompan sam proponuje tematy | |
 | K5 | 2 | Dzienny limit kosztów: komunikat, rozmowa zostaje zapisana | |
-| K6 | 3 | Kompan zapisuje informacje, okresowy przegląd, CO O MNIE WIESZ, usuwanie błędnego wpisu | |
+| K6 | 3 | Kompan zapisuje informacje (`curl -s localhost:8768/v1/kompan/notatki`); po ok. 5 wpisach, w spokojnej chwili, przegląd: Wszystko dobrze / Coś jest źle (po kolei, usuwanie) / Nie teraz; tekst przeglądu mieści się na ekranie; CO O MNIE WIESZ na ekranie wejścia: Dalej, To nieprawda, usuń, Wystarczy | |
 | K7 | 4 | Wybór jednej i kilku osób, Wyślij, Popraw, Nie wysyłaj; mail dochodzi, podpis i formułka | |
 | K8 | 4 | Brak internetu: wiadomość czeka i wychodzi później | |
 | K9 | 5 | Prośba od osoby z listy: Tak, zwrotka do autora tylko po zatwierdzeniu | |

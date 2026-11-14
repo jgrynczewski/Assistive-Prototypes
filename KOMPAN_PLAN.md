@@ -18,7 +18,7 @@ Po kolei, każde wtedy, gdy będzie potrzebne:
 - [ ] Najlepiej przed kolejną rozmową: notatki startowe w `~/ap-gra/dane-kompan/notatki_startowe.txt` (zwykły tekst; czytane przy każdym pytaniu, bez restartu)
 - [ ] Kiedy chcesz: nagranie `sounds/kompan.ogg` (nazwa kafelka; do tego czasu głos AP)
 - [ ] Przed testami K7-K8: konto Gmail dla Kompana, hasło aplikacji i lista osób (sekcja „Wiadomości” niżej)
-- [ ] Przed etapem 5: dostęp SSH do komputera z AP
+- [ ] Kiedyś: dostęp SSH do komputera z AP (do zdalnej pomocy; prośby przyjdą mailem, decyzja 2026-11-15)
 
 ## Uruchomienie na komputerze z AP
 
@@ -84,7 +84,7 @@ Po jednym, z oczekiwanym wynikiem. Szczegóły dopiszemy przy każdym etapie.
 | K6 | 3 | Kompan zapisuje informacje (`curl -s localhost:8768/v1/kompan/notatki`); po ok. 5 wpisach, w spokojnej chwili, przegląd: Wszystko dobrze / Coś jest źle (po kolei, usuwanie) / Nie teraz; tekst przeglądu mieści się na ekranie; CO O MNIE WIESZ na ekranie wejścia: Dalej, To nieprawda, usuń, Wystarczy | OK 2026-11-14; uwaga: przed szczegółami nowego tematu AI ma najpierw ustalić podstawy (dopisane do promptu) |
 | K7 | 4 | Porozmawiaj o czymś ważnym (np. jak z lekami): Kompan pyta „… Przekazać to komuś?”, osoby z listy i Nikomu. Jedna osoba i kilka (Komuś jeszcze?, To wszystko); potwierdzenie „Wiadomość dla: …” mieści się na ekranie; Popraw (Kompan dopytuje, potem nowa treść dla tych samych osób), Nie wysyłaj, Wyślij. Mail dochodzi: temat „Radek przekazuje przez Kompana”, treść, dopisek o AI i formułka. Kompan nie proponuje drobiazgów i nie wraca do sprawy po „Nikomu” | |
 | K8 | 4 | Odłącz internet, Wyślij: Kompan przy następnym pytaniu mówi, że nie wyszło; po podłączeniu (do 5 minut) mail dochodzi, a Kompan wspomina, że w końcu wysłał | |
-| K9 | 5 | Prośba od osoby z listy: Tak, zwrotka do autora tylko po zatwierdzeniu | |
-| K10 | 5 | Prośba: Później (trzy razy) i Nie chcę | |
+| K9 | 5 | Mail od osoby z listy: AP ogłasza go poza Kompanem; przy wejściu „Masz nową wiadomość od …”, PRZECZYTAJ (nagłówek, części z Dalej), ODPOWIEDZ - odpowiedź dochodzi w tym samym wątku; mail spoza listy albo z podrobionym nadawcą - nic się nie pojawia | |
+| K10 | 5 | PÓŹNIEJ, NIE ODPOWIADAM i powrót przez WIADOMOŚCI (osoba → tematy → wiadomość), ODPISZ Z KOMPANEM przy starej wiadomości; nowa wiadomość w trakcie rozmowy - „Przeczytać teraz?” w spokojnej chwili | |
 | K11 | 6 | Pytanie o bieżące sprawy: Kompan sprawdza w internecie | |
 | K12 | 7 | Prośba i wiadomość przez Wicero, odpowiedź odbiorcy | |

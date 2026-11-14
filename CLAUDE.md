@@ -7,7 +7,7 @@ Mapa wszystkich trzech repozytoriów (AP, Wicero, ap-gra), komputery, zasady pra
 - **Wicero** (filmy od kontaktów, PRZEŚLIJ): działa i jest przetestowane na komputerze użytkownika. Stan i następne zadanie („nieaktywny kontakt”): `WICERO_PLAN.md` → „▶ Start następnej sesji”; decyzja: `docs/adr/0001-modul-wicero.md`.
 - **Film w tle** (W TLE, kafel ODTWARZACZ w YOUTUBE i NOWE): `AT_YOUTUBE_PROGRESS.md` → „Zgłoszone przez użytkownika”; do testu B11-B12 (LOSOWE).
 - **Gry przygodowe** (plansza GAMES → GRY PRZYGODOWE: Tajemnica zegara, Ostatnia zwrotka i gry tworzone przez użytkownika z AI): `GRA_PLAN.md` (testy P1-P11 zaliczone 2026-11-08, zostały P12 i P13); serwer gry i kreator - repo `ap-gra` (`docs/kreator-gier.md`).
-- **Kompan** (rozmowa z AI, kafelek na planszy NOWE): kod etapów 1-3 (rozmowa, plansza, pamięć) gotowy 2026-11-09, testy ręczne przed nami (`kompan_client.py`, `modules/kompan.py`); `KOMPAN_PLAN.md`, ustalenia i etapy - `docs/kompan.md` w repo `ap-gra`.
+- **Kompan** (rozmowa z AI, kafelek na planszy NOWE): kod etapów 1-3 (rozmowa, plansza, pamięć) gotowy, testy K1-K6 zaliczone 2026-11-14, następny etap 4 (`kompan_client.py`, `modules/kompan.py`); `KOMPAN_PLAN.md`, ustalenia i etapy - `docs/kompan.md` w repo `ap-gra`.
 - Kod UI pisany na komputerze deweloperskim nie da się tam uruchomić (brak wx 2.8 / VLC) - kompilacja w Pythonie 2.7 w Dockerze, testy ręczne u użytkownika, po jednym; AP z terminala: `python ap.py 2>&1 | tee /tmp/ap.log`.
 
 ## Zasady

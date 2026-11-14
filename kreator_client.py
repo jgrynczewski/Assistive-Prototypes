@@ -22,8 +22,9 @@ TIMEOUT = 10
 _log = logging.getLogger('gra')
 
 
-def _request(method, path, body=None):
-    url = BASE_URL + path
+def _request(method, path, body=None, base=BASE_URL):
+    """base - inny serwer o tych samych zasadach (kompan_client)."""
+    url = base + path
     data = json.dumps(body) if body is not None else ('{}' if method == 'POST' else None)
     request = urllib2.Request(url, data, {'Content-Type': 'application/json'})
     request.get_method = lambda: method

@@ -30,7 +30,7 @@ from pygame import mixer
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import iot_client
-from modules import iot, at_youtube, youtube_menu, wicero, background
+from modules import iot, at_youtube, youtube_menu, wicero, background, kompan
 
 #=============================================================================
 class nowe( wx.Frame ):
@@ -78,7 +78,7 @@ class nowe( wx.Frame ):
 			except ValueError:
 				setattr(self, item[:item.find('=')], item[item.find('=')+1:])			
 
-                self.labels = 'IOT YOUTUBE WICERO ODTWARZACZ PUSTE EXIT'.split( )
+                self.labels = 'IOT YOUTUBE WICERO ODTWARZACZ KOMPAN EXIT'.split( )
 
                 self.flag = 'row'
                 self.pressFlag = False
@@ -108,6 +108,9 @@ class nowe( wx.Frame ):
                 if self.switchSound.lower( ) == 'voice' or self.pressSound.lower( ) == 'voice':
                         self.iotSound = mixer.Sound( self.pathToAP + '/sounds/internet_rzeczy.ogg' )
                         self.youtubeSound = mixer.Sound( self.pathToAP + '/sounds/youtube/youtube.ogg' )
+                        # Nagranie nazwy kafelka; dopoki go nie ma - glos AP
+                        kompanFile = self.pathToAP + '/sounds/kompan.ogg'
+                        self.kompanSound = mixer.Sound( kompanFile ) if os.path.exists( kompanFile ) else None
                         self.powrotSound = mixer.Sound( self.pathToAP + '/sounds/powrot.ogg' )
                         self.pusteSound = mixer.Sound( self.pathToAP + '/sounds/puste.ogg' )
                         self.usypiamSound = mixer.Sound( self.pathToAP + '/sounds/usypiam.ogg' )
@@ -120,7 +123,7 @@ class nowe( wx.Frame ):
         #-------------------------------------------------------------------------        
         def initializeBitmaps(self):
             
-            labelFiles = [ self.pathToAP + item for item in [ 'icons/modules/iot.png', 'icons/modules/youtube1.png', 'icons/modules/wicero.png', 'icons/modules/odtwarzacz.png', 'icons/modules/puste.png', 'icons/back.png'] ]
+            labelFiles = [ self.pathToAP + item for item in [ 'icons/modules/iot.png', 'icons/modules/youtube1.png', 'icons/modules/wicero.png', 'icons/modules/odtwarzacz.png', 'icons/modules/kompan.png', 'icons/back.png'] ]
 
             self.labelbitmaps = { }
             for index in xrange( len(self.labels) ):
@@ -400,6 +403,11 @@ class nowe( wx.Frame ):
                                         if not background.returnTo( self ) and self.pressSound.lower() == 'voice':
                                                 self.pusteSound.play()
 
+                                    elif label == 'KOMPAN':
+                                        self.stoper.Stop( )
+                                        # Sprawdza serwer w tle, potem chowa nowe i pokazuje plansze
+                                        kompan.open_kompan( self )
+
                                     elif label == 'EXIT':
                                         if self.pressSound.lower() == 'voice':
                                                 self.powrotSound.play()
@@ -514,6 +522,11 @@ class nowe( wx.Frame ):
                                                             wicero.say( u'Odtwarzacz' )
                                                         else:
                                                             self.pusteSound.play()
+                                                    if (b.Name == "KOMPAN"):
+                                                        if self.kompanSound:
+                                                            self.kompanSound.play()
+                                                        else:
+                                                            wicero.say( u'Kompan' )
                                                     if (b.Name == "EXIT"):
                                                         self.powrotSound.play()
                                                     if (b.Name == "PUSTE"):

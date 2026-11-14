@@ -2,11 +2,12 @@
 
 Aplikacja dla osób komunikujących się jednym przełącznikiem lub eyetrackerem (interfejs skanujący, komunikaty głosowe). Działa na komputerach użytkowników: **Ubuntu 20.04 bez aktualizacji systemu, Python 2.7, wxPython 2.8**. Kod musi działać w Pythonie 2.7 - bez f-stringów, `print` jako instrukcja lub `from __future__ import print_function`, `unicode` vs `str`.
 
-## Stan i gdzie zacząć (2026-11-04)
+## Stan i gdzie zacząć (2026-11-08)
 Mapa wszystkich trzech repozytoriów (AP, Wicero, ap-gra), komputery, zasady pracy i pułapki: **`docs/mapa-projektow.md` w repo `wicero`** (`C:\Users\User\PycharmProjects\wicero` na komputerze deweloperskim).
 - **Wicero** (filmy od kontaktów, PRZEŚLIJ): działa i jest przetestowane na komputerze użytkownika. Stan i następne zadanie („nieaktywny kontakt”): `WICERO_PLAN.md` → „▶ Start następnej sesji”; decyzja: `docs/adr/0001-modul-wicero.md`.
 - **Film w tle** (W TLE, kafel ODTWARZACZ w YOUTUBE i NOWE): `AT_YOUTUBE_PROGRESS.md` → „Zgłoszone przez użytkownika”; do testu B11-B12 (LOSOWE).
-- **Gry przygodowe** (plansza GAMES → GRY PRZYGODOWE: Tajemnica zegara, Ostatnia zwrotka i gry tworzone przez użytkownika z AI): `GRA_PLAN.md` (testy P1-P13 od 2026-11-08 - do zrobienia); serwer gry i kreator - repo `ap-gra` (`docs/kreator-gier.md`).
+- **Gry przygodowe** (plansza GAMES → GRY PRZYGODOWE: Tajemnica zegara, Ostatnia zwrotka i gry tworzone przez użytkownika z AI): `GRA_PLAN.md` (testy P1-P11 zaliczone 2026-11-08, zostały P12 i P13); serwer gry i kreator - repo `ap-gra` (`docs/kreator-gier.md`).
+- **Kompan** (rozmowa z AI, kafelek na planszy NOWE): kod etapów 1-3 (rozmowa, plansza, pamięć) gotowy 2026-11-09, testy ręczne przed nami (`kompan_client.py`, `modules/kompan.py`); `KOMPAN_PLAN.md`, ustalenia i etapy - `docs/kompan.md` w repo `ap-gra`.
 - Kod UI pisany na komputerze deweloperskim nie da się tam uruchomić (brak wx 2.8 / VLC) - kompilacja w Pythonie 2.7 w Dockerze, testy ręczne u użytkownika, po jednym; AP z terminala: `python ap.py 2>&1 | tee /tmp/ap.log`.
 
 ## Zasady
@@ -19,6 +20,7 @@ Mapa wszystkich trzech repozytoriów (AP, Wicero, ap-gra), komputery, zasady pra
 ## Inne dokumenty
 - `AT_YOUTUBE_PLAN.md`, `AT_YOUTUBE_PROGRESS.md` - moduł YouTube (`modules/youtube_menu.py`, `modules/youtube2.py`, `modules/at_youtube.py`; film w tle - `modules/background.py`)
 - `GRA_PLAN.md` - gry (`gra_client.py`, `modules/gra.py`, `modules/scenka.py`, `modules/przygody.py` - plansza GRY PRZYGODOWE; `kreator_client.py`, `modules/kreator.py` - rozmowa z AI o nowej grze); `modules/board.py` - wspólna plansza ze skanowaniem (Wicero, gra)
+- `KOMPAN_PLAN.md` - moduł Kompan (plan i testy K1-K12)
 - `SYNTEZATOR.md` - głos AP (`milena_say` → Piper mc_speech)
 - `IOT_INTEGRATION_PLAN.md` - moduł IoT (`iot_client.py`, `modules/iot.py`)
 - `parameters` (przez `reader.py`) - ustawienia użytkownika: `control`, `timeGap`, kolory, dźwięki. Obsługiwany jest tylko `control=switch` (skanowanie). `tracker` jest nieużywany od ok. 10 lat; gałęzie `control == 'tracker'` w modułach to martwa pozostałość - nie testować ani nie rozwijać (szczegóły: T11 w `WICERO_PLAN.md`).

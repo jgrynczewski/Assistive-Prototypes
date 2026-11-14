@@ -39,16 +39,31 @@ Raz, przed pierwszym testem:
 
 Podgląd rozmowy, kosztów i logów: `docs/podglad.md` w repo `ap-gra`, sekcja „Kompan”.
 
+## Czysty stan przed oddaniem użytkownikowi
+
+Wszystko, co Kompan wie i zapisuje (notatki, rozmowy, streszczenie, koszty, nagrania), jest w `~/ap-gra/dane-kompan/`. AP po swojej stronie nic o rozmowach nie przechowuje. Katalog z testów odkładamy na bok zamiast kasować - przyda się przy poprawianiu promptu:
+
+```
+cd ~/ap-gra
+docker compose stop ap-gra-kompan
+mv dane-kompan dane-kompan-testy-RRRR-MM-DD
+mkdir dane-kompan
+cp dane-kompan-testy-RRRR-MM-DD/notatki_startowe.txt dane-kompan/   # tylko jeśli są już prawdziwe notatki startowe
+docker compose start ap-gra-kompan
+```
+
+Potem Kompan nic nie wie, nie ma żadnej rozmowy (pierwsze wejście - od razu nowa), dzienny licznik kosztów startuje od zera.
+
 ## Testy na komputerze z AP
 
 Po jednym, z oczekiwanym wynikiem. Szczegóły dopiszemy przy każdym etapie.
 
 | # | Etap | Test | Wynik |
 |---|---|---|---|
-| K1 | 2 | Kafelek KOMPAN na planszy NOWE; pierwsze wejście - od razu nowa rozmowa | |
-| K2 | 2 | Przyciski (Blisko, Inne propozycje, Zmień temat, WRÓĆ, ZAKOŃCZ) mieszczą się, skanowanie nie jest za długie | |
-| K3 | 2 | ZAKOŃCZ, wejście ponownie: WRÓĆ DO ROZMOWY z tematem, NOWA ROZMOWA | |
-| K4 | 2 | **Czy dobrze się rozmawia:** jedno pytanie naraz, bez ślepych uliczek, Kompan sam proponuje tematy | |
+| K1 | 2 | Kafelek KOMPAN na planszy NOWE; pierwsze wejście - od razu nowa rozmowa | OK 2026-11-14 (pierwsze prawdziwe zapytanie do AI) |
+| K2 | 2 | Przyciski (Blisko, Inne propozycje, Zmień temat, WRÓĆ, ZAKOŃCZ) mieszczą się, skanowanie nie jest za długie | OK 2026-11-14 |
+| K3 | 2 | ZAKOŃCZ, wejście ponownie: WRÓĆ DO ROZMOWY z tematem, NOWA ROZMOWA | OK 2026-11-14 (pamięć między rozmowami - w K6) |
+| K4 | 2 | **Czy dobrze się rozmawia:** jedno pytanie naraz, bez ślepych uliczek, Kompan sam proponuje tematy | OK 2026-11-14 (sprawnie doszedł do „leki za późno”; poprawki: notatki za pamięcią podręczną - taniej, jeden wpis zamiast kilku wersji, nazywanie osób pomagających) |
 | K5 | 2 | Dzienny limit kosztów: komunikat, rozmowa zostaje zapisana | |
 | K6 | 3 | Kompan zapisuje informacje (`curl -s localhost:8768/v1/kompan/notatki`); po ok. 5 wpisach, w spokojnej chwili, przegląd: Wszystko dobrze / Coś jest źle (po kolei, usuwanie) / Nie teraz; tekst przeglądu mieści się na ekranie; CO O MNIE WIESZ na ekranie wejścia: Dalej, To nieprawda, usuń, Wystarczy | |
 | K7 | 4 | Wybór jednej i kilku osób, Wyślij, Popraw, Nie wysyłaj; mail dochodzi, podpis i formułka | |

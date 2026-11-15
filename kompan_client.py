@@ -9,10 +9,14 @@ Bledy: gra_client.GraError(kind) - 'offline' (Kompan nie dziala), 'state'
 (zapytanie nie pasuje do stanu rozmowy, HTTP 409), 'server'.
 """
 
+import os
+
 import gra_client
 import kreator_client
 
-BASE_URL = 'http://localhost:8768'
+# Testy bez ruszania danych uzytkownika: AP_KOMPAN_URL=http://localhost:8769
+# python ap.py - Kompan testowy (ap-gra: usluga ap-gra-kompan-test)
+BASE_URL = os.environ.get('AP_KOMPAN_URL', 'http://localhost:8768')
 
 
 def _request(method, path, body=None):

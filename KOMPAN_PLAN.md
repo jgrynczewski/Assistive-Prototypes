@@ -2,7 +2,7 @@
 
 Rozmowa z AI na dowolny temat: Kompan z czasem coraz lepiej zna użytkownika, może dowiedzieć się czegoś na prośbę innej osoby i przekazać to, co ważne, za zgodą użytkownika.
 
-**Stan (2026-11-14):** kod etapów 1-3 gotowy, działa na komputerze z AP z prawdziwym AI; testy K1-K6 zaliczone. Po testach poprawiony prompt (najpierw podstawy, potem szczegóły; jeden wpis na sprawę; osoby pomagające) i koszt (notatki za pamięcią podręczną). Kod etapu 4 (wiadomości mailem) gotowy 2026-11-14, etapu 5 (poczta przychodząca: WIADOMOŚCI, odpowiedzi w wątku, ogłoszenia w całym AP) 2026-11-15; czekają na konto Gmail i `osoby.json`. Od 2026-11-15 wiadomości są pisane w pierwszej osobie, z widoczną stopką o AI. **Od 2026-11-15 Radek używa Kompana na co dzień - `~/ap-gra/dane-kompan/` to prawdziwe dane: kopia przed każdą aktualizacją, testy tylko na instancji testowej (sekcje niżej).** **Uwaga:** etap 5 zmienił `Notifier` w `modules/wicero.py` (jeden zwiastun dla Wicero i Kompana) - przy K9 sprawdzić też, że ogłoszenia Wicero o filmach działają jak dotąd.
+**Stan (2026-11-14):** kod etapów 1-3 gotowy, działa na komputerze z AP z prawdziwym AI; testy K1-K6 zaliczone. Po testach poprawiony prompt (najpierw podstawy, potem szczegóły; jeden wpis na sprawę; osoby pomagające) i koszt (notatki za pamięcią podręczną). Kod etapu 4 (wiadomości mailem) gotowy 2026-11-14, etapu 5 (poczta przychodząca: WIADOMOŚCI, odpowiedzi w wątku, ogłoszenia w całym AP) 2026-11-15; czekają na konto Gmail i `osoby.json`. Od 2026-11-15 wiadomości są pisane w pierwszej osobie, z powitaniem i krótką widoczną stopką o AI, a poczta Kompana działa jak zwykła skrzynka (pisać może każdy, autoodpowiedzi oznaczone). **Od 2026-11-15 Radek używa Kompana na co dzień - `~/ap-gra/dane-kompan/` to prawdziwe dane: kopia przed każdą aktualizacją, testy tylko na instancji testowej (sekcje niżej).** **Uwaga:** etap 5 zmienił `Notifier` w `modules/wicero.py` (jeden zwiastun dla Wicero i Kompana) - przy K9 sprawdzić też, że ogłoszenia Wicero o filmach działają jak dotąd.
 
 **Następna sesja:** aktualizacja z kopią danych (sekcja „Aktualizacja bez utraty danych”), potem instancja testowa (sekcja „Testy na instancji testowej”) z kontem Gmail i testy K7-K10.
 
@@ -17,6 +17,8 @@ Po kolei, każde wtedy, gdy będzie potrzebne:
 - [x] Klucz API `ap-kompan` i uruchomienie, testy K1-K6 (2026-11-14)
 - [ ] Najlepiej przed kolejną rozmową: notatki startowe w `~/ap-gra/dane-kompan/notatki_startowe.txt` (zwykły tekst; czytane przy każdym pytaniu, bez restartu)
 - [ ] Kiedy chcesz: nagranie `sounds/kompan.ogg` (nazwa kafelka; do tego czasu głos AP)
+- [ ] Przy najbliższej aktualizacji: kopia danych Radka (sekcja „Aktualizacja bez utraty danych”)
+- [ ] Przed testami: instancja testowa (sekcja „Testy na instancji testowej”); na niej rozmowa sprawdzająca zasadę „najpierw podstawy, potem szczegóły” (dopisaną po K6)
 - [ ] Przed testami K7-K8: konto Gmail dla Kompana, hasło aplikacji i lista osób (sekcja „Wiadomości” niżej)
 - [ ] Kiedyś: dostęp SSH do komputera z AP (do zdalnej pomocy; prośby przyjdą mailem, decyzja 2026-11-15)
 
@@ -91,7 +93,7 @@ Raz, przed pierwszymi testami:
    ```
    cd ~/ap-gra
    cp .env.kompan.example .env.kompan-test
-   nano .env.kompan-test      # ANTHROPIC_API_KEY=klucz ap-kompan-test, AP_KOMPAN_LIMIT_USD=1, Gmail (sekcja „Wiadomości” niżej)
+   nano .env.kompan-test      # ANTHROPIC_API_KEY=klucz ap-kompan-test, AP_KOMPAN_LIMIT_USD=1, Gmail (sekcja „Wiadomości (etap 4) - przygotowanie” wyżej)
    mkdir -p dane-kompan-test
    cp dane-kompan/notatki_startowe.txt dane-kompan-test/     # kopia - rozmowy testowe podobne do prawdziwych
    nano dane-kompan-test/osoby.json                          # tylko Twoje adresy, nikogo prawdziwego
@@ -122,9 +124,9 @@ Po jednym, z oczekiwanym wynikiem. Szczegóły dopiszemy przy każdym etapie.
 | K4 | 2 | **Czy dobrze się rozmawia:** jedno pytanie naraz, bez ślepych uliczek, Kompan sam proponuje tematy | OK 2026-11-14 (sprawnie doszedł do „leki za późno”; poprawki: notatki za pamięcią podręczną - taniej, jeden wpis zamiast kilku wersji, nazywanie osób pomagających) |
 | K5 | 2 | Dzienny limit kosztów: komunikat, rozmowa zostaje zapisana | OK 2026-11-14 (limit 0,1 USD na próbę) |
 | K6 | 3 | Kompan zapisuje informacje (`curl -s localhost:8768/v1/kompan/notatki`); po ok. 5 wpisach, w spokojnej chwili, przegląd: Wszystko dobrze / Coś jest źle (po kolei, usuwanie) / Nie teraz; tekst przeglądu mieści się na ekranie; CO O MNIE WIESZ na ekranie wejścia: Dalej, To nieprawda, usuń, Wystarczy | OK 2026-11-14; uwaga: przed szczegółami nowego tematu AI ma najpierw ustalić podstawy (dopisane do promptu) |
-| K7 | 4 | Porozmawiaj o czymś ważnym (np. jak z lekami): Kompan pyta „… Przekazać to komuś?”, osoby z listy i Nikomu. Jedna osoba i kilka (Komuś jeszcze?, To wszystko); potwierdzenie „Wiadomość dla: …” mieści się na ekranie; Popraw (Kompan dopytuje, potem nowa treść dla tych samych osób), Nie wysyłaj, Wyślij. Mail dochodzi: nadawca „Radek (przez Kompana)”, temat - tytuł rozmowy, powitanie w tonie z opisu osoby (dla kilku osób bez imienia), treść w pierwszej osobie („Leki dostaję…”), podpis „Radek”, pod spodem krótka stopka o AI widoczna jak reszta tekstu. Kompan nie proponuje drobiazgów i nie wraca do sprawy po „Nikomu” | |
+| K7 | 4 | Porozmawiaj o czymś ważnym (np. jak z lekami): Kompan pyta „… Przekazać to komuś?”, osoby z listy i Nikomu. Jedna osoba i kilka (Komuś jeszcze?, To wszystko); potwierdzenie „Wiadomość dla: …” mieści się na ekranie; Popraw (Kompan dopytuje, potem nowa treść dla tych samych osób), Nie wysyłaj, Wyślij. Mail dochodzi: nadawca „Radek (przez Kompana)”, temat - tytuł rozmowy, powitanie w tonie z opisu osoby (dla kilku osób bez imienia; gdy wybierzesz inne osoby niż zaproponowane - „Dzień dobry,”), treść w pierwszej osobie („Leki dostaję…”), podpis „Radek”, pod spodem krótka stopka o AI widoczna jak reszta tekstu (przy K9 sprawdź też, jak stopka wygląda w ciągnącym się wątku w Gmailu). Kompan nie proponuje drobiazgów i nie wraca do sprawy po „Nikomu” | |
 | K8 | 4 | Odłącz internet, Wyślij: Kompan przy następnym pytaniu mówi, że nie wyszło; po podłączeniu (do 5 minut) mail dochodzi, a Kompan wspomina, że w końcu wysłał | |
-| K9 | 5 | Mail od osoby z listy (imię z listy) i od kogoś spoza listy (nazwa z maila): AP ogłasza go poza Kompanem, a ogłoszenia Wicero o filmach działają jak dotąd; przy wejściu „Masz nową wiadomość od …”, PRZECZYTAJ (nagłówek, części z Dalej), ODPOWIEDZ - odpowiedź dochodzi w tym samym wątku (pierwsza z powitaniem, kolejna w tym wątku bez); automatyczna odpowiedź („jestem na urlopie”) też przychodzi, z dopiskiem „To wiadomość automatyczna.”; mail z obcego adresu podpisany imieniem z listy - z adresem w nazwie („Mama (…)”) | |
+| K9 | 5 | Mail od osoby z listy (imię z listy) i od kogoś spoza listy (nazwa z maila): AP ogłasza go poza Kompanem, a ogłoszenia Wicero o filmach działają jak dotąd; przy wejściu „Masz nową wiadomość od …”, PRZECZYTAJ (nagłówek, części z Dalej), ODPOWIEDZ - odpowiedź dochodzi w tym samym wątku, także do osoby spoza listy (pierwsza z powitaniem, kolejna w tym wątku bez); automatyczna odpowiedź („jestem na urlopie”) też przychodzi, z dopiskiem „To wiadomość automatyczna.”; mail z obcego adresu podpisany imieniem z listy - z adresem w nazwie („Mama (…)”) | |
 | K10 | 5 | PÓŹNIEJ, NIE ODPOWIADAM i powrót przez WIADOMOŚCI (osoba → tematy → wiadomość), ODPISZ Z KOMPANEM przy starej wiadomości; nowa wiadomość w trakcie rozmowy - „Przeczytać teraz?” w spokojnej chwili | |
 | K11 | 6 | Pytanie o bieżące sprawy: Kompan sprawdza w internecie | |
 | K12 | 7 | Prośba i wiadomość przez Wicero, odpowiedź odbiorcy | |

@@ -60,20 +60,33 @@ Bez konta albo bez osób Kompan po prostu nic nie proponuje.
 
 Wszystko, co Kompan wie o Radku (notatki, rozmowy, streszczenie, koszty), jest w `~/ap-gra/dane-kompan/`. AP po swojej stronie nic o rozmowach nie przechowuje. **Tego katalogu nie przenosimy, nie kasujemy i nie testujemy na nim** („czysty stan” był jednorazowy, przed oddaniem Kompana).
 
-Przy każdej aktualizacji, gdy Radek nie rozmawia z Kompanem:
+Sam `git pull` danych nie rusza (`dane-kompan/` nie jest w gicie i leży poza obrazem dockera). Ryzyko jest później: nowy kod działa na prawdziwych danych, a błąd w zapisie mógłby po cichu popsuć notatki. Dlatego przed każdą aktualizacją kopia, po aktualizacji porównanie.
 
-```
-cd ~/ap-gra
-curl -s localhost:8768/v1/kompan/health | python3 -m json.tool | grep -E '"notatki"|"tytul"'   # zapisz liczbę notatek i tytuł ostatniej rozmowy
-docker compose stop ap-gra-kompan
-mkdir -p ~/kopie-kompan
-sudo tar czf ~/kopie-kompan/dane-kompan-$(date +%F-%H%M).tgz dane-kompan
-ls -lh ~/kopie-kompan                                    # kopia jest i nie ma 0 bajtów
-git pull
-docker compose build && docker compose up -d
-curl -s localhost:8768/v1/kompan/health | python3 -m json.tool | grep -E '"test"|"notatki"|"tytul"'   # "test": false, ta sama liczba notatek, ten sam tytuł
-cd ~/Assistive-Prototypes && git pull                    # potem AP od nowa
-```
+Procedurę robi skrypt `tools/kompan-aktualizuj.sh` w `ap-gra`. Robi to po kolei (to samo można zrobić ręcznie, w `~/ap-gra`):
+
+1. **Pyta, czy Radek teraz nie rozmawia z Kompanem.** Bez „t” nic nie robi.
+2. **Zapisuje stan przed:** liczbę notatek, tytuł ostatniej rozmowy i czy to instancja testowa. Jeśli Kompan na porcie 8768 nie odpowiada albo okazuje się testowy - przerywa, nic nie zmieniając.
+   ```
+   curl -s localhost:8768/v1/kompan/health | python3 -m json.tool | grep -E '"test"|"notatki"|"tytul"'
+   ```
+3. **Zatrzymuje prawdziwego Kompana**, żeby nic się nie zapisywało w trakcie kopii (instancji testowej nie dotyka):
+   ```
+   docker compose stop ap-gra-kompan
+   ```
+4. **Robi kopię `dane-kompan/` i sprawdza ją:** plik nie może być pusty i musi dać się odczytać:
+   ```
+   mkdir -p ~/kopie-kompan
+   sudo tar czf ~/kopie-kompan/dane-kompan-$(date +%F-%H%M).tgz dane-kompan
+   sudo tar tzf ~/kopie-kompan/<plik>.tgz > /dev/null && ls -lh ~/kopie-kompan
+   ```
+5. **Pobiera nowy kod i buduje:**
+   ```
+   git pull --ff-only
+   docker compose build && docker compose up -d
+   ```
+   Jeśli kopia, `git pull` albo budowanie się nie uda - przerywa i uruchamia z powrotem starą wersję (dane nietknięte).
+6. **Czeka, aż Kompan wstanie (do 2 minut), i porównuje stan** z tym sprzed aktualizacji. Ta sama liczba notatek i ten sam tytuł - „OK”. Inaczej - „UWAGA” i nazwa kopii: wtedy nie używać Kompana, dopóki tego nie sprawdzisz (w razie potrzeby przywrócić kopię, niżej).
+7. **Przypomina o AP:** `cd ~/Assistive-Prototypes && git pull`, potem AP od nowa (tego skrypt nie robi).
 
 Na koniec w AP: KOMPAN - na ekranie wejścia WRÓĆ DO ROZMOWY z ostatnim tematem Radka. Nowa wersja czyta dane starszych (sprawdza to test automatyczny), a kopia jest na wszelki wypadek. Przywrócenie kopii (tylko gdyby coś poszło źle):
 ```

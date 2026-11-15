@@ -2,7 +2,7 @@
 
 Rozmowa z AI na dowolny temat: Kompan z czasem coraz lepiej zna użytkownika, może dowiedzieć się czegoś na prośbę innej osoby i przekazać to, co ważne, za zgodą użytkownika.
 
-**Stan (2026-11-14):** kod etapów 1-3 gotowy, działa na komputerze z AP z prawdziwym AI; testy K1-K6 zaliczone. Po testach poprawiony prompt (najpierw podstawy, potem szczegóły; jeden wpis na sprawę; osoby pomagające) i koszt (notatki za pamięcią podręczną). Kod etapu 4 (wiadomości mailem) gotowy 2026-11-14, czeka na konto Gmail i `osoby.json`.
+**Stan (2026-11-14):** kod etapów 1-3 gotowy, działa na komputerze z AP z prawdziwym AI; testy K1-K6 zaliczone. Po testach poprawiony prompt (najpierw podstawy, potem szczegóły; jeden wpis na sprawę; osoby pomagające) i koszt (notatki za pamięcią podręczną). Kod etapu 4 (wiadomości mailem) gotowy 2026-11-14, etapu 5 (poczta przychodząca: WIADOMOŚCI, odpowiedzi w wątku, ogłoszenia w całym AP) 2026-11-15; czekają na konto Gmail i `osoby.json`. **Uwaga:** etap 5 zmienił `Notifier` w `modules/wicero.py` (jeden zwiastun dla Wicero i Kompana) - przy K9 sprawdzić też, że ogłoszenia Wicero o filmach działają jak dotąd.
 
 **Następna sesja:** `git pull` i `docker compose build && docker compose up -d` w `~/ap-gra` (jeśli jeszcze nie), czysty stan (sekcja niżej), notatki startowe, potem rozmowa sprawdzająca poprawki - zwłaszcza czy przy nowym temacie Kompan najpierw ustala podstawy i daje wybór kierunku. Potem przygotowanie wiadomości (sekcja niżej) i testy K7-K8.
 
@@ -49,7 +49,7 @@ Podgląd rozmowy, kosztów i logów: `docs/podglad.md` w repo `ap-gra`, sekcja �
    AP_KOMPAN_GMAIL=adres.kompana@gmail.com
    AP_KOMPAN_GMAIL_HASLO=hasło aplikacji
    ```
-3. Lista osób: `nano ~/ap-gra/dane-kompan/osoby.json` (wzór w `docs/kompan.md` w `ap-gra`, sekcja „Wiadomości”). Na pierwszy test wystarczy jedna osoba z Twoim adresem.
+3. Lista osób: `nano ~/ap-gra/dane-kompan/osoby.json` (wzór w `docs/kompan.md` w `ap-gra`, sekcja „Wiadomości”). Na pierwszy test wystarczy jedna osoba z Twoim adresem. Pole `"opis"` (kim jest dla Radka i jak do niej pisać) jest nieobowiązkowe, ale poprawia ton wiadomości i propozycje odpowiedzi.
 4. `docker compose up -d`, potem sprawdź: `curl -s localhost:8768/v1/kompan/health | python3 -m json.tool | grep -A3 poczta` - `"poczta": true`, imiona w `"osoby"`, pusty `"osoby_blad"`.
 
 Bez konta albo bez osób Kompan po prostu nic nie proponuje.
@@ -84,7 +84,7 @@ Po jednym, z oczekiwanym wynikiem. Szczegóły dopiszemy przy każdym etapie.
 | K6 | 3 | Kompan zapisuje informacje (`curl -s localhost:8768/v1/kompan/notatki`); po ok. 5 wpisach, w spokojnej chwili, przegląd: Wszystko dobrze / Coś jest źle (po kolei, usuwanie) / Nie teraz; tekst przeglądu mieści się na ekranie; CO O MNIE WIESZ na ekranie wejścia: Dalej, To nieprawda, usuń, Wystarczy | OK 2026-11-14; uwaga: przed szczegółami nowego tematu AI ma najpierw ustalić podstawy (dopisane do promptu) |
 | K7 | 4 | Porozmawiaj o czymś ważnym (np. jak z lekami): Kompan pyta „… Przekazać to komuś?”, osoby z listy i Nikomu. Jedna osoba i kilka (Komuś jeszcze?, To wszystko); potwierdzenie „Wiadomość dla: …” mieści się na ekranie; Popraw (Kompan dopytuje, potem nowa treść dla tych samych osób), Nie wysyłaj, Wyślij. Mail dochodzi: temat „Radek przekazuje przez Kompana”, treść, dopisek o AI i formułka. Kompan nie proponuje drobiazgów i nie wraca do sprawy po „Nikomu” | |
 | K8 | 4 | Odłącz internet, Wyślij: Kompan przy następnym pytaniu mówi, że nie wyszło; po podłączeniu (do 5 minut) mail dochodzi, a Kompan wspomina, że w końcu wysłał | |
-| K9 | 5 | Mail od osoby z listy: AP ogłasza go poza Kompanem; przy wejściu „Masz nową wiadomość od …”, PRZECZYTAJ (nagłówek, części z Dalej), ODPOWIEDZ - odpowiedź dochodzi w tym samym wątku; mail spoza listy albo z podrobionym nadawcą - nic się nie pojawia | |
+| K9 | 5 | Mail od osoby z listy (z `"pisze": true` w `osoby.json`): AP ogłasza go poza Kompanem, a ogłoszenia Wicero o filmach działają jak dotąd; przy wejściu „Masz nową wiadomość od …”, PRZECZYTAJ (nagłówek, części z Dalej), ODPOWIEDZ - odpowiedź dochodzi w tym samym wątku; mail spoza listy albo z podrobionym nadawcą - nic się nie pojawia | |
 | K10 | 5 | PÓŹNIEJ, NIE ODPOWIADAM i powrót przez WIADOMOŚCI (osoba → tematy → wiadomość), ODPISZ Z KOMPANEM przy starej wiadomości; nowa wiadomość w trakcie rozmowy - „Przeczytać teraz?” w spokojnej chwili | |
 | K11 | 6 | Pytanie o bieżące sprawy: Kompan sprawdza w internecie | |
 | K12 | 7 | Prośba i wiadomość przez Wicero, odpowiedź odbiorcy | |

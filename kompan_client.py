@@ -62,5 +62,31 @@ def remove_note(nid):
     return _request('POST', '/v1/kompan/notatki/%s/usun' % nid)
 
 
+def mailbox_start(mode):
+    """WIADOMOŚCI: mode 'nowe' (czekajace po kolei) albo 'lista' (osoby).
+    Stan jak w rozmowie, status "poczta"; na koniec "koniec"; po ODPOWIEDZ -
+    stan nowej rozmowy."""
+    return _request('POST', '/v1/kompan/poczta/start', {'tryb': mode})
+
+
+def mailbox_answer(number):
+    return _request('POST', '/v1/kompan/poczta/odpowiedz', {'opcja': number})
+
+
+def mailbox_back():
+    return _request('POST', '/v1/kompan/poczta/wroc')
+
+
+def mailbox_later():
+    """PÓŹNIEJ na ogloszeniu przy wejsciu: nowe przestaja byc nowe."""
+    return _request('POST', '/v1/kompan/poczta/pozniej')
+
+
+def notifications(startup=False):
+    """Teksty do przeczytania poza Kompanem (Notifier w modules/wicero.py) -
+    jak wicero_client.get_notifications."""
+    return _request('POST', '/v1/kompan/powiadomienia', {'startup': startup})['say']
+
+
 def audio_file(audio):
     return gra_client.audio_file(audio, BASE_URL)

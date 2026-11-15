@@ -25,7 +25,8 @@ import wx
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import wicero_client
-from modules import youtube2, board, background
+import kompan_client
+from modules import youtube2, board, background, kompan
 # Wspolne z modulem Gra (modules/board.py); nazwy zostaja - uzywaja ich
 # nowe.py (wicero.say) i youtube2.py (PRZESLIJ)
 from modules.board import say, say_then, resume as _resume, fill as _fill
@@ -489,15 +490,21 @@ class WiceroPlayer(youtube2.PlayerFrame):
 
 #=============================================================================
 class Notifier(wx.EvtHandler):
-    """Ogloszenia w tle - tworzony raz w ap.py (main_menu).
+    """Ogloszenia w tle - tworzony raz w ap.py (main_menu). Jeden zwiastun dla
+    calego AP (decyzja 2026-11-15, docs/kompan.md w ap-gra -> "Powiadomienia
+    i korespondencja w całym AP"): pyta kolejne zrodla i mowi po kolei.
 
-    Co minute pyta serwer, co przeczytac (nowe filmy - raz; przypomnienie
-    o nieotwartych - przy starcie i co godzine; decyduje serwer).
-    Nie dziala, gdy brak .wicero_token (AP bez Wicero). Bledy - tylko log.
+    Zrodla - co minute pyta, co przeczytac (decyduje zrodlo):
+    - Wicero (nowe filmy - raz; przypomnienie o nieotwartych - przy starcie i co
+      godzine). Tylko gdy jest .wicero_token (AP z Wicero).
+    - Kompan (nowe wiadomosci - raz; przy starcie - czekajace). Gdy Kompan nie
+      dziala na tym komputerze - po cichu nic.
+    Bledy - tylko log.
 
-    Gdy modul Wicero jest otwarty (ACTIVE) - nie pyta i nie czyta. Teksty
-    pobrane tuz przed wejsciem do Wicero (zapytanie trwa) nie gina - serwer
-    oznaczyl je juz jako ogloszone - tylko czekaja w self.pending na wyjscie.
+    Gdy modul zrodla jest otwarty (wicero.ACTIVE, kompan.ACTIVE) - nie pyta
+    tego zrodla i nie czyta jego tekstow. Teksty pobrane tuz przed wejsciem
+    do modulu (zapytanie trwa) nie gina - zrodlo oznaczylo je juz jako
+    ogloszone - tylko czekaja w self.pending na wyjscie.
 
     Tylko jeden Notifier na komputer (blokada NOTIFIER_LOCK): gdy dziala
     drugi proces AP, ten nie oglasza - inaczej kazde ogloszenie padloby
@@ -508,9 +515,9 @@ class Notifier(wx.EvtHandler):
         wx.EvtHandler.__init__(self)
         self.startup = True
         self.busy = False
-        self.pending = []
-        if not os.path.exists(wicero_client.TOKEN_FILE):
-            return
+        self.pending = []        # [(zrodlo, tekst)] - czekaja na wyjscie z modulu zrodla
+        self.wicero = os.path.exists(wicero_client.TOKEN_FILE)
+        self.kompanDown = False  # Kompan nie odpowiada - zapisane w logu raz
         if not self._lock():
             return
         self.timer = wx.Timer(self)
@@ -539,25 +546,43 @@ class Notifier(wx.EvtHandler):
 
     def _tick(self, event):
         self.timer.Start(NOTIFY_INTERVAL)
-        if self.busy or ACTIVE:
+        if self.busy:
             return
         self.busy = True
         startup = self.startup
 
+        def active(source):
+            return ACTIVE if source == 'wicero' else kompan.ACTIVE
+
+        def fetch():
+            texts = []
+            if self.wicero and not ACTIVE:
+                try:
+                    texts += [('wicero', t) for t in wicero_client.get_notifications(startup=startup)]
+                except wicero_client.WiceroError as e:
+                    _log.error('notifications: %s %s', e.kind, e.message)
+            if not kompan.ACTIVE:
+                try:
+                    texts += [('kompan', t) for t in kompan_client.notifications(startup=startup)]
+                    self.kompanDown = False
+                except Exception as e:  # Kompan nie dziala / nie ma go na tym komputerze
+                    if not self.kompanDown:
+                        _log.info('notifications kompan: %s', getattr(e, 'kind', e))
+                    self.kompanDown = True
+            return texts
+
         def worker():
             try:
-                texts = self.pending
+                queue = self.pending
                 self.pending = []
-                if not texts:
-                    texts = wicero_client.get_notifications(startup=startup)
+                if not queue:
+                    queue = fetch()
                     self.startup = False
-                for i, text in enumerate(texts):
-                    if ACTIVE:  # wejscie do Wicero w trakcie zapytania / czytania
-                        self.pending = texts[i:]
-                        break
+                for source, text in queue:
+                    if active(source):  # wejscie do modulu w trakcie zapytania / czytania
+                        self.pending.append((source, text))
+                        continue
                     say(text, wait=True)
-            except wicero_client.WiceroError as e:
-                _log.error('notifications: %s %s', e.kind, e.message)
             finally:
                 self.busy = False
 

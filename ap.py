@@ -242,7 +242,7 @@ class main_menu( wx.Frame ):
             if self.control != 'tracker':
                 self.stoper.Start( self.timeGap )
 
-            # Wicero: ogloszenia o nowych filmach w tle (nic nie robi bez .wicero_token)
+            # Ogloszenia w tle: nowe filmy Wicero (z .wicero_token) i wiadomosci Kompana
             self.wiceroNotifier = wicero.Notifier( )
 
         #-------------------------------------------------------------------------

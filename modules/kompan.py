@@ -12,7 +12,14 @@ Kompan zapamietal, po jednym: Dalej, To nieprawda, usuń, Wystarczy).
 Od czasu do czasu, w przerwie w rozmowie, serwer pokazuje przeglad nowych
 wpisow (status "przeglad"): ekran jak pytanie, ale bez stalych odpowiedzi i
 bez WRÓĆ. Tak samo przekazanie czegos bliskim (status "przekaz"): komu, potem
-Wyślij / Popraw / Nie wysyłaj; wysyla serwer.
+Wyślij / Popraw / Nie wysyłaj; wysyla serwer. I wiadomosc od kogos czytana w
+trakcie rozmowy (status "czytanie").
+
+WIADOMOŚCI (korespondencja, etap 5): przy wejsciu "Masz nową wiadomość. Pisze
+Mama." - PRZECZYTAJ / PÓŹNIEJ; na ekranie wejscia przycisk WIADOMOŚCI (n).
+Ekrany poczty robi serwer (status "poczta"), plansza pokazuje je jak pytanie;
+WRÓĆ - poziom wyzej; ODPOWIEDZ - serwer zaczyna rozmowe, plansza przechodzi
+do niej; "koniec" - ekran wejscia.
 
 Tak samo jak w rozmowie o grze (modules/kreator.py): AP nie czeka na AI, tylko
 mowi "Myślę..." i co sekunde pyta o stan; WRÓĆ nie pyta AI. Inaczej niz tam:
@@ -38,6 +45,12 @@ MIN_FONT = 8
 
 # Stany rozmowy (kompan/rozmowa.py w ap-gra)
 MYSLI, PYTANIE, BLAD, LIMIT, PRZEGLAD, PRZEKAZ = 'mysli', 'pytanie', 'blad', 'limit', 'przeglad', 'przekaz'
+CZYTANIE = 'czytanie'
+# Ekrany WIADOMOŚCI (kompan/skrzynka.py w ap-gra)
+POCZTA, KONIEC = 'poczta', 'koniec'
+
+# Plansza otwarta - Notifier (modules/wicero.py) nie oglasza wtedy wiadomosci Kompana
+ACTIVE = False
 
 # Stale odpowiedzi w dolnym rzedzie, w kolejnosci z serwera (pole "stale")
 FIXED = ['BLISKO', 'INNE', 'ZMIEN']
@@ -57,9 +70,10 @@ def open_kompan(parent):
         health = kompan_client.health()
         for item in health.get('interface', {}).values():
             item['path'] = kompan_client.audio_file(item.get('audio'))
-        latest = health.get('ostatnia')
-        if latest:
-            latest['path'] = kompan_client.audio_file(latest.get('audio'))
+        for key in ('ostatnia', 'poczta_ogloszenie', 'poczta_przycisk'):
+            item = health.get(key)
+            if item:
+                item['path'] = kompan_client.audio_file(item.get('audio'))
         return health
 
     def on_success(health):
@@ -104,7 +118,13 @@ class KompanBoard(gra.NarratedBoard):
     title = 'AP Kompan'
 
     def __init__(self, parent, health):
+        global ACTIVE
+        ACTIVE = True
         self.latest = health.get('ostatnia')
+        self.mailNews = health.get('poczta_ogloszenie')    # "Masz nową wiadomość..." albo None
+        self.mailButton = health.get('poczta_przycisk')    # "Wiadomości (n)" albo None
+        self.mailWaiting = health.get('poczta_czeka', 0)
+        self.inMailbox = False   # ekrany WIADOMOŚCI (zapytania do skrzynki, nie do rozmowy)
         self.cid = None          # identyfikator rozmowy na serwerze
         self.shown = None        # (status, tekst, opcje) pokazane na ekranie
         self.numbers = {}        # klucz stalej odpowiedzi -> numer dla serwera
@@ -125,7 +145,8 @@ class KompanBoard(gra.NarratedBoard):
                                     ('USUN', 'usun'), ('WYSTARCZY', 'wystarczy'),
                                     ('PRZYPUSZCZENIE', 'przypuszczenie'),
                                     ('KONIEC_NOTATEK', 'koniec_notatek'),
-                                    ('BRAK_NOTATEK', 'brak_notatek'), ('USUNALEM', 'usunalem')])
+                                    ('BRAK_NOTATEK', 'brak_notatek'), ('USUNALEM', 'usunalem'),
+                                    ('PRZECZYTAJ', 'przeczytaj'), ('POZNIEJ', 'pozniej')])
         self.poller = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self._poll, self.poller)
 
@@ -136,7 +157,9 @@ class KompanBoard(gra.NarratedBoard):
         for button in bottom:
             self.windows[button['key']].SetFont(font)
 
-        if self.latest:
+        if self.mailNews:
+            self.showMailNews()
+        elif self.latest:
             self.showEntry()
         else:
             self.setButtons([], ['ZAKONCZ'])
@@ -182,16 +205,58 @@ class KompanBoard(gra.NarratedBoard):
         self.setSegments([self._line('MYSLE', u'Myślę...')])
         self.startReading()
 
+    def _item(self, key, item):
+        """Przycisk z tekstem i nagraniem od serwera."""
+        return (key, item['text'] if 'text' in item else item['etykieta'], item.get('path'),
+                (item.get('audio') or {}).get('duration'))
+
     def showEntry(self, segments=None):
-        """Jest rozmowa, do ktorej mozna wrocic. segments - tekst zamiast
-        "Kompan" (np. po przejrzeniu wpisow)."""
-        self.setButtons([('DO_ROZMOWY', self.latest['etykieta'], self.latest.get('path'),
-                          (self.latest.get('audio') or {}).get('duration')),
-                         self._interfaceOption('NOWA', u'Nowa rozmowa'),
-                         self._interfaceOption('CO_WIESZ', u'Co o mnie wiesz')],
-                        ['ZAKONCZ'])
+        """Ekran wejscia. segments - tekst zamiast "Kompan" (np. po przejrzeniu
+        wpisow albo wiadomosci)."""
+        self.inMailbox = False
+        options = []
+        if self.latest:
+            options.append(self._item('DO_ROZMOWY', self.latest))
+        options += [self._interfaceOption('NOWA', u'Nowa rozmowa'),
+                    self._interfaceOption('CO_WIESZ', u'Co o mnie wiesz')]
+        if self.mailButton:
+            options.append(self._item('WIADOMOSCI', self.mailButton))
+        self.setButtons(options, ['ZAKONCZ'])
         self.setSegments(paragraphs(segments or [self._line('KOMPAN', u'Kompan')]))
         self.startReading()
+
+    def showMailNews(self):
+        """Przy wejsciu: "Masz nową wiadomość. Pisze Mama." - PRZECZYTAJ / PÓŹNIEJ."""
+        self.setButtons([self._interfaceOption('PRZECZYTAJ', u'Przeczytaj'),
+                         self._interfaceOption('POZNIEJ', u'Później')], ['ZAKONCZ'])
+        self.setSegments([self._item(u'', self.mailNews)])
+        self.startReading()
+
+    def refreshEntry(self, segments=None):
+        """Po WIADOMOŚCIACH: liczby i ostatnia rozmowa mogly sie zmienic."""
+        def load():
+            health = kompan_client.health()
+            for key in ('ostatnia', 'poczta_przycisk'):
+                item = health.get(key)
+                if item:
+                    item['path'] = kompan_client.audio_file(item.get('audio'))
+            return health
+
+        def on_success(health):
+            self.busy = False
+            if self:
+                self.latest = health.get('ostatnia')
+                self.mailButton = health.get('poczta_przycisk')
+                self.mailWaiting = health.get('poczta_czeka', 0)
+                self.showEntry(segments)
+
+        def on_error(e):
+            self.busy = False
+            if self:
+                board.say_then(error_text(e), self.onExit)
+
+        self.busy = True
+        gra.run_in_thread(load, on_success, on_error)
 
     def showNote(self, index, before=None):
         """CO O MNIE WIESZ: wpis numer index (od 0); po ostatnim - ekran wejscia.
@@ -237,9 +302,17 @@ class KompanBoard(gra.NarratedBoard):
         gra.run_in_thread(lambda: prepare_notes(call()), on_success, on_error)
 
     def apply(self, view):
-        """Pokaz stan rozmowy z serwera."""
-        self.cid = view['id']
+        """Pokaz stan rozmowy z serwera (albo ekran WIADOMOŚCI)."""
         status = view['status']
+        if status == KONIEC:  # koniec WIADOMOŚCI - ekran wejscia
+            self.shown = None
+            segments = [(u'', view['tekst'], view.get('path'), (view.get('audio') or {}).get('duration'))] \
+                if view.get('tekst') else None
+            self.refreshEntry(segments)
+            return
+        self.inMailbox = status == POCZTA
+        if not self.inMailbox:
+            self.cid = view['id']
         canGoBack = view['mozna_wrocic']
         if status == MYSLI:
             if self.shown != (MYSLI, canGoBack):  # "Myślę..." czytane raz
@@ -254,11 +327,11 @@ class KompanBoard(gra.NarratedBoard):
         if shown == self.shown:
             return
         self.shown = shown
-        if status in (PYTANIE, PRZEGLAD, PRZEKAZ):
+        if status in (PYTANIE, PRZEGLAD, PRZEKAZ, CZYTANIE, POCZTA):
             # Rozmowa moze trwac godzinami, a kazde pytanie to nowe nagrania - w
             # pamieci tylko te z biezacego ekranu. Nic teraz nie gra (stopReading)
             self.sounds = {}
-            # Stale odpowiedzi tylko te, ktore podal serwer (w przegladzie i przekazaniu - zadne)
+            # Stale odpowiedzi tylko te, ktore podal serwer (w przegladzie, przekazaniu, czytaniu i poczcie - zadne)
             fixed = [key for key, item in zip(FIXED, view['stale'])]
             self.numbers = dict((key, item['numer']) for key, item in zip(FIXED, view['stale']))
             options = [('OPCJA%d' % o['numer'], o['tekst'], o.get('path'),
@@ -294,7 +367,10 @@ class KompanBoard(gra.NarratedBoard):
             self.busy = False
             if not self:
                 return
-            if e.kind == 'state' and self.cid:  # zapytanie nie pasowalo do stanu - pokaz aktualny
+            if e.kind == 'state' and self.inMailbox:  # skrzynka zamknieta (np. restart serwera)
+                self.shown = None
+                self.refreshEntry()
+            elif e.kind == 'state' and self.cid:  # zapytanie nie pasowalo do stanu - pokaz aktualny
                 self.shown = None
                 self.request(lambda: kompan_client.state(self.cid))
             else:
@@ -347,6 +423,21 @@ class KompanBoard(gra.NarratedBoard):
             self._confirm(key, lambda: self.request(kompan_client.start))
         elif key == 'CO_WIESZ':
             self._confirm(key, lambda: self.notesRequest(kompan_client.notes, 0))
+        elif key == 'PRZECZYTAJ':
+            self._confirm(key, lambda: self.request(lambda: kompan_client.mailbox_start('nowe')))
+        elif key == 'POZNIEJ':
+            # Nowe przestaja byc nowe; blad nie zatrzymuje (najwyzej ogloszenie wroci)
+            gra.run_in_thread(kompan_client.mailbox_later, lambda result: None, lambda e: None)
+            self.showEntry()
+        elif key == 'WIADOMOSCI':
+            mode = 'nowe' if self.mailWaiting else 'lista'
+            self._confirm(key, lambda: self.request(lambda: kompan_client.mailbox_start(mode)))
+        elif key == 'WROC' and self.inMailbox:
+            self.shown = None
+            self.request(kompan_client.mailbox_back)
+        elif key.startswith('OPCJA') and self.inMailbox:
+            number = int(key[len('OPCJA'):])
+            self._confirm(key, lambda: self.request(lambda: kompan_client.mailbox_answer(number)))
         elif key == 'DALEJ':
             self.showNote(self.noteIndex + 1)
         elif key == 'USUN' and self.noteIndex < len(self.notes):
@@ -366,7 +457,9 @@ class KompanBoard(gra.NarratedBoard):
 
     def onExit(self):
         """Powrot na plansze NOWE."""
+        global ACTIVE
         if not self:
             return
+        ACTIVE = False
         self.poller.Stop()
         gra.NarratedBoard.onExit(self)

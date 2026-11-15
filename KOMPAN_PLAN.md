@@ -4,7 +4,12 @@ Rozmowa z AI na dowolny temat: Kompan z czasem coraz lepiej zna użytkownika, mo
 
 **Stan (2026-11-14):** kod etapów 1-3 gotowy, działa na komputerze z AP z prawdziwym AI; testy K1-K6 zaliczone. Po testach poprawiony prompt (najpierw podstawy, potem szczegóły; jeden wpis na sprawę; osoby pomagające) i koszt (notatki za pamięcią podręczną). Kod etapu 4 (wiadomości mailem) gotowy 2026-11-14, etapu 5 (poczta przychodząca: WIADOMOŚCI, odpowiedzi w wątku, ogłoszenia w całym AP) 2026-11-15; czekają na konto Gmail i `osoby.json`. Od 2026-11-15 wiadomości są pisane w pierwszej osobie, z powitaniem i krótką widoczną stopką o AI, a poczta Kompana działa jak zwykła skrzynka (pisać może każdy, autoodpowiedzi oznaczone). **Od 2026-11-15 Radek używa Kompana na co dzień - `~/ap-gra/dane-kompan/` to prawdziwe dane: kopia przed każdą aktualizacją, testy tylko na instancji testowej (sekcje niżej).** **Uwaga:** etap 5 zmienił `Notifier` w `modules/wicero.py` (jeden zwiastun dla Wicero i Kompana) - przy K9 sprawdzić też, że ogłoszenia Wicero o filmach działają jak dotąd.
 
-**Następna sesja:** aktualizacja z kopią danych (sekcja „Aktualizacja bez utraty danych”), potem instancja testowa (sekcja „Testy na instancji testowej”) z kontem Gmail i testy K7-K10.
+**Następna sesja (stan na 2026-11-15, nic z tego jeszcze nie zrobione):**
+1. Aktualizacja z kopią danych Radka. **Za pierwszym razem kopia ręcznie** (krok 4 z sekcji „Aktualizacja bez utraty danych”), bo skrypt `tools/kompan-aktualizuj.sh` przyjdzie dopiero z tym `git pull`; potem ręcznie kroki 5-7. Od następnej aktualizacji: `bash tools/kompan-aktualizuj.sh`.
+2. Konto Gmail dla Kompana i hasło aplikacji (sekcja „Wiadomości (etap 4) - przygotowanie”, punkt 1).
+3. Instancja testowa (sekcja „Testy na instancji testowej”): klucz `ap-kompan-test`, `.env.kompan-test` z Gmailem, `dane-kompan-test/` z kopią notatek startowych i `osoby.json` tylko z Twoimi adresami (osoba z `opis`).
+4. Na instancji testowej: krótka rozmowa sprawdzająca zasadę „najpierw podstawy, potem szczegóły”, potem testy K7-K10 po kolei (tabela na końcu).
+5. Po testach: Gmail przenieść z `.env.kompan-test` do `.env.kompan`, prawdziwe `dane-kompan/osoby.json` z bliskimi Radka, instancję testową zatrzymać.
 
 - Wszystkie ustalenia, architektura i plan etapów do odhaczania: `docs/kompan.md` w repo `ap-gra`
 - Serwer: usługa `ap-gra-kompan` w `ap-gra`, port 8768

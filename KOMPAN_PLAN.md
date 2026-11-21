@@ -1,5 +1,7 @@
 # Moduł KOMPAN - plan i testy
 
+**Wątek:** repo `ablelab-plany` (`../ablelab-plany/watki/kompan.md`) - stan, kolejka, wszystkie pliki Kompana.
+
 Rozmowa z AI na dowolny temat: Kompan z czasem coraz lepiej zna użytkownika, może dowiedzieć się czegoś na prośbę innej osoby i przekazać to, co ważne, za zgodą użytkownika.
 
 **Stan (2026-11-14):** kod etapów 1-3 gotowy, działa na komputerze z AP z prawdziwym AI; testy K1-K6 zaliczone. Po testach poprawiony prompt (najpierw podstawy, potem szczegóły; jeden wpis na sprawę; osoby pomagające) i koszt (notatki za pamięcią podręczną). Kod etapu 4 (wiadomości mailem) gotowy 2026-11-14, etapu 5 (poczta przychodząca: WIADOMOŚCI, odpowiedzi w wątku, ogłoszenia w całym AP) 2026-11-15; czekają na konto Gmail i `osoby.json`. Od 2026-11-15 wiadomości są pisane w pierwszej osobie, z powitaniem i krótką widoczną stopką o AI, a poczta Kompana działa jak zwykła skrzynka (pisać może każdy, autoodpowiedzi oznaczone). **Od 2026-11-15 Radek używa Kompana na co dzień - `~/ap-gra/dane-kompan/` to prawdziwe dane: kopia przed każdą aktualizacją, testy tylko na instancji testowej (sekcje niżej).** **Uwaga:** etap 5 zmienił `Notifier` w `modules/wicero.py` (jeden zwiastun dla Wicero i Kompana) - przy K9 sprawdzić też, że ogłoszenia Wicero o filmach działają jak dotąd.

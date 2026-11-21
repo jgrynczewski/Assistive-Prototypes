@@ -3,7 +3,7 @@
 Aplikacja dla osób komunikujących się jednym przełącznikiem lub eyetrackerem (interfejs skanujący, komunikaty głosowe). Działa na komputerach użytkowników: **Ubuntu 20.04 bez aktualizacji systemu, Python 2.7, wxPython 2.8**. Kod musi działać w Pythonie 2.7 - bez f-stringów, `print` jako instrukcja lub `from __future__ import print_function`, `unicode` vs `str`.
 
 ## Stan i gdzie zacząć (2026-11-08)
-Mapa wszystkich trzech repozytoriów (AP, Wicero, ap-gra), komputery, zasady pracy i pułapki: **`docs/mapa-projektow.md` w repo `wicero`** (`C:\Users\User\PycharmProjects\wicero` na komputerze deweloperskim).
+**Najpierw: repo `ablelab-plany` obok tego repo (`../ablelab-plany/README.md`)** - kontekst, zasady, kolejka prac (co teraz), wątki obejmujące kilka repo; mapa repozytoriów, komputery i pułapki: `../ablelab-plany/mapa-projektow.md`.
 - **Wicero** (filmy od kontaktów, PRZEŚLIJ): działa i jest przetestowane na komputerze użytkownika. Stan i następne zadanie („nieaktywny kontakt”): `WICERO_PLAN.md` → „▶ Start następnej sesji”; decyzja: `docs/adr/0001-modul-wicero.md`.
 - **Film w tle** (W TLE, kafel ODTWARZACZ w YOUTUBE i NOWE): `AT_YOUTUBE_PROGRESS.md` → „Zgłoszone przez użytkownika”; do testu B11-B12 (LOSOWE).
 - **Gry przygodowe** (plansza GAMES → GRY PRZYGODOWE: Tajemnica zegara, Ostatnia zwrotka i gry tworzone przez użytkownika z AI): `GRA_PLAN.md` (testy P1-P11 zaliczone 2026-11-08, zostały P12 i P13); serwer gry i kreator - repo `ap-gra` (`docs/kreator-gier.md`).

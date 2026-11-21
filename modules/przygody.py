@@ -6,11 +6,14 @@ zwrotka) i stworzone przez uzytkownika z AI (kreator gier,
 docs/kreator-gier.md w ap-gra).
 
 Uklad 3 x 5, skanowanie jak na innych planszach (wiersze -> przyciski):
-    STWÓRZ GRĘ | gra | gra | gra | gra
-    gra      | gra | gra | gra | gra
-    gra      | gra | gra | DALEJ | POWRÓT
-STWÓRZ GRĘ - rozmowa z AI o nowej grze (modules/kreator.py). Gier na strone
-jest PER_PAGE; wiecej - DALEJ przechodzi na nastepna strone (z ostatniej na
+    gra | gra | gra | gra | gra
+    gra | gra | gra | gra | gra
+    gra | gra | gra | DALEJ | POWRÓT
+Gry od najnowszej: tworzone teraz, gry z kreatora, na koncu wbudowane.
+STWÓRZ GRĘ - rozmowa z AI o nowej grze (modules/kreator.py) - tylko raz, po
+wszystkich grach na ostatniej stronie (decyzja 2026-11-21: na poczatku kazdej
+strony zachecal bardziej do tworzenia niz do grania). Gier na strone jest
+PER_PAGE; wiecej - DALEJ przechodzi na nastepna strone (z ostatniej na
 pierwsza). Lista jest budowana z serwera przy kazdym powrocie na plansze -
 nowa gra pojawia sie bez zmiany kodu AP. Gdy jakas gra sie tworzy, plansza
 sprawdza co REFRESH ms, czy juz gotowa, i sama podmienia kafelek (bez
@@ -36,7 +39,7 @@ from modules.board import say, resume
 _log = logging.getLogger('gra')
 
 ROWS, COLUMNS = 3, 5
-PER_PAGE = ROWS * COLUMNS - 3   # bez STWÓRZ GRĘ, DALEJ i POWRÓT
+PER_PAGE = ROWS * COLUMNS - 2   # bez DALEJ i POWRÓT; STWÓRZ GRĘ liczy sie jak gra (ostatnia)
 FAILED_DAYS = 3                 # nieudana gra widoczna (z komunikatem) tyle dni
 REFRESH = 30000                 # [ms] co ile sprawdzac, czy tworzona gra jest gotowa
 
@@ -87,25 +90,29 @@ def load_tiles():
         made, creator = [], {}
 
     games = gra_client.games()
+    # Od najnowszej: gry z kreatora maja id z czasem stworzenia (g20261121_185611_...);
+    # wbudowane na koncu, w kolejnosci BUILTIN
     order = [gid for gid, icon in BUILTIN]
-    games.sort(key=lambda g: (order.index(g['id']) if g['id'] in order else len(order),
-                              not g.get('builtin'), g['id']))
+    made_games = sorted([g for g in games if not g.get('builtin')], key=lambda g: g['id'], reverse=True)
+    builtin = sorted([g for g in games if g.get('builtin')],
+                     key=lambda g: (order.index(g['id']) if g['id'] in order else len(order), g['id']))
     icons = dict(BUILTIN)
     tiles = []
-    for game in games:
+    # Gry w trakcie tworzenia i nieudane (najnowsze) - na samym poczatku
+    ready = set(g['id'] for g in games)
+    for task in sorted(made, key=lambda t: t.get('utworzona') or '', reverse=True):
+        if task['status'] == 'w_toku' or (task['status'] == 'nieudana' and _recent(task.get('utworzona'))):
+            tiles.append({'key': 'TWORZONA:%s' % task['id'], 'kind': task['status'], 'title': task['tytul'],
+                          'path': None, 'duration': None})
+        elif task['status'] == 'gotowa' and task['gra'] not in ready:
+            _log.warning('gra %s gotowa w kreatorze, a nie ma jej na serwerze gry', task['gra'])
+    for game in made_games + builtin:
         title_audio = game.get('title_audio')
         tiles.append({'key': 'GRA:%s' % game['id'], 'kind': 'gra', 'title': game['title'], 'info': game,
                       'icon': icons.get(game['id']),
                       'image': None if game.get('builtin') else gra_client.tile_file(game),
                       'path': gra_client.audio_file(title_audio),
                       'duration': (title_audio or {}).get('duration')})
-    ready = set(g['id'] for g in games)
-    for task in made:
-        if task['status'] == 'w_toku' or (task['status'] == 'nieudana' and _recent(task.get('utworzona'))):
-            tiles.append({'key': 'TWORZONA:%s' % task['id'], 'kind': task['status'], 'title': task['tytul'],
-                          'path': None, 'duration': None})
-        elif task['status'] == 'gotowa' and task['gra'] not in ready:
-            _log.warning('gra %s gotowa w kreatorze, a nie ma jej na serwerze gry', task['gra'])
     return {'tiles': tiles, 'interface': interface, 'creator': creator}
 
 
@@ -217,19 +224,23 @@ class AdventuresBoard(board.Board):
         return bitmap
 
     #-------------------------------------------------------------------------
+    def _items(self):
+        """Gry, a po nich (tylko raz, na koncu) STWÓRZ GRĘ - nagranie z
+        kreatora; kreator nie dziala - milena."""
+        text, path, duration = _voice(self.data['creator'], 'stworz_gre', u'Stwórz grę')
+        return self.data['tiles'] + [{'key': 'NOWA', 'kind': 'przycisk', 'title': text.upper(), 'path': path,
+                                      'duration': duration}]
+
     def pages(self):
-        return max(1, (len(self.data['tiles']) + PER_PAGE - 1) // PER_PAGE)
+        return max(1, (len(self._items()) + PER_PAGE - 1) // PER_PAGE)
 
     def showPage(self, page, keepScanning=False):
-        """Kafelki strony: STWÓRZ GRĘ, gry strony, puste pola, DALEJ (gdy jest
-        wiecej stron), POWRÓT. keepScanning - skanowanie idzie dalej bez zmian
-        (podmiana kafelka, gdy gra sie stworzyla)."""
+        """Kafelki strony: gry strony (na ostatniej po nich STWÓRZ GRĘ), puste
+        pola, DALEJ (gdy jest wiecej stron), POWRÓT. keepScanning - skanowanie
+        idzie dalej bez zmian (podmiana kafelka, gdy gra sie stworzyla)."""
         self.page = page % self.pages()
         interface = self.data['interface']
-        # STWORZ GRE - rozmowa z AI (nagranie z kreatora; kreator nie dziala - milena)
-        text, path, duration = _voice(self.data['creator'], 'stworz_gre', u'Stwórz grę')
-        slots = [{'key': 'NOWA', 'kind': 'przycisk', 'title': text.upper(), 'path': path, 'duration': duration}]
-        slots += self.data['tiles'][self.page * PER_PAGE:(self.page + 1) * PER_PAGE]
+        slots = self._items()[self.page * PER_PAGE:(self.page + 1) * PER_PAGE]
         while len(slots) < ROWS * COLUMNS - 2:
             slots.append({'key': 'PUSTE'})
         if self.pages() > 1:

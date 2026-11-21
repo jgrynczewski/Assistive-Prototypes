@@ -97,7 +97,8 @@ W AP: `git pull`.
 | P10 | Nowa gra: kilka scen, WYJDŹ, ponownie → KONTYNUUJ, gra do końca | z prawej animacja gry (płynna, w pętli); tekst czyta narrator; zapis i zakończenia jak w innych grach | passed (całość bardzo dobra; scenariusz z AI ma kilka niedoróbek - na razie zostawione) |
 | P11 | `top` przy otwartej nowej grze | AP < 30% CPU (jak G10); pamięć AP nie rośnie z czasem | passed (28,5% CPU, RES ok. 225 MB, bez zmian po 5 min) |
 | P12 | STWÓRZ GRĘ, kilka odpowiedzi, PRZERWIJ | powrót na planszę, bez nowego kafelka | |
-| P13 | Gier więcej niż 12 (tworzyć kolejne albo skopiować katalog gry w `~/ap-gra/dane/gry/` pod inną nazwą) | DALEJ w dolnym rzędzie; DALEJ - następna strona; z ostatniej - pierwsza | |
+| P13 | Gier więcej niż 13 (Radek ma 45, 2026-11-21) | DALEJ w dolnym rzędzie; DALEJ - następna strona; z ostatniej - pierwsza | |
+| P14 | (2026-11-21) Plansza GRY PRZYGODOWE: kolejność i STWÓRZ GRĘ | strona 1 zaczyna się od najnowszej gry (gra w trakcie tworzenia - przed nią); wbudowane (Tajemnica, Zwrotka) na ostatniej stronie; **STWÓRZ GRĘ tylko raz** - ostatni kafelek ostatniej strony; na pozostałych stronach 13 gier | |
 
 Historia rozmów i tworzenia: `~/ap-gra/dane/rozmowy/<id>/log.jsonl`; rozgrywki: `docker exec ap-gra python -m tools.statystyki`.
 

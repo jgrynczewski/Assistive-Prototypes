@@ -98,7 +98,7 @@ W AP: `git pull`.
 | P11 | `top` przy otwartej nowej grze | AP < 30% CPU (jak G10); pamięć AP nie rośnie z czasem | passed (28,5% CPU, RES ok. 225 MB, bez zmian po 5 min) |
 | P12 | STWÓRZ GRĘ, kilka odpowiedzi, PRZERWIJ | powrót na planszę, bez nowego kafelka | |
 | P13 | Gier więcej niż 13 (Radek ma 45, 2026-11-21) | DALEJ w dolnym rzędzie; DALEJ - następna strona; z ostatniej - pierwsza | |
-| P14 | (2026-11-21) Plansza GRY PRZYGODOWE: kolejność i STWÓRZ GRĘ | strona 1 zaczyna się od najnowszej gry (gra w trakcie tworzenia - przed nią); wbudowane (Tajemnica, Zwrotka) na ostatniej stronie; **STWÓRZ GRĘ tylko raz** - ostatni kafelek ostatniej strony; na pozostałych stronach 13 gier | |
+| P14 | (2026-11-21) Plansza GRY PRZYGODOWE: kolejność i STWÓRZ GRĘ | strona 1 zaczyna się od najnowszej gry (gra w trakcie tworzenia - przed nią); wbudowane (Tajemnica, Zwrotka) na ostatniej stronie; **STWÓRZ GRĘ tylko raz** - ostatni kafelek ostatniej strony; na pozostałych stronach 13 gier |  passed 2026-11-22 (najnowsza gra na początku, STWÓRZ GRĘ raz na końcu; liczby stron nie liczono - 43 gry, powinny być 4) |
 
 Historia rozmów i tworzenia: `~/ap-gra/dane/rozmowy/<id>/log.jsonl`; rozgrywki: `docker exec ap-gra python -m tools.statystyki`.
 

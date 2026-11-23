@@ -141,6 +141,7 @@ class KompanBoard(gra.NarratedBoard):
                                     ('DO_ROZMOWY', 'wroc_do_rozmowy'), ('NOWA', 'nowa_rozmowa'),
                                     ('WYBRALES', 'wybrales'), ('MYSLE', 'mysle'),
                                     ('BLAD', 'blad'), ('LIMIT', 'limit'),
+                                    ('BRAK_INTERNETU', 'brak_internetu'),
                                     ('CO_WIESZ', 'co_o_mnie_wiesz'), ('DALEJ', 'dalej'),
                                     ('USUN', 'usun'), ('WYSTARCZY', 'wystarczy'),
                                     ('PRZYPUSZCZENIE', 'przypuszczenie'),
@@ -345,7 +346,11 @@ class KompanBoard(gra.NarratedBoard):
             self.setSegments([self._line('LIMIT', u'Na dziś muszę już kończyć. Wróćmy do tego jutro.')])
         else:  # BLAD
             self.setButtons([], self._bottom(canGoBack))
-            self.setSegments([self._line('BLAD', u'Coś poszło nie tak. Wróć albo zakończ.')])
+            if view.get('powod') == 'internet':  # starszy serwer nie podaje powodu
+                self.setSegments([self._line('BRAK_INTERNETU', u'Nie mam połączenia z internetem. '
+                                                               u'Za chwilę spróbuj jeszcze raz: Wróć albo zakończ.')])
+            else:
+                self.setSegments([self._line('BLAD', u'Coś poszło nie tak. Wróć albo zakończ.')])
         self.startReading()
 
     #-------------------------------------------------------------------------

@@ -299,13 +299,15 @@ class NarratedBoard(board.Board):
         # Stale przyciski na cala szerokosc, ostatni dochodzi do prawego
         # marginesu jak w innych planszach - przy sterowaniu przelacznikiem kursor
         # myszy stoi w prawym dolnym rogu i klikniecie musi trafic w przycisk
+        # Ktory przycisk jest ostatni, zalezy od ekranu (czesc bywa ukryta) -
+        # odstep po prawej ustawia setButtons (_fitBottom)
         bottom = wx.BoxSizer(wx.HORIZONTAL)
-        last = self.buttons[-1]['key']
         for button in self.buttons[MAX_OPTIONS:]:
             b = self.makeButton(self, button, font)
             self.windows[button['key']] = b
-            bottom.Add(b, 1, wx.EXPAND | (0 if button['key'] == last else wx.RIGHT), self.xBorder)
+            bottom.Add(b, 1, wx.EXPAND | wx.RIGHT, self.xBorder)
         self.vbox.Add(bottom, 1, wx.EXPAND | wx.ALL, self.xBorder)
+        self.bottomSizer = bottom
 
         self.buttonWindows = []
         self.SetSizer(self.vbox)
@@ -340,8 +342,22 @@ class NarratedBoard(board.Board):
         self.buttonWindows = windows
         self.numberOfColumns = [len(keys)]
         self.maxColumns = [2 * len(keys)]
+        self._fitBottom(bottom)
         self._clearHighlight()
         self.Layout()
+
+    def _fitBottom(self, bottom):
+        """Ostatni WIDOCZNY staly przycisk dochodzi do prawego marginesu - tam
+        stoi kursor myszy (przelacznik klika w prawym dolnym rogu). Gdy ukryty
+        jest ostatni z listy (np. START na ekranie powitalnym), odstep po
+        prawej przy poprzednim zostawial pusty pas pod kursorem i klikniecie
+        nie trafialo (2026-11-23, ekran powitalny u Radka)."""
+        shown = [button['key'] for button in self.buttons[MAX_OPTIONS:] if button['key'] in bottom]
+        for button in self.buttons[MAX_OPTIONS:]:
+            key = button['key']
+            item = self.bottomSizer.GetItem(self.windows[key])
+            if item is not None:
+                item.SetFlag(wx.EXPAND | (0 if shown and key == shown[-1] else wx.RIGHT))
 
     def _interfaceOption(self, key, label):
         """Staly przycisk (np. KONTYNUUJ / NOWA GRA) na miejscu opcji."""

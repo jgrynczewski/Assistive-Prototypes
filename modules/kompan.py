@@ -124,6 +124,8 @@ class KompanBoard(gra.NarratedBoard):
         self.mailNews = health.get('poczta_ogloszenie')    # "Masz nową wiadomość..." albo None
         self.mailButton = health.get('poczta_przycisk')    # "Wiadomości (n)" albo None
         self.mailWaiting = health.get('poczta_czeka', 0)
+        # Instancja testowa: "Kompan, wersja testowa" zawsze slyszalne (nie przerywane przez "Myślę...")
+        self.testVersion = health.get('test', False)
         self.inMailbox = False   # ekrany WIADOMOŚCI (zapytania do skrzynki, nie do rozmowy)
         self.cid = None          # identyfikator rozmowy na serwerze
         self.shown = None        # (status, tekst, opcje) pokazane na ekranie
@@ -162,6 +164,13 @@ class KompanBoard(gra.NarratedBoard):
             self.showMailNews()
         elif self.latest:
             self.showEntry()
+        elif self.testVersion:
+            # Najpierw cale oznaczenie wersji testowej, dopiero potem rozmowa ("Myślę...")
+            self.setButtons([], ['ZAKONCZ'])
+            self.setSegments([self._line('KOMPAN', u'Kompan, wersja testowa')])
+            self.startReading()
+            wait = self.voiceDurations.get('KOMPAN') or len(self.speech.get('KOMPAN') or u'') / gra.CHARS_PER_SECOND
+            wx.CallLater(int(wait * 1000) + 500, lambda: self and self.request(kompan_client.start))
         else:
             self.setButtons([], ['ZAKONCZ'])
             self.request(kompan_client.start)
@@ -230,7 +239,10 @@ class KompanBoard(gra.NarratedBoard):
         """Przy wejsciu: "Masz nową wiadomość. Pisze Mama." - PRZECZYTAJ / PÓŹNIEJ."""
         self.setButtons([self._interfaceOption('PRZECZYTAJ', u'Przeczytaj'),
                          self._interfaceOption('POZNIEJ', u'Później')], ['ZAKONCZ'])
-        self.setSegments([self._item(u'', self.mailNews)])
+        segments = [self._item(u'', self.mailNews)]
+        if self.testVersion:  # oznaczenie wersji testowej przed wiadomoscia
+            segments = paragraphs([self._line('KOMPAN', u'Kompan, wersja testowa')] + segments)
+        self.setSegments(segments)
         self.startReading()
 
     def refreshEntry(self, segments=None):

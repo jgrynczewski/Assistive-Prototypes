@@ -31,6 +31,7 @@ MAX_POLL_ERRORS = 10   # tyle nieudanych pytan pod rzad - kreator przestal dzial
 # Stany rozmowy (kreator/rozmowa.py w ap-gra)
 MYSLI, PYTANIE, PODSUMOWANIE, BLAD = 'mysli', 'pytanie', 'podsumowanie', 'blad'
 PRZERWANA, ZATWIERDZONA = 'przerwana', 'zatwierdzona'
+LIMIT = 'limit'  # limit gier (dzien / tydzien) wyczerpany - bez rozmowy, tekst mowi kiedy nastepna
 
 
 def error_text(error):
@@ -142,12 +143,17 @@ class ConversationBoard(gra.NarratedBoard):
             self.setButtons([], self._bottom(view['mozna_wrocic']))
             self.setSegments([self._line('BLAD', u'Coś poszło nie tak. Wróć albo przerwij.')])
             self.startReading()
-        elif status == ZATWIERDZONA:
-            # Gra tworzy sie w tle - komunikat, potem powrot do planszy gier
+        elif status in (ZATWIERDZONA, LIMIT):
+            # Gra tworzy sie w tle albo limit gier wyczerpany - komunikat, potem powrot do planszy gier
+            if status == LIMIT:  # tekst od serwera ("Następną stworzymy za 3 dni.")
+                self.speech['LIMIT'] = view['tekst']
+                self.voicePaths['LIMIT'] = view.get('path')
+                self.voiceDurations['LIMIT'] = (view.get('audio') or {}).get('duration')
+            key = 'TWORZE' if status == ZATWIERDZONA else 'LIMIT'
             self.stopReading()
             self.setButtons([], [])
-            self.setSegments([self._line('TWORZE', u'Tworzę grę.')])
-            delay = self._speak('TWORZE')
+            self.setSegments([self._line(key, u'Tworzę grę.')])
+            delay = self._speak(key)
             self.text.show(len(self.text.text))
             self.busy = True
             self.later = wx.CallLater(int(delay * 1000) + 500, self.onExit)

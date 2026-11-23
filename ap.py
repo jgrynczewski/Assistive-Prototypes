@@ -30,6 +30,7 @@ from modules import radio, music, audiobook, nowe
 from modules import exercise, tv, new_games
 from modules import wicero
 from modules import background
+from modules import powitanie
 
 # Film YouTube w tle (W TLE w odtwarzaczu) czeka, gdy gra albo mowi inny
 # modul - pauza przy otwarciu, wznowienie przy wyjsciu (modules/background.py)
@@ -953,6 +954,14 @@ class main_menu( wx.Frame ):
 if __name__ == '__main__':
 
         app = wx.App(False)
-        frame = main_menu( parent = None, id = -1 )
-        frame.Show( True )
+
+        def start():
+                # Wlasciwe AP: menu glowne, skanowanie i zwiastun (Notifier)
+                frame = main_menu( parent = None, id = -1 )
+                frame.Show( True )
+
+        # Najpierw "Co nowego" (modules/powitanie.py) - wlasciwe AP dopiero po
+        # START / POMIN, zeby nic sie nie nakladalo; brak nowosci - od razu
+        if not powitanie.open_welcome( start ):
+                start( )
         app.MainLoop( )

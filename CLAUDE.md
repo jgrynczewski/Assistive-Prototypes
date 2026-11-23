@@ -22,5 +22,6 @@ Aplikacja dla osób komunikujących się jednym przełącznikiem lub eyetrackere
 - `GRA_PLAN.md` - gry (`gra_client.py`, `modules/gra.py`, `modules/scenka.py`, `modules/przygody.py` - plansza GRY PRZYGODOWE; `kreator_client.py`, `modules/kreator.py` - rozmowa z AI o nowej grze); `modules/board.py` - wspólna plansza ze skanowaniem (Wicero, gra)
 - `KOMPAN_PLAN.md` - moduł Kompan (plan i testy K1-K12)
 - `SYNTEZATOR.md` - głos AP (`milena_say` → Piper mc_speech)
+- **„Co nowego”** - ekran powitalny przy starcie AP (`modules/powitanie.py`, logika `co_nowego.py`, testy `test_co_nowego.py`, lista nowości `co_nowego.json`). **Każda zmiana widoczna dla użytkownika kończy się wpisem w `co_nowego.json`** (najwyżej dwa krótkie zdania, prosty język, bez form rodzajowych); przed aktualizacją komputera z AP nowe wpisy do akceptacji właściciela. Plan i testy ręczne: `../ablelab-plany/watki/co-nowego.md`
 - `IOT_INTEGRATION_PLAN.md` - moduł IoT (`iot_client.py`, `modules/iot.py`)
 - `parameters` (przez `reader.py`) - ustawienia użytkownika: `control`, `timeGap`, kolory, dźwięki. Obsługiwany jest tylko `control=switch` (skanowanie). `tracker` jest nieużywany od ok. 10 lat; gałęzie `control == 'tracker'` w modułach to martwa pozostałość - nie testować ani nie rozwijać (szczegóły: T11 w `WICERO_PLAN.md`).

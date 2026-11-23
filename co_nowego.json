@@ -1,0 +1,21 @@
+[
+ {"id": "2026-11-23-kompan-wyslane",
+  "data": "2026-11-23",
+  "tekst": "Po wysłaniu wiadomości Kompan mówi teraz, czy wiadomość wyszła. Jeśli nie było internetu, wiadomość czeka i wyjdzie sama za kilka minut.",
+  "wymaga": "kompan"},
+ {"id": "2026-11-23-kompan-bez-internetu",
+  "data": "2026-11-23",
+  "tekst": "Gdy nie ma internetu, Kompan mówi o tym wprost. Wystarczy spróbować jeszcze raz za chwilę.",
+  "wymaga": "kompan"},
+ {"id": "2026-11-23-kompan-pomoc",
+  "data": "2026-11-23",
+  "tekst": "Na liście kontaktów Kompana jest teraz Pomoc AbleLab. Tam można napisać, gdy coś nie działa.",
+  "wymaga": "kompan"},
+ {"id": "2026-11-23-godziny-slowami",
+  "data": "2026-11-23",
+  "tekst": "Kompan i gry czytają teraz godziny i daty słowami, na przykład: o siódmej trzydzieści."},
+ {"id": "2026-11-23-limit-gier",
+  "data": "2026-11-23",
+  "tekst": "Nową grę można teraz stworzyć raz dziennie, najwyżej pięć w tygodniu. Gdy limit się skończy, usłyszysz, kiedy można stworzyć następną.",
+  "wymaga": "kreator"}
+]

@@ -18,7 +18,7 @@ Opcje i przyciski czyta glos narratora (nie milena).
 
 NarratedBoard - wspolna czesc z plansza rozmowy z AI (modules/kreator.py):
 uklad, czytanie tekstu w takt nagran, skanowanie glosem narratora,
-"Wybrałeś:".
+"Twój wybór:".
 
 Zapis gry (gra_client): po kazdej scenie; przy wejsciu, gdy jest zapis -
 KONTYNUUJ / NOWA GRA.
@@ -47,7 +47,7 @@ TYPE_TICK = 40              # [ms] krok wypisywania tekstu
 CHARS_PER_SECOND = 14.0     # tempo wypisywania linii bez nagrania
 OPTION_PAUSE = 1000         # [ms] po przeczytaniu przycisku, zanim skanowanie przejdzie dalej
                             # (parametr gameOptionPause w pliku parameters)
-CONFIRM_PAUSE = 150         # [ms] miedzy "Wybrałeś:" a nazwa opcji
+CONFIRM_PAUSE = 150         # [ms] miedzy "Twój wybór:" a nazwa opcji
 AFTER_CONFIRM = 500         # [ms] po potwierdzeniu, przed nastepna scena
 
 
@@ -258,8 +258,8 @@ class NarratedBoard(board.Board):
             self.voicePaths[key] = item.get('path')
             self.voiceDurations[key] = (item.get('audio') or {}).get('duration')
             self.speech[key] = item.get('text')
-        # Starszy serwer (bez nagrania "Wybrałeś:") - przeczyta milena
-        self.speech['WYBRALES'] = self.speech.get('WYBRALES') or u'Wybrałeś'
+        # Starszy serwer (bez nagrania "Twój wybór:") - przeczyta milena
+        self.speech['WYBRALES'] = self.speech.get('WYBRALES') or u'Twój wybór'
 
     def bottomButtons(self):
         return []
@@ -480,7 +480,7 @@ class NarratedBoard(board.Board):
 
     #-------------------------------------------------------------------------
     def _confirm(self, key, then):
-        """"Wybrałeś:" + nazwa wybranego przycisku (podswietlony kolorem wyboru
+        """"Twój wybór:" + nazwa wybranego przycisku (podswietlony kolorem wyboru
         przez Board.onPress), potem then(). Naciśniecia w tym czasie - bez skutku."""
         self.busy = True
         self.stoper.Stop()

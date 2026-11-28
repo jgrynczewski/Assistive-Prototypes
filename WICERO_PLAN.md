@@ -148,7 +148,7 @@ Konta testowe Test Anna (admin), Test Bartek, Test Celina, Test Dorota, Test Ewa
 
 ## Przygotowanie (na komputerze użytkownika)
 
-1. `git pull` na gałęzi `user/radek/master`.
+1. `git pull` na gałęzi `main`.
 2. Token: aplikacja Wicero (konto osoby korzystającej z AP) → "Urządzenia" → "Dodaj urządzenie" (albo panel admina → użytkownik → Urządzenia) → skopiować token i zapisać jako jedyną linię `.wicero_token` w katalogu AP. Token jest pokazywany tylko raz.
 3. W Wicero: konto musi mieć kontakt (przyjęte zaproszenie) z kontem nadawcy, a nadawca wysłać mu 1-2 filmy.
 4. `milena_say` i `yt-dlp` - te same co dla YouTube (`AT_YOUTUBE_PLAN.md`). Zamiana milena_say na Piper TTS (lepszy głos): `SYNTEZATOR.md`.
@@ -213,7 +213,7 @@ Serwer (R8): do wdrożenia z repo `wicero` (`firebase deploy --only functions`).
 ## Testy na nowym API (2026-10-31, T21 w repo `wicero`)
 
 Przygotowanie:
-1. Zamknąć AP (`ps aux | grep ap.py` - pusto), `git pull` na `user/radek/master`.
+1. Zamknąć AP (`ps aux | grep ap.py` - pusto), `git pull` na `main`.
 2. Nadawca w aplikacji Wicero (web) zalogowany jako **Test Anna**. Panel admina (Test Anna) → Test Bartek → Urządzenia → "Dodaj urządzenie" `AP - komputer użytkownika` → token jako jedyna linia `.wicero_token` (stary token przestał działać).
 3. Test Anna wysyła Test Bartkowi 2 filmy: jeden **z komentarzem**, jeden **bez**.
 
